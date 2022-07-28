@@ -30,6 +30,8 @@ enable:
   retrieve_cutout: true
   build_natura_raster: false
   retrieve_natura_raster: true
+  build_ship_raster: false
+  retrieve_ship_raster: true
   custom_busmap: false
 
 electricity:
@@ -134,6 +136,7 @@ renewable:
     # until done more rigorously in #153
     corine: [44, 255]
     natura: true
+    ship_threshold: 400
     max_depth: 50
     max_shore_distance: 30000
     potential: simple # or conservative
@@ -151,6 +154,7 @@ renewable:
     # until done more rigorously in #153
     corine: [44, 255]
     natura: true
+    ship_threshold: 400
     max_depth: 50
     min_shore_distance: 30000
     potential: simple # or conservative
