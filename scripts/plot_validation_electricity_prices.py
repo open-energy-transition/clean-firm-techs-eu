@@ -32,7 +32,7 @@ if __name__ == "__main__":
     historic = pd.read_csv(
         snakemake.input.electricity_prices,
         index_col=0,
-        header=[0, 1],
+        header=0,
         parse_dates=True,
     )
 
