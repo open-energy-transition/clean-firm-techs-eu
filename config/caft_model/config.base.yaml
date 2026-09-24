@@ -1,5 +1,5 @@
 run:
-  name: "caft-baseline"
+  name: "catf-baseline"
 
 scenario:
   clusters: [40]
@@ -24,8 +24,14 @@ sector:
   SMR_cc: false
   electricity_distribution_grid: true
   gas_distribution_grid: false
+  hydrogen_fuel_cell: false
+  hydrogen_turbine: false
+  hydrogen_underground_storage: false
+  methanol:
+    biomass_to_methanol: false
+    methanol_to_power:
+      ocgt: false
   biomass_spatial: false
-
 
 co2_budget:
   2040: 0.1
