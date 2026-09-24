@@ -10,7 +10,7 @@ foresight: myopic
 sector:
   transport: false
   heating: false
-  biomass: false        
+  biomass: false
   industry: false
   shipping: false
   aviation: false
@@ -18,7 +18,7 @@ sector:
   H2_network: false
   gas_network: false
   ammonia: false
-  methanation: false       
+  methanation: false
   dac: false
   SMR: false
   SMR_cc: false
