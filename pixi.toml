@@ -200,7 +200,11 @@ validate-config = "pytest test/test_config_schema.py::test_config_file_is_valid 
 [feature.test.dependencies]
 pytest = ">=8.4.2"
 
+[feature.caft-model.tasks]
+caft-baseline = "snakemake -call solve_sector_networks --configfile config/caft_model/config.base.yaml"
+
 [environments]
 doc = { features = ["doc"], no-default-feature = true }
 test = ["test", "dev"]
 dev = ["dev"]
+caft-model = ["caft-model"]
