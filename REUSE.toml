@@ -134,3 +134,10 @@ path = [
 ]
 SPDX-FileCopyrightText = "Open Energy Transition gGmbH"
 SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = [
+    "config/catf_model/*",
+]
+SPDX-FileCopyrightText = "The clean-firm-techs-eu authors"
+SPDX-License-Identifier = "CC0-1.0"
