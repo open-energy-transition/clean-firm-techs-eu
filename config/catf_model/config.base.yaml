@@ -1,0 +1,42 @@
+run:
+  name: "catf-baseline"
+
+scenario:
+  clusters: [40]
+  planning_horizons: [2030, 2040, 2050]
+
+foresight: myopic
+
+sector:
+  transport: false
+  heating: false
+  biomass: false
+  industry: false
+  shipping: false
+  aviation: false
+  agriculture: false
+  H2_network: false
+  gas_network: false
+  ammonia: false
+  methanation: false
+  dac: false
+  SMR: false
+  SMR_cc: false
+  electricity_distribution_grid: true
+  gas_distribution_grid: false
+  hydrogen_fuel_cell: false
+  hydrogen_turbine: false
+  hydrogen_underground_storage: false
+  methanol:
+    biomass_to_methanol: false
+    methanol_to_power:
+      ocgt: false
+  biomass_spatial: false
+
+co2_budget:
+  2040: 0.1
+  2050: 0.0
+
+clustering:
+  temporal:
+    resolution_sector: '6h'
