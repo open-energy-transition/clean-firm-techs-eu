@@ -59,6 +59,7 @@ sector:
       allam: false
 
 electricity:
+  powerplants_filter: "(DateOut > 2025 or DateOut != DateOut) and (DateIn < 2026 or DateIn != DateIn) and Fueltype != 'Solar'"
   extendable_carriers:
     # Long-duration electricity storage (iron-air, vanadium, compressed air) excluded
     StorageUnit: []
