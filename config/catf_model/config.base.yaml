@@ -8,30 +8,60 @@ scenario:
 foresight: myopic
 
 sector:
-  transport: false
-  heating: false
-  biomass: false
-  industry: false
-  shipping: false
-  aviation: false
-  agriculture: false
-  H2_network: false
-  gas_network: false
-  ammonia: false
-  methanation: false
-  dac: false
-  SMR: false
-  SMR_cc: false
+  # Enabled sectors
+  transport: true
+  heating: true
+  biomass: true
+  industry: true
+  shipping: true
+  aviation: true
+  agriculture: true
+
+  # Enabled technologies
+  fossil_fuels: true
   electricity_distribution_grid: true
-  gas_distribution_grid: false
+  gas_distribution_grid: true # add capital costs to decentralized gas boilers and micro-CHPs
+  H2_network: true
+  gas_network: true
+  co2_network: true
+  ammonia: true
+  methanation: true
+  SMR: true
+  biomass_to_liquid: true
+  electrobiofuels: true
+  biomass_spatial: true
+
+  # Firm technologies excluded from baseline
+  # Hydrogen to power
   hydrogen_fuel_cell: false
   hydrogen_turbine: false
   hydrogen_underground_storage: false
+
+  # Advanced geothermal
+  enhanced_geothermal:
+    enable: false
+
+  # Disabled CCS technologies
+  dac: false
+  SMR_cc: false
+  coal_cc: false
+  allam_cycle_gas: false
+  biomass_to_liquid_cc: false
+  biogas_upgrading_cc: false
+
+  # Methanol to power
   methanol:
-    biomass_to_methanol: false
+    biomass_to_methanol: true
     methanol_to_power:
       ocgt: false
-  biomass_spatial: false
+      ccgt: false
+      ccgt_cc: false
+      allam: false
+
+electricity:
+  extendable_carriers:
+    # Long-duration electricity storage (iron-air, vanadium, compressed air) excluded
+    StorageUnit: []
 
 co2_budget:
   2040: 0.1
@@ -40,3 +70,14 @@ co2_budget:
 clustering:
   temporal:
     resolution_sector: '6h'
+
+solving:
+  options:
+    load_sinks:
+      enable: true
+      all_carriers: false
+      carriers:
+        co2: 100000   # EUR/tCO2
+  solver_options:
+    gurobi-default:
+      threads: 8
