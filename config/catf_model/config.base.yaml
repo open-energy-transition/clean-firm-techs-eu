@@ -65,6 +65,7 @@ electricity:
   extendable_carriers:
     # Long-duration electricity storage (iron-air, vanadium, compressed air) excluded
     StorageUnit: []
+  transmission_limit: v1.0
 
 co2_budget:
   2040: 0.1
