@@ -13,15 +13,16 @@ sector:
   heating: true
   biomass: true
   industry: true
-  shipping: true
-  aviation: true
   agriculture: true
+
+  # Disabled sectors
+  shipping: false
+  aviation: false
 
   # Enabled technologies
   fossil_fuels: true
   electricity_distribution_grid: true
   gas_distribution_grid: true # add capital costs to decentralized gas boilers and micro-CHPs
-  H2_network: true
   gas_network: true
   co2_network: true
   ammonia: true
@@ -36,6 +37,7 @@ sector:
   hydrogen_fuel_cell: false
   hydrogen_turbine: false
   hydrogen_underground_storage: false
+  H2_network: false
 
   # Advanced geothermal
   enhanced_geothermal:
@@ -78,7 +80,7 @@ solving:
       enable: true
       all_carriers: false
       carriers:
-        co2: 100000   # EUR/tCO2
+        co2: 1000   # EUR/tCO2
   solver_options:
     gurobi-default:
       threads: 8
