@@ -73,7 +73,7 @@ co2_budget:
 
 clustering:
   temporal:
-    resolution_sector: '6h'
+    segmentation: 1460
 
 solving:
   options:
