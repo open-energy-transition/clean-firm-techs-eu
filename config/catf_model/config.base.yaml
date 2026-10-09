@@ -1,0 +1,102 @@
+run:
+  name: "catf-baseline"
+
+
+planning_horizons: [2030, 2040, 2050]
+
+foresight: myopic
+
+sector:
+  # Enabled sectors
+  transport: true
+  heating: true
+  biomass: true
+  industry: true
+  agriculture: true
+
+  # Disabled sectors
+  shipping: false
+  aviation: false
+
+  # Enabled technologies
+  fossil_fuels: true
+  electricity_distribution_grid: true
+  gas_distribution_grid: true # add capital costs to decentralized gas boilers and micro-CHPs
+  gas_network: true
+  co2_network: true
+  ammonia: true
+  methanation: true
+  SMR: true
+  biomass_to_liquid: true
+  electrobiofuels: true
+  biomass_spatial: true
+  H2_network: true
+  hydrogen_turbine: true
+
+  # Firm technologies excluded from baseline
+  # Hydrogen to power
+  hydrogen_fuel_cell: false
+  hydrogen_underground_storage: false
+  electrolysis: false
+
+  # Advanced geothermal
+  enhanced_geothermal:
+    enable: false
+
+  # Disabled CCS technologies
+  dac: false
+  SMR_cc: false
+  coal_cc: false
+  allam_cycle_gas: false
+  biomass_to_liquid_cc: false
+  biogas_upgrading_cc: false
+  chp:
+    fuel_cc: []
+
+  # Methanol to power
+  methanol:
+    biomass_to_methanol: true
+    methanol_to_power:
+      ocgt: false
+      ccgt: false
+      ccgt_cc: false
+      allam: false
+
+  # Long-duration storage
+  district_heating:
+    ptes:
+      enable: false
+
+industry:
+  # Disabled CCS technologies
+  solid_biomass_for_industry_cc: false
+  gas_for_industry_cc: false
+  process_emissions_cc: false
+
+electricity:
+  powerplants_filter: "(DateOut > 2025 or DateOut != DateOut) and (DateIn < 2026 or DateIn != DateIn)"
+  extendable_carriers:
+    # Long-duration electricity storage (iron-air, vanadium, compressed air) excluded
+    StorageUnit: []
+  transmission_limit: v1.0
+
+co2_budget:
+  2040: 0.1
+  2050: 0.0
+
+clustering:
+  cluster_network:
+    n_clusters: 40
+  temporal:
+    segmentation: 1460
+
+solving:
+  options:
+    load_sinks:
+      enable: true
+      all_carriers: false
+      carriers:
+        co2: 1000   # EUR/tCO2
+  solver_options:
+    gurobi-default:
+      threads: 8
