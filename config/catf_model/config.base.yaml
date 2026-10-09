@@ -1,5 +1,5 @@
 run:
-  name: "catf-baseline-test"
+  name: "catf-baseline"
 
 
 planning_horizons: [2030, 2040, 2050]
