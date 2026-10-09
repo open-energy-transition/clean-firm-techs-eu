@@ -30,13 +30,13 @@ sector:
   biomass_to_liquid: true
   electrobiofuels: true
   biomass_spatial: true
+  H2_network: true
+  hydrogen_turbine: true
 
   # Firm technologies excluded from baseline
   # Hydrogen to power
   hydrogen_fuel_cell: false
-  hydrogen_turbine: false
   hydrogen_underground_storage: false
-  H2_network: false
 
   # Advanced geothermal
   enhanced_geothermal:
@@ -49,6 +49,8 @@ sector:
   allam_cycle_gas: false
   biomass_to_liquid_cc: false
   biogas_upgrading_cc: false
+  chp:
+    fuel_cc: []
 
   # Methanol to power
   methanol:
@@ -58,6 +60,11 @@ sector:
       ccgt: false
       ccgt_cc: false
       allam: false
+
+  # Long-duration storage
+  district_heating:
+    ptes:
+      enable: false
 
 electricity:
   powerplants_filter: "(DateOut > 2025 or DateOut != DateOut) and (DateIn < 2026 or DateIn != DateIn) and Fueltype != 'Solar'"
