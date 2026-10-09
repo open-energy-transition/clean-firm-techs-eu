@@ -7,4 +7,4 @@
 <!-- Upcoming Release -->
 <!-- ================= -->
 
-* Add config file for baseline scenario that includes electricity sector with conventional generation, renewables, biomass, Li-ion batteries, PHS and electricity distribution grid enabled ([#7](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/7)). 
+* Add config file for baseline scenario that includes a sector-coupled model with the following sectors `electricity`, `transport`, `biomass`, `heat`, `industry`, and `agriculture` ([#22](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/22)). 
