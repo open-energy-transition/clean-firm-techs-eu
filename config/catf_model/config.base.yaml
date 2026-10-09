@@ -37,6 +37,7 @@ sector:
   # Hydrogen to power
   hydrogen_fuel_cell: false
   hydrogen_underground_storage: false
+  electrolysis: false
 
   # Advanced geothermal
   enhanced_geothermal:
@@ -66,8 +67,14 @@ sector:
     ptes:
       enable: false
 
+industry:
+  # Disabled CCS technologies
+  solid_biomass_for_industry_cc: false
+  gas_for_industry_cc: false
+  process_emissions_cc: false
+
 electricity:
-  powerplants_filter: "(DateOut > 2025 or DateOut != DateOut) and (DateIn < 2026 or DateIn != DateIn) and Fueltype != 'Solar'"
+  powerplants_filter: "(DateOut > 2025 or DateOut != DateOut) and (DateIn < 2026 or DateIn != DateIn)"
   extendable_carriers:
     # Long-duration electricity storage (iron-air, vanadium, compressed air) excluded
     StorageUnit: []
