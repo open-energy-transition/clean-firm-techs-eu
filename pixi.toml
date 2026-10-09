@@ -200,7 +200,11 @@ validate-config = "pytest test/test_config_schema.py::test_config_file_is_valid 
 [feature.test.dependencies]
 pytest = ">=8.4.2"
 
+[feature.catf-model.tasks]
+catf-baseline = "snakemake -call solve_networks --configfile config/catf_model/config.base.yaml"
+
 [environments]
 doc = { features = ["doc"], no-default-feature = true }
 test = ["test", "dev"]
 dev = ["dev"]
+catf-model = ["catf-model"]
