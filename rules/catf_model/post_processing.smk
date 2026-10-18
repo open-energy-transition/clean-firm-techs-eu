@@ -4,7 +4,7 @@
 
 
 rule export_marginal_prices:
-    """Exports the marginal prices of all bus carriers as one CSV per carrier."""
+    """Exports the marginal prices of the configured bus carriers as one CSV per carrier."""
     input:
         network=RESULTS + "networks/solved_{horizon}.nc",
     output:
@@ -16,6 +16,13 @@ rule export_marginal_prices:
     threads: 1
     resources:
         mem_mb=4000,
+    params:
+        carriers=config_provider(
+            "catf_model",
+            "post_processing",
+            "marginal_prices",
+            "carriers",
+        ),
     script:
         scripts("catf_model/post_processing/export_marginal_prices.py")
 

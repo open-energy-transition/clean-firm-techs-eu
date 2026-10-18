@@ -2,10 +2,12 @@
 #
 # SPDX-License-Identifier: MIT
 """
-Exports the marginal prices of all bus carriers of a solved network as CSV files.
+Exports the marginal prices of selected bus carriers of a solved network as CSV files.
 
-Writes one wide CSV per bus carrier (e.g. ``AC.csv``, ``low_voltage.csv``,
-``H2.csv``) with snapshots as rows and bus names as columns. Alongside the
+The carriers are set in ``catf_model.post_processing.marginal_prices.carriers``
+(``all`` exports every bus carrier). Writes one wide CSV per bus carrier (e.g.
+``AC.csv``, ``low_voltage.csv``, ``H2.csv``) with snapshots as rows and bus
+names as columns. Alongside the
 prices, ``carriers.csv`` lists each carrier with its file name, number of
 buses and price unit, and ``snapshot_weightings.csv`` holds the snapshot
 weightings needed to compute correct averages under time aggregation.
@@ -56,9 +58,18 @@ if __name__ == "__main__":
     units = n.buses["unit"] if "unit" in n.buses else pd.Series("", n.buses.index)
     units = units.fillna("")
 
+    buses_by_carrier = n.buses.groupby("carrier").groups
+    carriers = snakemake.params.carriers
+    if carriers == "all":
+        carriers = list(buses_by_carrier)
+
     summary = []
-    for carrier, buses in n.buses.groupby("carrier").groups.items():
-        buses = prices.columns.intersection(buses)
+    for carrier in carriers:
+        if carrier not in buses_by_carrier:
+            logger.warning(f"Carrier '{carrier}' not found in the network, skipping.")
+            continue
+
+        buses = prices.columns.intersection(buses_by_carrier[carrier])
         if buses.empty:
             logger.warning(f"No marginal prices found for carrier '{carrier}'.")
             continue

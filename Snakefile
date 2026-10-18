@@ -30,6 +30,7 @@ from scripts.lib.validation.config import (
 
 configfile: "config/config.default.yaml"
 configfile: "config/plotting.default.yaml"
+configfile: "config/config.catf.default.yaml"
 
 
 if Path("config/config.yaml").exists():
