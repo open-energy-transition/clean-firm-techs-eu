@@ -1,0 +1,16 @@
+# Overlay on config.base.yaml to run the established-technology cost scenarios
+# defined in scenarios.cost_sensitivity.yaml.
+
+run:
+  name: all
+  scenarios:
+    enable: true
+    file: config/catf_model/scenarios.cost_sensitivity.yaml
+  # Share scenario-independent resources (e.g. clustered network, availability)
+  # across the three runs.
+  shared_resources:
+    policy: base
+    # Keep processed cost files per scenario. Required because compose_network
+    # requests them without the {horizon} wildcard, which "base" would treat as shared.
+    exclude:
+    - costs_
