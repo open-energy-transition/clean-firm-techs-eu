@@ -103,7 +103,6 @@ def horizon_emissions(
             ("flows into atmosphere", "MtCO2"): inflows / 1e6,
             ("flows out of atmosphere", "MtCO2"): outflows / 1e6,
             ("net emissions", "MtCO2"): net / 1e6,
-            ("net emissions counted towards cap", "MtCO2"): counted / 1e6,
             ("net emissions above cap", "MtCO2"): above_cap / 1e6,
             ("flows into atmosphere relative to 1990", "%"): (
                 inflows / baseline_1990 * 100
