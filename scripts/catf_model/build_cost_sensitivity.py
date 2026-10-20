@@ -89,6 +89,14 @@ def scale_costs(costs: pd.DataFrame, factor: float, cost_year: str) -> pd.DataFr
 
 
 if __name__ == "__main__":
+    if "snakemake" not in globals():
+        from scripts._helpers import mock_snakemake
+
+        snakemake = mock_snakemake(
+            "build_cost_sensitivity",
+            configfiles=["config/catf_model/config.base.yaml"],
+            factor="1.33",
+        )
     configure_logging(snakemake)
 
     factor = float(snakemake.wildcards.factor)
