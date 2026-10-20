@@ -35,6 +35,8 @@ INVESTMENT_TECHNOLOGIES = [
     "solar-rooftop residential",
     # Onshore wind
     "onwind",
+    # Grid connection of onshore wind and utility solar (add_electricity_grid_connection)
+    "distribution grid reinforcement",
     # Offshore wind turbines, substations and grid connections
     "offwind",
     "offwind-float",
