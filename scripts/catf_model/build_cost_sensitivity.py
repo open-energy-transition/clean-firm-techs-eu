@@ -63,6 +63,26 @@ INVESTMENT_TECHNOLOGIES = [
 FUEL_TECHNOLOGIES = ["gas"]
 
 
+def apply_base_costs(
+    costs: pd.DataFrame, base_factors: dict[str, float]
+) -> pd.DataFrame:
+    """
+    Return costs dataframe with base costs scaled for technologies specified in the config parameter 'cost_factors' in the format of the custom cost file.
+    """
+    for tech, factor in base_factors.items():
+        tech_rows = costs.query(
+            "technology == @tech and parameter == 'investment'"
+        ).index
+        costs.loc[tech_rows, "value"] = (costs.loc[tech_rows, "value"] * factor).round(
+            6
+        )
+        costs.loc[tech_rows, "source"] = (
+            f"CATF established-technology base cost scaling by {factor}"
+        )
+
+    return costs
+
+
 def scale_costs(costs: pd.DataFrame, factor: float, cost_year: str) -> pd.DataFrame:
     """
     Return scaled cost rows in the format of the custom cost file.
@@ -101,12 +121,14 @@ if __name__ == "__main__":
         )
     configure_logging(snakemake)
 
+    base_factors = snakemake.params.cost_factors
     factor = float(snakemake.wildcards.factor)
     cost_years = snakemake.params.cost_years
 
     default = pd.read_csv(snakemake.input.default, dtype={"planning_horizon": "str"})
+
     scaled = [
-        scale_costs(pd.read_csv(fn), factor, year)
+        scale_costs(apply_base_costs(pd.read_csv(fn), base_factors), factor, year)
         for fn, year in zip(snakemake.input.costs, cost_years)
     ]
 
