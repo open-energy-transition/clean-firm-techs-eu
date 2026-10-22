@@ -71,7 +71,7 @@ def apply_base_costs(
     """
     for tech, factor in base_factors.items():
         tech_rows = costs.query(
-            "technology == @tech and parameter == 'investment'"
+            "technology == @tech and parameter.isin(['investment', 'marginal_cost', 'VOM'])"
         ).index
         costs.loc[tech_rows, "value"] = (costs.loc[tech_rows, "value"] * factor).round(
             6
@@ -125,7 +125,7 @@ if __name__ == "__main__":
     factor = float(snakemake.wildcards.factor)
     cost_years = snakemake.params.cost_years
 
-    default = pd.read_csv(snakemake.input.default, dtype={"planning_horizon": "str"})
+    default = apply_base_costs(pd.read_csv(snakemake.input.default, dtype={"planning_horizon": "str"}), base_factors)
 
     scaled = [
         scale_costs(apply_base_costs(pd.read_csv(fn), base_factors), factor, year)
