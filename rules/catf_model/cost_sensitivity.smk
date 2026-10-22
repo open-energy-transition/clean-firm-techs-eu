@@ -15,7 +15,7 @@ rule build_cost_sensitivity:
             rules.retrieve_cost_data.output["costs"].format(horizon=year)
             for year in CATF_COST_YEARS
         ],
-        default=config["costs"]["custom_cost_fn"],
+        default="data/custom_costs.csv",
     output:
         "resources/catf_model/custom_costs_x{factor}.csv",
     log:
@@ -27,5 +27,6 @@ rule build_cost_sensitivity:
         mem_mb=1000,
     params:
         cost_years=CATF_COST_YEARS,
+        cost_factors=config_provider("cost_factors", default={}),
     script:
         scripts("catf_model/build_cost_sensitivity.py")
