@@ -84,8 +84,81 @@ rule export_all_co2_emissions:
         ),
 
 
+CATF_RUNS = (
+    config["run"]["name"]
+    if isinstance(config["run"]["name"], list)
+    else [config["run"]["name"]]
+)
+CATF_COMPARISON = (
+    "results/"
+    + (config["run"]["prefix"] + "/" if config["run"].get("prefix") else "")
+    + "catf_comparison/"
+)
+
+
+rule export_installed_capacities:
+    """Extracts the installed capacity values across all runs"""
+    params:
+        runs=CATF_RUNS,
+        planning_horizons=config["planning_horizons"],
+        sectors=config_provider(
+            "catf_model",
+            "post_processing",
+            "installed_capacity",
+            "sectors",
+        ),
+    input:
+        # Ordered by run, then horizon, as the script expects
+        networks=expand(
+            RESULTS + "networks/solved_{horizon}.nc",
+            run=CATF_RUNS,
+            horizon=config["planning_horizons"],
+        ),
+    output:
+        csv=CATF_COMPARISON + "installed_capacities.csv",
+    log:
+        CATF_COMPARISON + "logs/export_installed_capacities.log",
+    benchmark:
+        CATF_COMPARISON + "benchmarks/export_installed_capacities"
+    threads: 1
+    resources:
+        mem_mb=8000,
+    script:
+        scripts("catf_model/post_processing/export_installed_capacities.py")
+
+
+rule plot_installed_capacity:
+    """Plots the installed capacity by sector across all runs and planning horizons."""
+    input:
+        networks=expand(
+            RESULTS + "networks/solved_{horizon}.nc",
+            run=CATF_RUNS,
+            horizon=config["planning_horizons"],
+        ),
+    output:
+        plot=CATF_COMPARISON + "installed_capacity_by_sector.png",
+        csv=CATF_COMPARISON + "installed_capacity_by_sector.csv",
+    log:
+        CATF_COMPARISON + "logs/plot_installed_capacity.log",
+    threads: 1
+    resources:
+        mem_mb=8000,
+    params:
+        runs=CATF_RUNS,
+        planning_horizons=config["planning_horizons"],
+        sectors=config_provider(
+            "catf_model",
+            "post_processing",
+            "installed_capacity",
+            "sectors",
+        ),
+    script:
+        scripts("catf_model/post_processing/plot_installed_capacity.py")
+
+
 rule catf_post_processing:
     """Collects all CATF post-processing outputs."""
     input:
         rules.export_all_marginal_prices.input,
         rules.export_all_co2_emissions.input,
+        rules.plot_installed_capacity.output,
