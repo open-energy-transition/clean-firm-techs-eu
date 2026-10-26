@@ -7,8 +7,8 @@ catf-cost-central: {}
 
 catf-cost-high:
   costs:
-    custom_cost_fn: resources/catf_model/custom_costs_x1.33.csv
+    custom_cost_fn: resources/{run}/custom_costs_x1.33.csv
 
 catf-cost-low:
   costs:
-    custom_cost_fn: resources/catf_model/custom_costs_x0.75.csv
+    custom_cost_fn: resources/{run}/custom_costs_x0.75.csv
