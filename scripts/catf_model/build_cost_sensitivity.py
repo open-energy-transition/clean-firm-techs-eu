@@ -70,15 +70,22 @@ def apply_base_costs(
     Return costs dataframe with base costs scaled for technologies specified in the config parameter 'cost_factors' in the format of the custom cost file.
     """
     for tech, factor in base_factors.items():
-        tech_rows = costs.query(
-            "technology == @tech and parameter.isin(['investment', 'marginal_cost', 'VOM'])"
-        ).index
-        costs.loc[tech_rows, "value"] = (costs.loc[tech_rows, "value"] * factor).round(
-            6
-        )
-        costs.loc[tech_rows, "source"] = (
-            f"CATF established-technology base cost scaling by {factor}"
-        )
+        if tech != "distribution grid reinforcement":
+            tech_rows = costs.query(
+                "technology == @tech and parameter.isin(['investment', 'marginal_cost', 'VOM'])"
+            ).index
+
+            if tech_rows.empty:
+                logger.warning(f"Technology {tech} not found to raise investment costs by factor {factor}")
+                continue
+
+            if factor != 1:
+                costs.loc[tech_rows, "value"] = (costs.loc[tech_rows, "value"] * factor).round(
+                    6
+                )
+                costs.loc[tech_rows, "source"] = (
+                    f"CATF established-technology base cost scaling by {factor}"
+                )
 
     return costs
 
