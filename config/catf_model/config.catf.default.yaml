@@ -17,3 +17,16 @@ catf_model:
       - NH3
       - co2
       - co2 stored
+    energy_balances:
+      developer:
+        # Bus carriers to plot, or "all" for every bus carrier in the network
+        carriers:
+        - AC
+        - low voltage
+        - H2
+        - gas
+        - solid biomass
+        - NH3
+        - co2
+        - co2 stored
+        - co2 sequestered
