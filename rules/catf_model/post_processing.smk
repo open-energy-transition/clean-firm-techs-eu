@@ -96,37 +96,6 @@ CATF_COMPARISON = (
 )
 
 
-rule export_installed_capacities:
-    """Extracts the installed capacity values across all runs"""
-    params:
-        runs=CATF_RUNS,
-        planning_horizons=config["planning_horizons"],
-        sectors=config_provider(
-            "catf_model",
-            "post_processing",
-            "installed_capacity",
-            "sectors",
-        ),
-    input:
-        # Ordered by run, then horizon, as the script expects
-        networks=expand(
-            RESULTS + "networks/solved_{horizon}.nc",
-            run=CATF_RUNS,
-            horizon=config["planning_horizons"],
-        ),
-    output:
-        csv=CATF_COMPARISON + "installed_capacities.csv",
-    log:
-        CATF_COMPARISON + "logs/export_installed_capacities.log",
-    benchmark:
-        CATF_COMPARISON + "benchmarks/export_installed_capacities"
-    threads: 1
-    resources:
-        mem_mb=8000,
-    script:
-        scripts("catf_model/post_processing/export_installed_capacities.py")
-
-
 rule plot_installed_capacity:
     """Plots the installed capacity by sector across all runs and planning horizons."""
     input:
@@ -186,6 +155,48 @@ rule export_all_statistics:
         ),
 
 
+
+rule export_statistics_summary:
+    """Summarises the installed capacity, generation and demand by sector across all runs from the per-run statistics CSVs"""
+    params:
+        runs=CATF_RUNS,
+        planning_horizons=config["planning_horizons"],
+        sectors=config_provider(
+            "catf_model",
+            "post_processing",
+            "installed_capacity",
+            "sectors",
+        ),
+    input:
+        # Ordered by run, then horizon, as the script expects
+        capacities=expand(
+            RESULTS + "csvs/statistics/optimal_capacities_{horizon}.csv",
+            run=CATF_RUNS,
+            horizon=config["planning_horizons"],
+        ),
+        generation=expand(
+            RESULTS + "csvs/statistics/generation_{horizon}.csv",
+            run=CATF_RUNS,
+            horizon=config["planning_horizons"],
+        ),
+        demand=expand(
+            RESULTS + "csvs/statistics/demand_{horizon}.csv",
+            run=CATF_RUNS,
+            horizon=config["planning_horizons"],
+        ),
+    output:
+        csv=CATF_COMPARISON + "statistics_summary.csv",
+    log:
+        CATF_COMPARISON + "logs/export_statistics_summary.log",
+    benchmark:
+        CATF_COMPARISON + "benchmarks/export_statistics_summary"
+    threads: 1
+    resources:
+        mem_mb=8000,
+    script:
+        scripts("catf_model/post_processing/export_statistics_summary.py")
+
+
 rule catf_post_processing:
     """Collects all CATF post-processing outputs."""
     input:
@@ -193,3 +204,4 @@ rule catf_post_processing:
         rules.export_all_co2_emissions.input,
         rules.plot_installed_capacity.output,
         rules.export_all_statistics.input,
+        rules.export_statistics_summary.output,

@@ -45,7 +45,7 @@ def sum_by_carrier(*stats: pd.Series) -> pd.Series:
 
 def stat_by_carrier(n: pypsa.Network, stat_name: str) -> pd.Series:
     """
-        Returns the statistics per carrier, with links at their output port.
+        Returns the statistics per carrier, with links read at "bus1".
         For eg: 
             stat_name: optimal_capacity returns the optimal capacity per carrier in MW
     """
