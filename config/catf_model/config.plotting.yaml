@@ -1,8 +1,8 @@
 catf_model:
   post_processing:
-    installed_capacity:
-      # Sectors to plot and the carriers assigned to them, plotted in this order
-      sectors:
+    # Sectors to plot and the carriers assigned to them, plotted in this order
+    sectors:
+      cap_and_generation:
         Power:
         - solar
         - solar rooftop
@@ -93,3 +93,42 @@ catf_model:
         - H2 for industry
         - agriculture machinery oil
         - agriculture machinery electric
+      demand:
+        Power: 
+          - electricity
+        Heat:
+          - urban central heat
+          - urban decentral heat
+          - rural heat
+          - agriculture heat
+        Hydrogen:
+          - Hydrogen Storage
+        Transport:
+          - EV battery
+          - land transport oil
+          - land transport EV
+        Carbon management:
+          - process emissions
+        Industry and agriculture:
+          - gas for industry
+          - coal for industry
+          - agriculture machinery oil
+          - industry methanol
+          - naphtha for industry
+          - solid biomass for industry
+          - NH3
+          - H2 for industry
+          - low-temperature heat for industry
+          - agriculture machinery electric
+          - industry electricity
+
+    colors:
+      Power: "#2a78d6"
+      Heat: "#eb6834"
+      Electricity storage: "#1baf7a"
+      Hydrogen: "#eda100"
+      Fuels: "#e87ba4"
+      Carbon management: "#008300"
+      Transport: "#6250d6"
+      Industry and agriculture: "#e34948"
+      Others: "#8a5a2b"
