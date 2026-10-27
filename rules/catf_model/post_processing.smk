@@ -152,9 +152,40 @@ rule plot_installed_capacity:
         scripts("catf_model/post_processing/plot_installed_capacity.py")
 
 
+rule export_statistics:
+    """Exports the statistics of a PyPSA network for a given planning horizon"""
+    input:
+        network=RESULTS + "networks/solved_{horizon}.nc",
+    output:
+        costs=RESULTS + "csvs/statistics/summary_costs_{horizon}.csv",
+        capacities=RESULTS + "csvs/statistics/optimal_capacities_{horizon}.csv",
+        generation=RESULTS + "csvs/statistics/generation_{horizon}.csv",
+        demand=RESULTS + "csvs/statistics/demand_{horizon}.csv",
+    log:
+        RESULTS + "logs/export_statistics_{horizon}.log",
+    benchmark:
+        RESULTS + "benchmarks/export_statistics_{horizon}"
+    threads: 1
+    resources:
+        mem_mb=4000,
+    script:
+        scripts("catf_model/post_processing/export_statistics.py")
+
+
+rule export_all_statistics:
+    """Collects the cost summary CSVs for all runs (one per sensitivity run) and planning horizons."""
+    input:
+        expand(
+            RESULTS + "csvs/statistics/summary_costs_{horizon}.csv",
+            run=CATF_RUNS,
+            horizon=config["planning_horizons"],
+        ),
+
+
 rule catf_post_processing:
     """Collects all CATF post-processing outputs."""
     input:
         rules.export_all_marginal_prices.input,
         rules.export_all_co2_emissions.input,
         rules.plot_installed_capacity.output,
+        rules.export_all_statistics.input,
