@@ -95,6 +95,28 @@ CATF_COMPARISON = (
     + "catf_comparison/"
 )
 
+
+rule plot_co2_emissions:
+    """Plots the net CO2 emissions relative to 1990 of all runs against the CO2 cap."""
+    input:
+        # Ordered by run, as the script expects
+        summaries=expand(
+            RESULTS + "csvs/co2_emissions/summary.csv",
+            run=CATF_RUNS,
+        ),
+    output:
+        plot=CATF_COMPARISON + "plots/co2_emissions_comparison.png",
+    log:
+        CATF_COMPARISON + "logs/plot_co2_emissions.log",
+    threads: 1
+    resources:
+        mem_mb=2000,
+    params:
+        runs=CATF_RUNS,
+    script:
+        scripts("catf_model/post_processing/plot_co2_emissions.py")
+
+
 rule export_statistics:
     """Exports the statistics of a PyPSA network for a given planning horizon"""
     input:
@@ -171,10 +193,10 @@ rule plot_statistics:
     input:
         statistics_summary=rules.export_statistics_summary.output.csv
     output:
-        capacities=CATF_COMPARISON + "installed_capacity_by_sector.png",
-        generation=CATF_COMPARISON + "generation_by_sector.png",
-        #costs=CATF_COMPARISON + "costs_by_sector.png",
-        demand=CATF_COMPARISON + "demand_by_sector.png",
+        capacities=CATF_COMPARISON + "plots/installed_capacity_by_sector.png",
+        generation=CATF_COMPARISON + "plots/generation_by_sector.png",
+        #costs=CATF_COMPARISON + "plots/costs_by_sector.png",
+        demand=CATF_COMPARISON + "plots/demand_by_sector.png",
     log:
         CATF_COMPARISON + "logs/plot_statistics.log",
     threads: 1
@@ -201,5 +223,6 @@ rule catf_post_processing:
     input:
         rules.export_all_marginal_prices.input,
         rules.export_all_co2_emissions.input,
+        rules.plot_co2_emissions.output,
         rules.plot_statistics.output,
         rules.export_all_statistics.input,
