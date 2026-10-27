@@ -95,36 +95,6 @@ CATF_COMPARISON = (
     + "catf_comparison/"
 )
 
-
-rule plot_installed_capacity:
-    """Plots the installed capacity by sector across all runs and planning horizons."""
-    input:
-        networks=expand(
-            RESULTS + "networks/solved_{horizon}.nc",
-            run=CATF_RUNS,
-            horizon=config["planning_horizons"],
-        ),
-    output:
-        plot=CATF_COMPARISON + "installed_capacity_by_sector.png",
-        csv=CATF_COMPARISON + "installed_capacity_by_sector.csv",
-    log:
-        CATF_COMPARISON + "logs/plot_installed_capacity.log",
-    threads: 1
-    resources:
-        mem_mb=8000,
-    params:
-        runs=CATF_RUNS,
-        planning_horizons=config["planning_horizons"],
-        sectors=config_provider(
-            "catf_model",
-            "post_processing",
-            "installed_capacity",
-            "sectors",
-        ),
-    script:
-        scripts("catf_model/post_processing/plot_installed_capacity.py")
-
-
 rule export_statistics:
     """Exports the statistics of a PyPSA network for a given planning horizon"""
     input:
@@ -164,7 +134,6 @@ rule export_statistics_summary:
         sectors=config_provider(
             "catf_model",
             "post_processing",
-            "installed_capacity",
             "sectors",
         ),
     input:
@@ -197,11 +166,40 @@ rule export_statistics_summary:
         scripts("catf_model/post_processing/export_statistics_summary.py")
 
 
+rule plot_statistics:
+    """Plots the statistics by sector across all runs and planning horizons."""
+    input:
+        statistics_summary=rules.export_statistics_summary.output.csv
+    output:
+        capacities=CATF_COMPARISON + "installed_capacity_by_sector.png",
+        generation=CATF_COMPARISON + "generation_by_sector.png",
+        #costs=CATF_COMPARISON + "costs_by_sector.png",
+        demand=CATF_COMPARISON + "demand_by_sector.png",
+    log:
+        CATF_COMPARISON + "logs/plot_statistics.log",
+    threads: 1
+    resources:
+        mem_mb=8000,
+    params:
+        statistics=["capacities","generation","demand"],
+        sectors=config_provider(
+            "catf_model",
+            "post_processing",
+            "sectors",
+        ),
+        colors=config_provider(
+            "catf_model",
+            "post_processing",
+            "colors"
+        )
+    script:
+        scripts("catf_model/post_processing/plot_statistics.py")
+
+
 rule catf_post_processing:
     """Collects all CATF post-processing outputs."""
     input:
         rules.export_all_marginal_prices.input,
         rules.export_all_co2_emissions.input,
-        rules.plot_installed_capacity.output,
+        rules.plot_statistics.output,
         rules.export_all_statistics.input,
-        rules.export_statistics_summary.output,
