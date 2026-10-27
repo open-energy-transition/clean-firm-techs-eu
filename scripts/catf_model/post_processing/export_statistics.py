@@ -43,26 +43,68 @@ def sum_by_carrier(*stats: pd.Series) -> pd.Series:
     return summed.groupby(level=0).sum().rename_axis("carrier")
 
 
-def stat_by_carrier(n: pypsa.Network, stat_name: str) -> pd.Series:
+def link_carriers(n: pypsa.Network) -> dict[str, list[str]]:
     """
-        Returns the statistics per carrier, with links read at "bus1".
-        For eg: 
+        Splits the link carriers by the port they are read at and what to leave out:
+        - "bus1": links read at their output port bus1
+        - "bus0": heat pumps, which are defined in reverse (bus0 = heat, bus1 = electricity)
+        - "co2": links whose read port is a CO2 bus (unit t_co2), left out of MW/MWh statistics
+        - "charger": storage chargers, whose output is energy into storage, not generation
+        - "pass_through": links that only pass a fuel to a load of the same carrier
+          (e.g. gas for industry), whose output equals that demand
+    """
+    links = n.links
+    heat_pump = links.carrier.str.endswith("heat pump")
+    port_bus = links.bus1.where(~heat_pump, links.bus0)
+    co2 = port_bus.map(n.buses.unit).eq("t_co2")
+    charger = links.carrier.str.endswith("charger") & ~links.carrier.str.endswith("discharger")
+    pass_through = links.carrier.eq(links.bus1.map(n.buses.carrier)) & links.carrier.isin(n.loads.carrier)
+
+    def carriers(mask: pd.Series) -> list[str]:
+        return links.carrier[mask].unique().tolist()
+
+    return {
+        "bus1": carriers(~heat_pump & ~co2),
+        "bus0": carriers(heat_pump & ~co2),
+        "co2": carriers(co2),
+        "charger": carriers(charger & ~co2),
+        "pass_through": carriers(pass_through & ~co2),
+    }
+
+
+def stat_by_carrier(n: pypsa.Network, stat_name: str, exclude: tuple[str, ...] | list[str] = ()) -> pd.Series:
+    """
+        Returns the statistics per carrier, with links read at bus1 and heat pumps at bus0.
+        Links at CO2 buses and the link carriers in exclude are left out.
+        For eg:
             stat_name: optimal_capacity returns the optimal capacity per carrier in MW
     """
     stats = getattr(n.statistics, stat_name)
     one_port = stats(
         components=["Generator", "StorageUnit"], groupby="carrier", nice_names=False
     )
-    links = stats(
-        components=["Link"], at_port="bus1", groupby="carrier", nice_names=False
-    )
-    return sum_by_carrier(one_port, links)
+
+    carriers = link_carriers(n)
+    logger.info(f"{stat_name}: left out links at CO2 buses: {carriers['co2']}")
+    link_stats = []
+    for port in ["bus1", "bus0"]:
+        port_carriers = [c for c in carriers[port] if c not in exclude]
+        if port_carriers:
+            link_stats.append(stats(
+                components=["Link"], at_port=port, carrier=port_carriers, groupby="carrier", nice_names=False
+            ))
+    return sum_by_carrier(one_port, *link_stats)
 
 def extract_generations(n: pypsa.Network, op_path) -> pd.Series:
     """
-        Returns the generation in MWh per carrier
+        Returns the generation in MWh per carrier.
+        Storage chargers and pass-through links to loads are left out, so that
+        energy into storage and fuel delivered to a load are not counted as generation.
     """
-    generations = stat_by_carrier(n, "energy_balance")
+    carriers = link_carriers(n)
+    exclude = carriers["charger"] + carriers["pass_through"]
+    logger.info(f"Generation: left out chargers and pass-through links: {exclude}")
+    generations = stat_by_carrier(n, "energy_balance", exclude=exclude)
     generations.name="Generations (MWh)"
     generations.round(DECIMAL).to_csv(op_path)
     logger.info(f"Export generation by technology to {op_path}")
@@ -78,11 +120,15 @@ def extract_capacities(n: pypsa.Network, op_path: str):
 
 def extract_demands(n: pypsa.Network, op_path: str):
     """
-        Extract demands by carrier in the network
+        Extract demands by carrier in the network.
+        Loads at CO2 buses (e.g. process emissions, in t_co2) are left out.
     """
+    co2_loads = n.loads.carrier[n.loads.bus.map(n.buses.unit).eq("t_co2")].unique().tolist()
+    logger.info(f"Demand: left out loads at CO2 buses: {co2_loads}")
     demand_series = n.statistics.energy_balance(
         components=['Load'], groupby="carrier", nice_names=False
     )
+    demand_series = demand_series[~demand_series.index.get_level_values(-1).isin(co2_loads)]
     demands=sum_by_carrier(demand_series)
     demands.name="Demand (MWh)"
     demands.abs().round(DECIMAL).to_csv(op_path)

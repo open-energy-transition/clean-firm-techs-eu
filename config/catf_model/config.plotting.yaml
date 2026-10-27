@@ -80,8 +80,6 @@ catf_model:
         Transport:
         - BEV charger
         - V2G
-        - land transport EV
-        - land transport fuel cell
         Industry and agriculture:
         - gas for industry
         - gas for industry CC
@@ -90,26 +88,23 @@ catf_model:
         - coal for industry
         - naphtha for industry
         - industry methanol
-        - H2 for industry
         - agriculture machinery oil
-        - agriculture machinery electric
+      # Load carriers. Loads at CO2 buses (process emissions, t_co2) are not
+      # exported as demand by export_statistics
       demand:
-        Power: 
+        Power:
           - electricity
         Heat:
           - urban central heat
           - urban decentral heat
           - rural heat
           - agriculture heat
-        Hydrogen:
-          - Hydrogen Storage
         Transport:
-          - EV battery
           - land transport oil
           - land transport EV
-        Carbon management:
-          - process emissions
+          - land transport fuel cell
         Industry and agriculture:
+          - agriculture electricity
           - gas for industry
           - coal for industry
           - agriculture machinery oil
