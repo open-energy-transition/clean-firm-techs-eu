@@ -1,0 +1,19 @@
+catf_model:
+  post_processing:
+    marginal_prices:
+      # Bus carriers to export, or "all" for every bus carrier in the network
+      carriers:
+      - AC
+      - low voltage
+      - H2
+      - gas
+      - urban central heat
+      - urban decentral heat
+      - rural heat
+      - solid biomass
+      - biogas
+      - methanol
+      - oil
+      - NH3
+      - co2
+      - co2 stored

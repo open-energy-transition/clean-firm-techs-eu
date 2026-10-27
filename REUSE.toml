@@ -140,5 +140,5 @@ SPDX-License-Identifier = "MIT"
 path = [
     "config/catf_model/*",
 ]
-SPDX-FileCopyrightText = "The clean-firm-techs-eu authors"
+SPDX-FileCopyrightText = "clean-firm-techs-eu authors"
 SPDX-License-Identifier = "CC0-1.0"
