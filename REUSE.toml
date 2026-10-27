@@ -139,7 +139,6 @@ SPDX-License-Identifier = "MIT"
 [[annotations]]
 path = [
     "config/catf_model/*",
-    "config/config.catf.default.yaml",
 ]
-SPDX-FileCopyrightText = "The clean-firm-techs-eu authors"
+SPDX-FileCopyrightText = "clean-firm-techs-eu authors"
 SPDX-License-Identifier = "CC0-1.0"
