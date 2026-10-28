@@ -1,0 +1,16 @@
+# Initial scenarios. High Need and Low Need scale the investment costs of
+# established technologies (solar, wind, batteries, gas plants) and the gas
+# fuel price by +33% and -25%.
+# All other assumptions are inherited from config.base.yaml.
+# Scaled cost files are built by rule build_cost_sensitivity
+# (rules/catf_model/cost_sensitivity.smk); the factor is taken from the file name.
+
+baseline: {}
+
+high-need:
+  costs:
+    custom_cost_fn: resources/initial/{run}/custom_costs_x1.33.csv
+
+low-need:
+  costs:
+    custom_cost_fn: resources/initial/{run}/custom_costs_x0.75.csv
