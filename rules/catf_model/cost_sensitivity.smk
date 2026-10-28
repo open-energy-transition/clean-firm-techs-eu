@@ -28,5 +28,6 @@ rule build_cost_sensitivity:
         mem_mb=1000,
     params:
         cost_years=cost_sensitivity_years,
+        cost_factors=config_provider("catf_model","cost_factors",default={})
     script:
         scripts("catf_model/build_cost_sensitivity.py")

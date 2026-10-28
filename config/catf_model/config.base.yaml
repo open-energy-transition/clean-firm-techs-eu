@@ -80,20 +80,23 @@ co2_budget:
   2040: 0.1
   2050: 0.0
 
-cost_factors:
-  solar: 1.3
-  solar-utility: 1.3
-  solar-utility single-axis tracking: 1.3
-  solar-rooftop: 1.3
-  solar-rooftop commercial: 1.3
-  solar-rooftop residential: 1.3
-
-  distribution grid reinforcement:
+catf_model:
+  cost_factors:
     solar: 1.3
-    solar-hsat: 1.3
+    solar-utility: 1.3
+    solar-utility single-axis tracking: 1.3
+    solar-rooftop: 1.3
+    solar-rooftop commercial: 1.3
+    solar-rooftop residential: 1.3
+
+    distribution grid reinforcement:
+      solar: 1.3
+      solar-hsat: 1.3
 
 costs:
-  custom_cost_fn: resources/catf_model/custom_costs_x1.0.csv
+  # Built per run by build_cost_sensitivity (the {factor} wildcard keeps it out
+  # of the shared resources), so the path must include {run}
+  custom_cost_fn: resources/initial/{run}/custom_costs_x1.0.csv
 
 clustering:
   cluster_network:
