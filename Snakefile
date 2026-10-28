@@ -100,8 +100,8 @@ include: "rules/build_sector.smk"
 include: "rules/compose.smk"
 include: "rules/solve.smk"
 include: "rules/postprocess.smk"
-include: "rules/catf_model/catf_default.smk"
 include: "rules/development.smk"
+include: "rules/catf_model/catf_default.smk"
 
 
 # Define output categories based on foresight mode
