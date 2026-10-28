@@ -1,11 +1,12 @@
-# Overlay on config.base.yaml to run the established-technology cost scenarios
-# defined in scenarios.cost_sensitivity.yaml.
+# Overlay on config.base.yaml to run the initial scenarios (baseline, High Need, Low Need)
+# defined in scenarios.initial.yaml.
 
 run:
+  prefix: initial
   name: all
   scenarios:
     enable: true
-    file: config/catf_model/scenarios.cost_sensitivity.yaml
+    file: config/catf_model/scenarios.initial.yaml
   # Share scenario-independent resources (e.g. clustered network, availability)
   # across the three runs.
   shared_resources:
