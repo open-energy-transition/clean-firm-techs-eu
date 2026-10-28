@@ -154,9 +154,57 @@ rule plot_all_energy_balances_developer:
         ),
 
 
+CATF_COMPARISON = (
+    "results/"
+    + (config["run"]["prefix"] + "/" if config["run"].get("prefix") else "")
+    + "catf_comparison/"
+)
+
+
+rule plot_energy_balances:
+    """Plots the energy balances of all runs and planning horizons per reporting carrier."""
+    input:
+        # Ordered by run, then horizon, as the script expects
+        balances=expand(
+            RESULTS + "csvs/energy_balances/{horizon}.csv",
+            run=config["run"]["name"],
+            horizon=config["planning_horizons"],
+        ),
+    output:
+        plots=expand(
+            CATF_COMPARISON + "plots/energy_balance_{carrier}.png",
+            carrier=[
+                c.lower().replace(" ", "_")
+                for c in config["catf_model"]["post_processing"]["energy_balances"][
+                    "report"
+                ]["carriers"]
+            ],
+        ),
+        csv=CATF_COMPARISON + "energy_balances_summary.csv",
+    log:
+        CATF_COMPARISON + "logs/plot_energy_balances.log",
+    benchmark:
+        CATF_COMPARISON + "benchmarks/plot_energy_balances"
+    threads: 1
+    resources:
+        mem_mb=2000,
+    params:
+        runs=config["run"]["name"],
+        planning_horizons=config["planning_horizons"],
+        report=config_provider(
+            "catf_model",
+            "post_processing",
+            "energy_balances",
+            "report",
+        ),
+    script:
+        scripts("catf_model/post_processing/plot_energy_balances.py")
+
+
 rule catf_post_processing:
     """Collects all CATF post-processing outputs."""
     input:
+        rules.plot_energy_balances.output,
         rules.export_all_marginal_prices.input,
         rules.export_all_co2_emissions.input,
         rules.export_all_energy_balances.input,

@@ -30,3 +30,103 @@ catf_model:
         - co2
         - co2 stored
         - co2 sequestered
+      report:
+        # Reporting carriers: bus carriers merged into one balance. Rows whose
+        # carrier is listed in "exclude" are dropped (for CO2, the atmosphere
+        # store and the CO2 load sink, which only do the cap bookkeeping).
+        # "net_marker" marks the net balance of each bar.
+        carriers:
+          Electricity:
+            bus_carriers: [AC, low voltage]
+          Heat:
+            bus_carriers: [urban central heat, urban decentral heat, rural heat]
+          Hydrogen:
+            bus_carriers: [H2]
+          CO2:
+            bus_carriers: [co2]
+            exclude: [co2, load]
+            net_marker: true
+        # Groups below this share of the supply of every bar are merged into "Other"
+        other_threshold: 0.01
+        # Technology groups, stacked in this order. Storage and transmission
+        # rows always go to "Storage & grid losses"; technologies not listed
+        # go to "Other" with a warning.
+        groups:
+          Nuclear:
+            color: "#ff8c00"
+            carriers: [nuclear]
+          Wind:
+            color: "#235ebc"
+            carriers: [onwind, offwind-ac, offwind-dc, offwind-float]
+          Solar:
+            color: "#f9d002"
+            carriers: [solar, solar-hsat, solar rooftop]
+          Solar thermal:
+            color: "#ffbf2b"
+            carriers: [rural solar thermal, urban central solar thermal, urban decentral solar thermal]
+          Hydro:
+            color: "#298c81"
+            carriers: [hydro, ror]
+          Gas power:
+            color: "#a85522"
+            carriers: [CCGT, OCGT]
+          Gas CHP:
+            color: "#8d5e56"
+            carriers: [urban central gas CHP]
+          Biomass CHP:
+            color: "#baa741"
+            carriers: [urban central solid biomass CHP]
+          Coal & lignite:
+            color: "#545454"
+            carriers: [coal, lignite]
+          Oil:
+            color: "#c9c9c9"
+            carriers: [oil]
+          Heat pumps:
+            color: "#2fb537"
+            carriers: [rural air heat pump, rural ground heat pump, urban central air heat pump, urban decentral air heat pump]
+          Resistive heaters:
+            color: "#a6d96a"
+            carriers: [rural resistive heater, urban central resistive heater, urban decentral resistive heater]
+          Gas boilers:
+            color: "#db6a25"
+            carriers: [rural gas boiler, urban central gas boiler, urban decentral gas boiler]
+          Biomass boilers:
+            color: "#8a9a5b"
+            carriers: [rural biomass boiler, urban decentral biomass boiler]
+          Oil boilers:
+            color: "#adadad"
+            carriers: [rural oil boiler, urban decentral oil boiler]
+          SMR:
+            color: "#870c71"
+            carriers: [SMR]
+          Ammonia:
+            color: "#076987"
+            carriers: [Haber-Bosch, ammonia cracker]
+          Synthetic fuels:
+            color: "#25c49a"
+            carriers: [Fischer-Tropsch, Sabatier, methanolisation, electrobiofuels, H2 turbine]
+          Biofuels & biogas:
+            color: "#e3d37d"
+            carriers: [biomass to liquid, biomass-to-methanol, biogas to gas, unsustainable bioliquids]
+          Transport:
+            color: "#baf238"
+            carriers: [BEV charger, V2G, land transport oil]
+          Industry & agriculture:
+            color: "#6b4f9e"
+            carriers: [gas for industry, coal for industry, process emissions, HVC to air, oil refining, industry methanol, agriculture machinery oil]
+          Electricity demand:
+            color: "#110d63"
+            carriers: [electricity, industry electricity, agriculture electricity, agriculture machinery electric]
+          Heat demand:
+            color: "#cc1f1f"
+            carriers: [urban central heat, urban decentral heat, rural heat, agriculture heat, low-temperature heat for industry]
+          Hydrogen demand:
+            color: "#f073da"
+            carriers: [H2 for industry]
+          Heat vent:
+            color: "#aa3344"
+            carriers: [rural heat vent, urban central heat vent, urban decentral heat vent]
+          Storage & grid losses:
+            color: "#8c8c8c"
+            carriers: [electricity distribution grid]
