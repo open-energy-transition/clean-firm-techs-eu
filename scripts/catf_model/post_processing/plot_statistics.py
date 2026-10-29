@@ -25,7 +25,7 @@ from scripts._helpers import configure_logging, set_scenario_config
 logger = logging.getLogger(__name__)
 
 # Colors for the plot layout, text and grid
-SURFACE = "#fcfcfb"
+SURFACE = "#ffffff"
 TEXT_PRIMARY = "#0b0b0b"
 TEXT_SECONDARY = "#52514e"
 GRID = "#e1e0d9"
