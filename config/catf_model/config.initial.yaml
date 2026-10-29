@@ -1,0 +1,17 @@
+# Overlay on config.base.yaml to run the initial scenarios (baseline, High Need, Low Need)
+# defined in scenarios.initial.yaml.
+
+run:
+  prefix: initial
+  name: all
+  scenarios:
+    enable: true
+    file: config/catf_model/scenarios.initial.yaml
+  # Share scenario-independent resources (e.g. clustered network, availability)
+  # across the three runs.
+  shared_resources:
+    policy: base
+    # Keep processed cost files per scenario. Required because compose_network
+    # requests them without the {horizon} wildcard, which "base" would treat as shared.
+    exclude:
+    - costs_

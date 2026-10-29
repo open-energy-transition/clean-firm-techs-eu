@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
+# SPDX-FileCopyrightText: clean-firm-techs-eu authors
 #
 # SPDX-License-Identifier: MIT
 
@@ -9,6 +9,7 @@ rule export_marginal_prices:
         network=RESULTS + "networks/solved_{horizon}.nc",
     output:
         directory=directory(RESULTS + "csvs/marginal_prices/{horizon}"),
+        snapshot_weightings=RESULTS + "csvs/snapshot_weightings/{horizon}.csv",
     log:
         RESULTS + "logs/export_marginal_prices_{horizon}.log",
     benchmark:
@@ -31,7 +32,10 @@ rule export_all_marginal_prices:
     """Collects the marginal price CSVs for all runs and planning horizons."""
     input:
         expand(
-            RESULTS + "csvs/marginal_prices/{horizon}",
+            [
+                RESULTS + "csvs/marginal_prices/{horizon}",
+                RESULTS + "csvs/snapshot_weightings/{horizon}.csv",
+            ],
             run=config["run"]["name"],
             horizon=(
                 config["planning_horizons"][-1]

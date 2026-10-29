@@ -1566,7 +1566,7 @@ def insert_gas_distribution_costs(
     n.links.loc[mchp, "capital_cost"] += capital_cost
 
 
-def add_electricity_grid_connection(n, costs, cost_factors):
+def add_electricity_grid_connection(n, costs, cost_factors=None):
     carriers = ["onwind", "solar", "solar-hsat"]
     name = next(
         c
@@ -1578,6 +1578,9 @@ def add_electricity_grid_connection(n, costs, cost_factors):
     factors = {
         c: f for c, f in (cost_factors or {}).get(name, {}).items() if c in carriers
     }
+    logger.info(
+        f"Grid connection costs `{name}` will be scaled carrier-wise by {factors}."
+    )
     for carrier in carriers:
         gens = n.generators.index[n.generators.carrier == carrier]
         n.generators.loc[gens, "capital_cost"] += costs.at[

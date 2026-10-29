@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Contributors to clean-firm-techs-eu <https://github.com/oet/clean-firm-techs-eu> 
+# SPDX-FileCopyrightText: clean-firm-techs-eu authors
 #
 # SPDX-License-Identifier: MIT
 """
@@ -7,10 +7,11 @@ Exports the marginal prices of selected bus carriers of a solved network as CSV 
 The carriers are set in ``catf_model.post_processing.marginal_prices.carriers``
 (``all`` exports every bus carrier). Writes one wide CSV per bus carrier (e.g.
 ``AC.csv``, ``low_voltage.csv``, ``H2.csv``) with snapshots as rows and bus
-names as columns. Alongside the
-prices, ``carriers.csv`` lists each carrier with its file name, number of
-buses and price unit, and ``snapshot_weightings.csv`` holds the snapshot
-weightings needed to compute correct averages under time aggregation.
+names as columns. Alongside the prices, ``carriers.csv`` lists each carrier
+with its file name, number of buses and price unit. Snapshot weightings are
+written separately to ``csvs/snapshot_weightings/{horizon}.csv`` so other
+post-processing metrics can reuse them for correct averages under time
+aggregation.
 """
 
 import logging
@@ -91,6 +92,8 @@ if __name__ == "__main__":
         )
 
     pd.DataFrame(summary).to_csv(output_dir / "carriers.csv", index=False)
-    n.snapshot_weightings.to_csv(output_dir / "snapshot_weightings.csv")
+    n.snapshot_weightings.to_csv(snakemake.output.snapshot_weightings)
 
-    logger.info(f"Exported marginal prices for {len(summary)} carriers to {output_dir}.")
+    logger.info(
+        f"Exported marginal prices for {len(summary)} carriers to {output_dir}."
+    )

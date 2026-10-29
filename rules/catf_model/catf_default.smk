@@ -1,13 +1,7 @@
-# SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
+# SPDX-FileCopyrightText: clean-firm-techs-eu authors
 #
-# SPDX-License-Identifier: CC0-1.0
-
-# CATF-specific rules, included from the main Snakefile.
+# SPDX-License-Identifier: MIT
 
 
 include: "cost_sensitivity.smk"
-
 include: "post_processing.smk"
-
-configfile: "config/catf_model/config.plotting.yaml"
-

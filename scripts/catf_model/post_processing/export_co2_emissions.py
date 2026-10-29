@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
+# SPDX-FileCopyrightText: clean-firm-techs-eu authors
 #
 # SPDX-License-Identifier: MIT
 """

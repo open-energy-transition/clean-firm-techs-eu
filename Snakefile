@@ -30,7 +30,7 @@ from scripts.lib.validation.config import (
 
 configfile: "config/config.default.yaml"
 configfile: "config/plotting.default.yaml"
-configfile: "config/config.catf.default.yaml"
+configfile: "config/catf_model/config.catf.default.yaml"
 
 
 if Path("config/config.yaml").exists():
@@ -102,6 +102,7 @@ include: "rules/solve.smk"
 include: "rules/postprocess.smk"
 include: "rules/catf_model/catf_default.smk"
 include: "rules/development.smk"
+include: "rules/catf_model/catf_default.smk"
 
 
 # Define output categories based on foresight mode
