@@ -2,12 +2,14 @@
 #
 # SPDX-License-Identifier: MIT
 """
-Plots the installed capacity, generation and demand across runs and planning horizons.
+Plots the installed capacity, generation, demand and system costs across runs
+and planning horizons.
 
 Reads the long-format summary written by ``export_statistics_summary`` and
 writes one figure per statistic. Each figure has one panel per carrier stacked
 vertically (capacity: Electricity, Heat, Hydrogen, Fuels & conversion, Storage;
-generation: the same without Storage; demand: a single panel). All panels share
+generation: the same without Storage; costs: Capex and Opex per technology and
+the Total; demand: a single panel). All panels share
 the x-axis, with one bar per planning horizon grouped by scenario. Each panel
 has its own unit, so only values of the same unit are stacked; the total is
 annotated above each bar. All values are positive, as exported by
@@ -38,17 +40,19 @@ OTHER_COLOR = "#898781"
 # Gap between scenario groups on the x-axis, in bar widths
 GROUP_GAP = 0.8
 
-# Groups below this share of the largest bar of a panel in every bar are merged into "Other"
-OTHER_THRESHOLD = 0.01
-
-# Height of one panel in inches
+# Minimum height of one panel, and height per legend entry, in inches
 PANEL_HEIGHT = 2.6
+LEGEND_ENTRY_HEIGHT = 0.17
 
 TITLES = {
     "capacities": "Installed capacity",
     "generation": "Generation",
     "demand": "Final demand",
+    "costs": "Total system costs",
 }
+
+# Stacking order of the Total cost panel, as in export_statistics_summary
+COSTS = ["Capex", "Opex", "CO2 cap penalty"]
 
 
 def x_positions(index: pd.MultiIndex) -> np.ndarray:
@@ -108,24 +112,13 @@ def plot_panel(ax: plt.Axes, table: pd.DataFrame, x: np.ndarray, colors: dict) -
 
 def plot_statistic(data: pd.DataFrame, order: list[str], colors: dict, title: str) -> plt.Figure:
     """Plots one panel per carrier, with scenarios and planning horizons on the shared x-axis."""
-    panels = data.panel.unique()
     bars = data.set_index(["scenario", "planning_horizon"]).index.unique()
+    runs = bars.get_level_values("scenario")
     x = x_positions(bars)
 
-    fig, axes = plt.subplots(
-        len(panels),
-        1,
-        figsize=(3 + 0.55 * len(bars), PANEL_HEIGHT * len(panels)),
-        sharex=True,
-        squeeze=False,
-        facecolor=SURFACE,
-        layout="constrained",
-    )
-    axes = axes[:, 0]
-
-    for ax, panel in zip(axes, panels):
-        rows = data[data.panel == panel]
-        # One row per (scenario, horizon), one column per group in the configured order
+    # One table per panel: one row per (scenario, horizon), one column per group
+    tables = {}
+    for panel, rows in data.groupby("panel", sort=False):
         table = rows.pivot_table(
             index=["scenario", "planning_horizon"],
             columns="group",
@@ -133,17 +126,28 @@ def plot_statistic(data: pd.DataFrame, order: list[str], colors: dict, title: st
             aggfunc="sum",
             fill_value=0.0,
         ).reindex(bars, fill_value=0.0)
-        threshold = OTHER_THRESHOLD * table.sum(axis=1).max()
-        small = [g for g in table if g != OTHER and table[g].max() < threshold]
-        if small:
-            table[OTHER] = table.get(OTHER, 0) + table[small].sum(axis=1)
-            table = table.drop(columns=small)
-        table = table[[g for g in [*order, OTHER] if g in table and table[g].max() > 0]]
+        # Groups in the configured order, then "Other"; groups that are zero in every bar are left out
+        tables[panel] = table[[g for g in [*order, OTHER] if g in table and table[g].max() > 0]]
 
+    # Panels grow with their legend, so that long legends (e.g. capex per technology) fit
+    heights = [max(PANEL_HEIGHT, LEGEND_ENTRY_HEIGHT * len(t.columns)) for t in tables.values()]
+    fig, axes = plt.subplots(
+        len(tables),
+        1,
+        figsize=(3 + 0.55 * len(bars), sum(heights)),
+        height_ratios=heights,
+        sharex=True,
+        squeeze=False,
+        facecolor=SURFACE,
+        layout="constrained",
+    )
+    axes = axes[:, 0]
+
+    for ax, (panel, table) in zip(axes, tables.items()):
         plot_panel(ax, table, x, colors)
-        if len(panels) > 1:
+        if len(tables) > 1:
             ax.set_title(panel, loc="left", fontsize=10, fontweight="bold", color=TEXT_PRIMARY)
-        ax.set_ylabel(rows.unit.iloc[0], color=TEXT_SECONDARY, fontsize=9)
+        ax.set_ylabel(data.unit[data.panel == panel].iloc[0], color=TEXT_SECONDARY, fontsize=9)
         ax.set_facecolor(SURFACE)
         ax.grid(axis="y", color=GRID, linewidth=0.8, zorder=0)
         ax.tick_params(colors=TEXT_SECONDARY, labelsize=8, length=0)
@@ -152,7 +156,6 @@ def plot_statistic(data: pd.DataFrame, order: list[str], colors: dict, title: st
         ax.spines["bottom"].set_color(BASELINE)
 
         # Vertical break between scenario groups, in the middle of each gap
-        runs = bars.get_level_values("scenario")
         for i in range(1, len(x)):
             if runs[i] != runs[i - 1]:
                 ax.axvline((x[i - 1] + x[i]) / 2, color=BASELINE, linewidth=0.8, linestyle="--", zorder=1)
@@ -194,7 +197,13 @@ if __name__ == "__main__":
     groups = snakemake.params.statistics["groups"]
     sectors = snakemake.params.sectors["demand"]
     colors = {g: spec["color"] for g, spec in groups.items()} | snakemake.params.colors
-    orders = {"capacities": list(groups), "generation": list(groups), "demand": list(sectors)}
+    orders = {
+        "capacities": list(groups),
+        "generation": list(groups),
+        "demand": list(sectors),
+        # Technology groups in the Capex and Opex panels, cost components in the Total panel
+        "costs": list(groups) + COSTS,
+    }
 
     summary = pd.read_csv(snakemake.input.statistics_summary)
 

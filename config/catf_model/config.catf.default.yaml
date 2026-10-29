@@ -49,9 +49,9 @@ catf_model:
       - ammonia store
       - PHS
 
-      # Technology groups of the capacity and generation plots, stacked in this
-      # order. Groups with "panels" only apply in these panels. Technologies not
-      # listed are plotted as "Other" and logged.
+      # Technology groups of the capacity, generation and cost plots, stacked in
+      # this order. Groups with "panels" only apply in these panels. Technologies
+      # not listed are plotted as "Other" and logged.
       groups:
         Nuclear:
           color: "#ff8c00"
@@ -73,7 +73,7 @@ catf_model:
           carriers: [PHS]
         Battery:
           color: "#ace37f"
-          carriers: [battery discharger, home battery discharger, battery, home battery]
+          carriers: [battery discharger, home battery discharger, battery, home battery, battery charger, home battery charger]
         Gas power:
           color: "#a85522"
           carriers: [CCGT, OCGT]
@@ -134,6 +134,13 @@ catf_model:
         Ammonia storage:
           color: "#00ace0"
           carriers: [ammonia store]
+        # Groups only in the cost plot, as these carriers have no capacity or generation panel
+        Networks:
+          color: "#6c9459"
+          carriers: [AC, DC, electricity distribution grid, gas pipeline, gas pipeline new, H2 pipeline, H2 pipeline retrofitted, CO2 pipeline]
+        Fuel supply:   # fuel purchases, and the gas storage (Store gas)
+          color: "#7a6a5a"
+          carriers: [gas, oil primary, biogas, solid biomass, unsustainable biogas, unsustainable solid biomass, unsustainable bioliquids]
         # Heat released by conversion plants, listed last so it overrides their group in Heat
         Waste heat:
           color: "#c46868"
@@ -170,7 +177,11 @@ catf_model:
           - agriculture machinery electric
           - industry electricity
 
+    # Colors of the demand sectors, the system cost components and "Other"
     colors:
+      Capex: "#2a78d6"
+      Opex: "#eda100"
+      CO2 cap penalty: "#9e9e9e"
       Power: "#2a78d6"
       Heat: "#eb6834"
       Transport: "#6250d6"

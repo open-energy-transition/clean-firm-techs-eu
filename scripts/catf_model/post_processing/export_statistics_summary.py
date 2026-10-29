@@ -2,8 +2,8 @@
 #
 # SPDX-License-Identifier: MIT
 """
-Summarises the installed capacity, generation and demand across runs and
-planning horizons.
+Summarises the installed capacity, generation, demand and system costs across
+runs and planning horizons.
 
 Reads the per-run CSVs written by ``export_statistics`` and groups the carriers:
 capacities and generation by the technology groups in
@@ -11,9 +11,14 @@ capacities and generation by the technology groups in
 sectors in ``catf_model.post_processing.sectors.demand``, in a single panel
 "Demand". Carriers not assigned to a group are summed as "Other" and logged.
 
+Costs are summarised in three panels: capex and opex per technology group, and
+the total split into capex, opex and the penalty of the CO2 load sink, a slack
+that is used when the CO2 cap cannot be met.
+
 Writes one long-format CSV with the columns scenario, planning_horizon,
 statistic, panel, group, value and unit: capacity in GW (storage in GWh),
-generation and demand in TWh.
+generation and demand in TWh, costs in bn EUR/a. The system costs are also
+written as a table with one row per run and horizon.
 """
 
 import logging
@@ -86,6 +91,57 @@ def summarise(
     return data[["scenario", "planning_horizon", "statistic", "panel", "group", "value", "unit"]]
 
 
+def summarise_costs(paths: list[str], keys: list[tuple[str, int]]) -> pd.DataFrame:
+    """
+    Returns the system costs per run and horizon in bn EUR/a, split into capex,
+    opex and the penalty of the CO2 load sink, which is a slack, not a technology.
+    """
+    rows = []
+    for (run, horizon), path in zip(keys, paths):
+        costs = pd.read_csv(path, index_col=["component", "carrier"])
+        slack = costs.index == ("Generator", "load")
+        rows.append(
+            {
+                "scenario": run,
+                "planning_horizon": horizon,
+                "Capex": costs.loc[~slack, "capex"].sum() / 1e9,
+                "Opex": costs.loc[~slack, "opex"].sum() / 1e9,
+                "CO2 cap penalty": costs.loc[slack, "system cost"].sum() / 1e9,
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def technology_costs(
+    paths: list[str], keys: list[tuple[str, int]], mapping: dict[str, str]
+) -> pd.DataFrame:
+    """
+    Returns the capex and opex per technology group, run and horizon in bn EUR/a,
+    without the CO2 load sink. The columns panel ("Capex" or "Opex") and group
+    match the summary.
+    """
+    tables, unmapped = [], set()
+    for (run, horizon), path in zip(keys, paths):
+        costs = pd.read_csv(path)
+        costs = costs[~((costs.component == "Generator") & (costs.carrier == "load"))]
+
+        costs["group"] = costs.carrier.map(mapping).fillna(OTHER)
+        other = costs[(costs.group == OTHER) & (costs.capex + costs.opex != 0)]
+        unmapped |= set(other.carrier)
+
+        costs = costs.groupby("group", sort=False)[["capex", "opex"]].sum() / 1e9
+        costs = costs.rename(columns={"capex": "Capex", "opex": "Opex"})
+        costs = costs.melt(ignore_index=False, var_name="panel").reset_index()
+        costs.insert(0, "scenario", run)
+        costs.insert(1, "planning_horizon", horizon)
+        tables.append(costs)
+
+    if unmapped:
+        logger.warning(f"costs: carriers summed as '{OTHER}': {sorted(unmapped)}")
+
+    return pd.concat(tables, ignore_index=True)
+
+
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
@@ -110,14 +166,34 @@ if __name__ == "__main__":
 
     # CSVs are ordered by run, then horizon
     keys = [(run, int(h)) for run in snakemake.params.runs for h in snakemake.params.planning_horizons]
+    # Costs: capex and opex per technology group, and the total split into capex,
+    # opex and the CO2 cap penalty
+    system_costs = summarise_costs(snakemake.input.costs, keys)
+    totals = system_costs.melt(
+        id_vars=["scenario", "planning_horizon"], var_name="group", value_name="value"
+    )
+    costs = pd.concat(
+        [
+            technology_costs(snakemake.input.costs, keys, group_mapping(statistics["groups"], "Costs")),
+            totals.assign(panel="Total"),
+        ]
+    )
+    costs = costs.assign(statistic="costs", unit="bn EUR/a")
+
+    # System costs table: one row per run and horizon
+    system_costs["Total"] = system_costs[["Capex", "Opex", "CO2 cap penalty"]].sum(axis=1)
+    system_costs.round(2).to_csv(snakemake.output.system_costs, index=False)
+    logger.info(f"Exported system costs to {snakemake.output.system_costs}.")
+
     data = pd.concat(
         [
             summarise(snakemake.input.capacities, keys, "capacities", groups),
             summarise(snakemake.input.generation, keys, "generation", groups),
             summarise(snakemake.input.demand, keys, "demand", sectors),
+            costs[["scenario", "planning_horizon", "statistic", "panel", "group", "value", "unit"]],
         ],
         ignore_index=True,
     )
     data.round({"value": 4}).to_csv(snakemake.output.csv, index=False)
 
-    logger.info(f"Exported capacities, generation and demand by group to {snakemake.output.csv}.")
+    logger.info(f"Exported capacities, generation, demand and costs to {snakemake.output.csv}.")

@@ -150,7 +150,7 @@ rule export_all_statistics:
 
 
 rule export_statistics_summary:
-    """Summarises the installed capacity, generation and demand by group across all runs from the per-run statistics CSVs."""
+    """Summarises the installed capacity, generation, demand and system costs across all runs from the per-run statistics CSVs."""
     params:
         runs=CATF_RUNS,
         planning_horizons=config["planning_horizons"],
@@ -173,8 +173,14 @@ rule export_statistics_summary:
             run=CATF_RUNS,
             horizon=config["planning_horizons"],
         ),
+        costs=expand(
+            RESULTS + "csvs/statistics/summary_costs_{horizon}.csv",
+            run=CATF_RUNS,
+            horizon=config["planning_horizons"],
+        ),
     output:
         csv=CATF_COMPARISON + "statistics_summary.csv",
+        system_costs=CATF_COMPARISON + "system_costs.csv",
     log:
         CATF_COMPARISON + "logs/export_statistics_summary.log",
     benchmark:
@@ -187,13 +193,14 @@ rule export_statistics_summary:
 
 
 rule plot_statistics:
-    """Plots the installed capacity and generation per carrier and the demand by sector across all runs and planning horizons."""
+    """Plots the installed capacity and generation per carrier, the demand by sector and the system costs across all runs and planning horizons."""
     input:
         statistics_summary=rules.export_statistics_summary.output.csv,
     output:
         capacities=CATF_COMPARISON + "plots/capacities_by_carrier.png",
         generation=CATF_COMPARISON + "plots/generation_by_carrier.png",
         demand=CATF_COMPARISON + "plots/demand_by_sector.png",
+        costs=CATF_COMPARISON + "plots/system_costs.png",
     log:
         CATF_COMPARISON + "logs/plot_statistics.log",
     threads: 1
