@@ -1,0 +1,39 @@
+# Cost sensitivity. Each scenario scales the costs of one or more technology
+# groups by +33% (high) or -25% (low), keeping all others at the baseline.
+# All other assumptions are inherited from config.base.yaml.
+# Factors are set per group in catf_model.cost_sensitivity and applied by rule
+# build_scenario_cost_sensitivity (rules/catf_model/cost_sensitivity.smk).
+# Groups and their technologies are defined in
+# catf_model.cost_sensitivity_groups (config/catf_model/config.catf.default.yaml).
+
+# Solar PV (utility, tracking and rooftop)
+high-solar:
+  catf_model:
+    cost_sensitivity:
+      solar: 1.33
+low-solar:
+  catf_model:
+    cost_sensitivity:
+      solar: 0.75
+
+# Onshore and offshore wind (turbines, substations and grid connections)
+high-wind:
+  catf_model:
+    cost_sensitivity:
+      onwind: 1.33
+      offwind: 1.33
+low-wind:
+  catf_model:
+    cost_sensitivity:
+      onwind: 0.75
+      offwind: 0.75
+
+# Li-ion batteries
+high-battery:
+  catf_model:
+    cost_sensitivity:
+      battery: 1.33
+low-battery:
+  catf_model:
+    cost_sensitivity:
+      battery: 0.75

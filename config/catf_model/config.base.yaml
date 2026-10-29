@@ -93,6 +93,55 @@ catf_model:
       solar: 1.3
       solar-hsat: 1.3
 
+  # Technologies scaled per cost sensitivity group, by cost parameter
+  # (column "parameter" of the technology-data cost files).
+  cost_sensitivity_groups:
+    # Solar ("solar" is overwritten by "solar-utility" in prepare_costs)
+    solar:
+      investment:
+      - solar
+      - solar-utility
+      - solar-utility single-axis tracking
+      - solar-rooftop
+      - solar-rooftop commercial
+      - solar-rooftop residential
+    onwind:
+      investment:
+      - onwind
+    # Grid connection of onshore wind and utility solar (add_electricity_grid_connection)
+    grid-connection:
+      investment:
+      - distribution grid reinforcement
+    # Offshore wind turbines, substations and grid connections
+    offwind:
+      investment:
+      - offwind
+      - offwind-float
+      - offwind-ac-station
+      - offwind-ac-connection-submarine
+      - offwind-ac-connection-underground
+      - offwind-dc-station
+      - offwind-dc-connection-submarine
+      - offwind-dc-connection-underground
+      - offwind-float-station
+      - offwind-float-connection-submarine
+      - offwind-float-connection-underground
+    # Batteries (combined battery costs are derived from these in prepare_costs)
+    battery:
+      investment:
+      - battery storage
+      - battery inverter
+      - home battery storage
+      - home battery inverter
+    gas-plants:
+      investment:
+      - OCGT
+      - CCGT
+      - central gas CHP
+    gas-fuel:
+      fuel:
+      - gas
+
 costs:
   # Built by build_cost_sensitivity with factor 1.0, so the baseline cost
   # factors (catf_model.cost_factors, e.g. solar +30%) always apply.
