@@ -94,4 +94,6 @@ if __name__ == "__main__":
     pd.DataFrame(summary).to_csv(output_dir / "carriers.csv", index=False)
     n.snapshot_weightings.to_csv(snakemake.output.snapshot_weightings)
 
-    logger.info(f"Exported marginal prices for {len(summary)} carriers to {output_dir}.")
+    logger.info(
+        f"Exported marginal prices for {len(summary)} carriers to {output_dir}."
+    )

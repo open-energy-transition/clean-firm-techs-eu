@@ -1566,17 +1566,26 @@ def insert_gas_distribution_costs(
     n.links.loc[mchp, "capital_cost"] += capital_cost
 
 
-def add_electricity_grid_connection(n, costs):
+def add_electricity_grid_connection(n, costs, cost_factors=None):
     carriers = ["onwind", "solar", "solar-hsat"]
-
-    gens = n.generators.index[n.generators.carrier.isin(carriers)]
-
     name = next(
         c
         for c in ["distribution grid reinforcement", "electricity grid connection"]
         if c in costs.index
     )
-    n.generators.loc[gens, "capital_cost"] += costs.at[name, "capital_cost"]
+
+    # Optional per-carrier factors on the grid connection cost (e.g. CATF solar costs)
+    factors = {
+        c: f for c, f in (cost_factors or {}).get(name, {}).items() if c in carriers
+    }
+    logger.info(
+        f"Grid connection costs `{name}` will be scaled carrier-wise by {factors}."
+    )
+    for carrier in carriers:
+        gens = n.generators.index[n.generators.carrier == carrier]
+        n.generators.loc[gens, "capital_cost"] += costs.at[
+            name, "capital_cost"
+        ] * factors.get(carrier, 1.0)
 
 
 def add_h2_gas_infrastructure(
@@ -6404,7 +6413,7 @@ def main(
         insert_gas_distribution_costs(n, costs, options=options)
 
     if options["electricity_grid_connection"]:
-        add_electricity_grid_connection(n, costs)
+        add_electricity_grid_connection(n, costs, cost_factors=params.cost_factors)
 
     for k, v in options["transmission_efficiency"].items():
         if k in options["transmission_efficiency"]["enable"]:
