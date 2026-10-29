@@ -89,8 +89,10 @@ CATF_RUNS = (
     if isinstance(config["run"]["name"], list)
     else [config["run"]["name"]]
 )
-CATF_COMPARISON = "results/" + (
-    config["run"]["prefix"] + "/" if config["run"].get("prefix") else ""
+CATF_COMPARISON = (
+    "results/"
+    + (config["run"]["prefix"] + "/" if config["run"].get("prefix") else "")
+    + "catf_comparison/"
 )
 
 
@@ -116,7 +118,9 @@ rule plot_co2_emissions:
 
 
 rule export_statistics:
-    """Exports the statistics of a PyPSA network for a given planning horizon"""
+    """Exports the costs, capacities, generation and demand of a solved network for a given planning horizon."""
+    params:
+        statistics=config_provider("catf_model", "post_processing", "statistics"),
     input:
         network=RESULTS + "networks/solved_{horizon}.nc",
     output:
@@ -136,7 +140,7 @@ rule export_statistics:
 
 
 rule export_all_statistics:
-    """Collects the cost summary CSVs for all runs (one per sensitivity run) and planning horizons."""
+    """Collects the statistics CSVs for all runs and planning horizons."""
     input:
         expand(
             RESULTS + "csvs/statistics/summary_costs_{horizon}.csv",
@@ -145,17 +149,13 @@ rule export_all_statistics:
         ),
 
 
-
 rule export_statistics_summary:
-    """Summarises the installed capacity, generation and demand by sector across all runs from the per-run statistics CSVs"""
+    """Summarises the installed capacity, generation and demand by group across all runs from the per-run statistics CSVs."""
     params:
         runs=CATF_RUNS,
         planning_horizons=config["planning_horizons"],
-        sectors=config_provider(
-            "catf_model",
-            "post_processing",
-            "sectors",
-        ),
+        statistics=config_provider("catf_model", "post_processing", "statistics"),
+        sectors=config_provider("catf_model", "post_processing", "sectors"),
     input:
         # Ordered by run, then horizon, as the script expects
         capacities=expand(
@@ -187,13 +187,12 @@ rule export_statistics_summary:
 
 
 rule plot_statistics:
-    """Plots the statistics by sector across all runs and planning horizons."""
+    """Plots the installed capacity and generation per carrier and the demand by sector across all runs and planning horizons."""
     input:
-        statistics_summary=rules.export_statistics_summary.output.csv
+        statistics_summary=rules.export_statistics_summary.output.csv,
     output:
-        capacities=CATF_COMPARISON + "plots/installed_capacity_by_sector.png",
-        generation=CATF_COMPARISON + "plots/generation_by_sector.png",
-        #costs=CATF_COMPARISON + "plots/costs_by_sector.png",
+        capacities=CATF_COMPARISON + "plots/capacities_by_carrier.png",
+        generation=CATF_COMPARISON + "plots/generation_by_carrier.png",
         demand=CATF_COMPARISON + "plots/demand_by_sector.png",
     log:
         CATF_COMPARISON + "logs/plot_statistics.log",
@@ -201,17 +200,9 @@ rule plot_statistics:
     resources:
         mem_mb=8000,
     params:
-        statistics=["capacities","generation","demand"],
-        sectors=config_provider(
-            "catf_model",
-            "post_processing",
-            "sectors",
-        ),
-        colors=config_provider(
-            "catf_model",
-            "post_processing",
-            "colors"
-        )
+        statistics=config_provider("catf_model", "post_processing", "statistics"),
+        sectors=config_provider("catf_model", "post_processing", "sectors"),
+        colors=config_provider("catf_model", "post_processing", "colors"),
     script:
         scripts("catf_model/post_processing/plot_statistics.py")
 

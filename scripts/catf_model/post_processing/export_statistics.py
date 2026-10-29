@@ -1,14 +1,35 @@
-# SPDX-FileCopyrightText: Contributors to clean-firm-techs-eu <https://github.com/oet/clean-firm-techs-eu> 
+# SPDX-FileCopyrightText: clean-firm-techs-eu authors
 #
 # SPDX-License-Identifier: MIT
 """
-Exports the statistics
+Exports the costs, installed capacities, generation and demand of a solved network.
+
+Capacities and generation are exported per panel set in
+``catf_model.post_processing.statistics.panels`` (Electricity, Heat, Hydrogen,
+Fuels & conversion). A technology is counted in a panel if it supplies energy to
+the panel's bus carriers, and is measured at the port connected to them:
+
+- a CHP is counted in Electricity with its electrical and in Heat with its
+  thermal capacity;
+- heat pumps are counted in Heat with their thermal capacity;
+- consumers (e.g. chargers, or resistive heaters on the electricity side) are
+  not counted, as they do not supply the panel's buses;
+- lines and links between buses of the panel (transmission, distribution grid)
+  and the carriers in ``exclude`` are left out.
+
+The Storage panel holds the energy capacity of the built storage listed in
+``statistics.storage``: Store ``e_nom`` and StorageUnit ``p_nom`` times ``max_hours``.
+
+Costs are per component and carrier. The CO2 load sink (Generator ``load``) is a
+slack with a penalty per tonne, not a technology; its cost is logged.
+
+Demand is the annual consumption of loads per carrier, without loads at CO2 buses.
+
+All CSVs are in MW, MWh and EUR/a.
 """
 
 import logging
 
-import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 import pypsa
 
@@ -18,137 +39,147 @@ logger = logging.getLogger(__name__)
 
 DECIMAL = 4
 
-def extract_costs(n: pypsa.Network, op_path: str):
+
+def internal_links(n: pypsa.Network, bus_carriers: list[str]) -> list[str]:
+    """Returns the carriers of links between buses of the given carriers, e.g. DC, distribution grid, pipelines."""
+    bus0 = n.links.bus0.map(n.buses.carrier)
+    bus1 = n.links.bus1.map(n.buses.carrier)
+    inside = bus0.isin(bus_carriers) & bus1.isin(bus_carriers)
+    return n.links.carrier[inside].unique().tolist()
+
+
+def panel_statistics(
+    n: pypsa.Network, bus_carriers: list[str], exclude: list[str]
+) -> pd.DataFrame:
     """
-        Extract capex, opex and system costs per technology
+    Returns the capacity (MW) and generation (MWh) per carrier of the
+    technologies supplying the given bus carriers, measured at the port
+    connected to them.
     """
-    opex = n.statistics.opex().round(DECIMAL)
-    capex = n.statistics.capex().round(DECIMAL)
-    system_cost = n.statistics.system_cost().round(DECIMAL)
+    # Lines are left out as transmission, Stores as their capacity is energy (MWh), not power
+    kwargs = dict(
+        components=["Generator", "StorageUnit", "Link"],
+        bus_carrier=bus_carriers,
+        groupby="carrier",
+        nice_names=False,
+    )
+    supply = n.statistics.supply(**kwargs)
+    capacity = n.statistics.optimal_capacity(at_port=True, **kwargs)
 
-    assert not ((opex.sum() + capex.sum() - system_cost.sum()).round()), "System costs could not be validated as sum of CAPEX and OPEX"
+    # Keep technologies that supply energy, except links within the panel and excluded carriers
+    left_out = internal_links(n, bus_carriers) + exclude
+    logger.info(f"{bus_carriers}: left out {left_out}")
+    carriers = supply.index.get_level_values("carrier")
+    supply = supply[(supply > 0) & ~carriers.isin(left_out)]
 
-    df_costs=pd.concat([opex,capex,system_cost],axis=1)
-    df_costs.columns=["opex (Eur/a)","capex (Eur/a)","system cost (Eur/a)"]
-    df_costs=df_costs.reset_index().drop(['component'],axis=1)
-    df_costs.to_csv(op_path, index=False)
-    logger.info(f"Exported costs summary to {op_path}")
+    # Heat pumps are defined in reverse (bus0 = heat), so their capacity at the heat port is negative
+    capacity = capacity.reindex(supply.index).abs()
 
-
-def sum_by_carrier(*stats: pd.Series) -> pd.Series:
-    """
-        Sums statistics per carrier
-    """
-    summed = pd.concat([s.groupby(level=-1).sum() for s in stats])
-    return summed.groupby(level=0).sum().rename_axis("carrier")
+    stats = pd.DataFrame({"capacity": capacity, "generation": supply})
+    return stats.groupby(level="carrier").sum()
 
 
-def link_carriers(n: pypsa.Network) -> dict[str, list[str]]:
-    """
-        Splits the link carriers by the port they are read at and what to leave out:
-        - "bus1": links read at their output port bus1
-        - "bus0": heat pumps, which are defined in reverse (bus0 = heat, bus1 = electricity)
-        - "co2": links whose read port is a CO2 bus (unit t_co2), left out of MW/MWh statistics
-        - "charger": storage chargers, whose output is energy into storage, not generation
-        - "pass_through": links that only pass a fuel to a load of the same carrier
-          (e.g. gas for industry), whose output equals that demand
-    """
-    links = n.links
-    heat_pump = links.carrier.str.endswith("heat pump")
-    port_bus = links.bus1.where(~heat_pump, links.bus0)
-    co2 = port_bus.map(n.buses.unit).eq("t_co2")
-    charger = links.carrier.str.endswith("charger") & ~links.carrier.str.endswith("discharger")
-    pass_through = links.carrier.eq(links.bus1.map(n.buses.carrier)) & links.carrier.isin(n.loads.carrier)
+def storage_capacity(n: pypsa.Network, carriers: list[str]) -> pd.Series:
+    """Returns the energy capacity (MWh) per carrier of the given stores and storage units."""
+    stores = n.stores.groupby("carrier").e_nom_opt.sum()
+    units = n.storage_units
+    units = (units.p_nom_opt * units.max_hours).groupby(units.carrier).sum()
+    energy = pd.concat([stores, units])
+    return energy[energy.index.isin(carriers)]
 
-    def carriers(mask: pd.Series) -> list[str]:
-        return links.carrier[mask].unique().tolist()
 
-    return {
-        "bus1": carriers(~heat_pump & ~co2),
-        "bus0": carriers(heat_pump & ~co2),
-        "co2": carriers(co2),
-        "charger": carriers(charger & ~co2),
-        "pass_through": carriers(pass_through & ~co2),
+def to_long(values: dict[str, pd.Series], unit: str) -> pd.DataFrame:
+    """Combines a series per panel into a table with the columns panel, carrier, unit and value."""
+    data = pd.concat(values, names=["panel", "carrier"]).rename("value").reset_index()
+    data.insert(2, "unit", unit)
+    return data
+
+
+def extract_costs(n: pypsa.Network, path: str) -> None:
+    """Exports the opex, capex and system costs per component and carrier in EUR/a."""
+    costs = pd.concat(
+        {
+            "opex": n.statistics.opex(nice_names=False),
+            "capex": n.statistics.capex(nice_names=False),
+            "system cost": n.statistics.system_cost(nice_names=False),
+        },
+        axis=1,
+    ).fillna(0)
+
+    slack = costs.loc[costs.index.isin([("Generator", "load")]), "system cost"].sum()
+    if slack > 0:
+        logger.warning(
+            f"The CO2 load sink costs {slack / 1e9:.1f} bn EUR/a, exported as Generator 'load'."
+        )
+
+    costs.round(DECIMAL).to_csv(path)
+    logger.info(f"Exported costs per component and carrier to {path}")
+
+
+def extract_capacities_and_generation(
+    n: pypsa.Network, statistics: dict, capacity_path: str, generation_path: str
+) -> None:
+    """Exports the capacities (incl. storage) and the generation per panel and carrier."""
+    stats = {
+        panel: panel_statistics(n, spec["bus_carriers"], spec.get("exclude", []))
+        for panel, spec in statistics["panels"].items()
     }
 
-
-def stat_by_carrier(n: pypsa.Network, stat_name: str, exclude: tuple[str, ...] | list[str] = ()) -> pd.Series:
-    """
-        Returns the statistics per carrier, with links read at bus1 and heat pumps at bus0.
-        Links at CO2 buses and the link carriers in exclude are left out.
-        For eg:
-            stat_name: optimal_capacity returns the optimal capacity per carrier in MW
-    """
-    stats = getattr(n.statistics, stat_name)
-    one_port = stats(
-        components=["Generator", "StorageUnit"], groupby="carrier", nice_names=False
+    capacities = pd.concat(
+        [
+            to_long({p: s.capacity for p, s in stats.items()}, "MW"),
+            to_long({"Storage": storage_capacity(n, statistics["storage"])}, "MWh"),
+        ]
     )
+    capacities.round({"value": DECIMAL}).to_csv(capacity_path, index=False)
+    logger.info(f"Exported capacities to {capacity_path}")
 
-    carriers = link_carriers(n)
-    logger.info(f"{stat_name}: left out links at CO2 buses: {carriers['co2']}")
-    link_stats = []
-    for port in ["bus1", "bus0"]:
-        port_carriers = [c for c in carriers[port] if c not in exclude]
-        if port_carriers:
-            link_stats.append(stats(
-                components=["Link"], at_port=port, carrier=port_carriers, groupby="carrier", nice_names=False
-            ))
-    return sum_by_carrier(one_port, *link_stats)
+    generation = to_long({p: s.generation for p, s in stats.items()}, "MWh")
+    generation.round({"value": DECIMAL}).to_csv(generation_path, index=False)
+    logger.info(f"Exported generation to {generation_path}")
 
-def extract_generations(n: pypsa.Network, op_path) -> pd.Series:
-    """
-        Returns the generation in MWh per carrier.
-        Storage chargers and pass-through links to loads are left out, so that
-        energy into storage and fuel delivered to a load are not counted as generation.
-    """
-    carriers = link_carriers(n)
-    exclude = carriers["charger"] + carriers["pass_through"]
-    logger.info(f"Generation: left out chargers and pass-through links: {exclude}")
-    generations = stat_by_carrier(n, "energy_balance", exclude=exclude)
-    generations.name="Generations (MWh)"
-    generations.round(DECIMAL).to_csv(op_path)
-    logger.info(f"Export generation by technology to {op_path}")
 
-def extract_capacities(n: pypsa.Network, op_path: str):
-    """
-        Extract optimal capacities in the network
-    """
-    capacities = stat_by_carrier(n, "optimal_capacity")
-    capacities.name="Capacities (MW)"
-    capacities.round(DECIMAL).to_csv(op_path)
-    logger.info(f"Exported optimal capacities by technology to {op_path}")
+def extract_demands(n: pypsa.Network, path: str) -> None:
+    """Exports the annual demand per load carrier in MWh, without loads at CO2 buses."""
+    co2_loads = n.loads.carrier[n.loads.bus.map(n.buses.unit).eq("t_co2")].unique()
+    logger.info(f"Demand: left out loads at CO2 buses: {co2_loads.tolist()}")
 
-def extract_demands(n: pypsa.Network, op_path: str):
-    """
-        Extract demands by carrier in the network.
-        Loads at CO2 buses (e.g. process emissions, in t_co2) are left out.
-    """
-    co2_loads = n.loads.carrier[n.loads.bus.map(n.buses.unit).eq("t_co2")].unique().tolist()
-    logger.info(f"Demand: left out loads at CO2 buses: {co2_loads}")
-    demand_series = n.statistics.energy_balance(
-        components=['Load'], groupby="carrier", nice_names=False
+    # Loads withdraw energy, so their balance is negative
+    balance = n.statistics.energy_balance(
+        components=["Load"], groupby="carrier", nice_names=False
     )
-    demand_series = demand_series[~demand_series.index.get_level_values(-1).isin(co2_loads)]
-    demands=sum_by_carrier(demand_series)
-    demands.name="Demand (MWh)"
-    demands.abs().round(DECIMAL).to_csv(op_path)
-    logger.info(f"Extracted demands by carrier to {op_path}")
+    demand = -balance.droplevel("component").drop(co2_loads, errors="ignore")
+
+    data = demand.rename("value").reset_index()
+    data.insert(1, "unit", "MWh")
+    data.round({"value": DECIMAL}).to_csv(path, index=False)
+    logger.info(f"Exported demand per carrier to {path}")
+
 
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
 
-        snakemake = mock_snakemake("export_costs")
+        snakemake = mock_snakemake(
+            "export_statistics",
+            configfiles=[
+                "config/catf_model/config.base.yaml",
+                "config/catf_model/config.initial.yaml",
+            ],
+            run="baseline",
+            horizon=2050,
+        )
 
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
-    # Read PyPSA Network
     n = pypsa.Network(snakemake.input.network)
 
     extract_costs(n, snakemake.output.costs)
-    extract_capacities(n, snakemake.output.capacities)
-    extract_generations(n, snakemake.output.generation)
+    extract_capacities_and_generation(
+        n,
+        snakemake.params.statistics,
+        snakemake.output.capacities,
+        snakemake.output.generation,
+    )
     extract_demands(n, snakemake.output.demand)
-
-

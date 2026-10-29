@@ -7,7 +7,7 @@
 <!-- Upcoming Release -->
 <!-- ================= -->
 
-* Extract statistics such as capacities, generation mix, demand and costs from the network files and plot the same ([#28](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/28)).
+* Add export of costs, capacities, generation and demand per run, and plots comparing scenarios: capacity and generation per carrier (electricity, heat, hydrogen, fuels and storage) and final demand by sector ([#28](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/28)).
 
 * Update investment costs for solar related technologies by +30% ([#26](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/26)).
 

@@ -1,124 +1,123 @@
-# SPDX-FileCopyrightText: Contributors to clean-firm-techs-eu <https://github.com/oet/clean-firm-techs-eu> 
+# SPDX-FileCopyrightText: Contributors to clean-firm-techs-eu <https://github.com/open-energy-transition/clean-firm-techs-eu>
 #
 # SPDX-License-Identifier: MIT
 """
-Exports the installed capacity, generation and demand by sector across runs
-and planning horizons.
+Summarises the installed capacity, generation and demand across runs and
+planning horizons.
 
-Values are read from the per-run CSVs written by ``export_statistics``
-(``results/{run}/csvs/statistics/{optimal_capacities,generation,demand}_{horizon}.csv``,
-in MW and MWh) and grouped into the sectors set in
-``catf_model.post_processing.sectors``: capacities and generation use the
-``cap_and_generation`` mapping of technologies, demand uses the ``demand``
-mapping of load carriers. Carriers not assigned to a sector are mapped to
-"Others". Carriers with
-unlimited values (e.g. the capacity of the CO2 load sink) are left out and
-listed in the log.
-
-Generator and storage unit capacities are their nominal power. Link
-capacities and generation are measured at the output port ``bus1`` (input
-capacity times efficiency), e.g. electrical output for CCGT and CHP.
-
-Heat pumps are the exception: they are defined in reverse (``bus0`` = heat,
-``bus1`` = electricity, efficiency = 1/COP). Their nominal power is on the
-heat side and their static efficiency is 1, so their capacity is the thermal
-output capacity (MW_th). Their generation at ``bus1`` is their electricity
-consumption, reported as negative values, not their heat output.
-
-Store energy capacities (MWh) are not included. Demand is per load carrier.
+Reads the per-run CSVs written by ``export_statistics`` and groups the carriers:
+capacities and generation by the technology groups in
+``catf_model.post_processing.statistics.groups``, per panel; demand by the
+sectors in ``catf_model.post_processing.sectors.demand``, in a single panel
+"Demand". Carriers not assigned to a group are summed as "Other" and logged.
 
 Writes one long-format CSV with the columns scenario, planning_horizon,
-statistic, carrier, Sector, value and unit: capacity in GW, generation and
-demand in TWh.
+statistic, panel, group, value and unit: capacity in GW (storage in GWh),
+generation and demand in TWh.
 """
 
 import logging
 
-import numpy as np
 import pandas as pd
 
 from scripts._helpers import configure_logging, set_scenario_config
 
 logger = logging.getLogger(__name__)
 
+# Group of carriers not assigned in the config, matches the key in the plot colors
+OTHER = "Other"
 
-# Statistic: (unit, divisor from MW/MWh to the exported unit, sector mapping in the config)
-STATISTICS = {
-    "capacities": ("GW", 1e3, "cap_and_generation"),
-    "generation": ("TWh", 1e6, "cap_and_generation"),
-    "demand": ("TWh", 1e6, "demand"),
+# Summary unit per statistic and exported unit
+UNITS = {
+    "capacities": {"MW": "GW", "MWh": "GWh"},
+    "generation": {"MWh": "TWh"},
+    "demand": {"MWh": "TWh"},
 }
 
-# Sector of carriers not assigned in the config, matches the key in the plot colors
-OTHER = "Others"
+# Divisor from the exported MW or MWh to the summary unit
+DIVISORS = {"GW": 1e3, "GWh": 1e3, "TWh": 1e6}
 
 
-def read_statistic(path: str) -> pd.Series:
+def group_mapping(groups: dict, panel: str) -> dict[str, str]:
     """
-        Reads a statistic per carrier exported by export_statistics
+    Returns the group of each carrier in a panel. Groups restricted to other
+    panels are skipped; later groups override earlier ones.
     """
-    return pd.read_csv(path, index_col="carrier").squeeze("columns")
-
-
-def map_sector(
-    values: pd.Series, sectors: dict[str, list[str]], divisor: float
-) -> tuple[pd.DataFrame, list[str]]:
-    """
-    Maps technology to a sector, merges the statistic and sector mapping and returns the same
-    """
-    unlimited = values.index[~np.isfinite(values)].tolist()
-    values = values[np.isfinite(values)]
-    carrier_to_sector = {c: s for s, carriers in sectors.items() for c in carriers}
-    mapped = pd.Series(values.index.map(carrier_to_sector), index=values.index)
-    mapped.loc[mapped.isna()] = OTHER
-    df_mapped = pd.concat([mapped, values / divisor], axis=1)
-    df_mapped.columns = ["Sector", "value"]
-    return df_mapped, unlimited
+    mapping = {}
+    for group, spec in groups.items():
+        if panel in spec.get("panels", [panel]):
+            mapping.update(dict.fromkeys(spec["carriers"], group))
+    return mapping
 
 
 def summarise(
-    paths: list[str], keys: list[tuple[str, int]], sectors: dict[str, dict[str, list[str]]], statistic: str
+    paths: list[str], keys: list[tuple[str, int]], statistic: str, mappings: dict
 ) -> pd.DataFrame:
     """
-    Combines the per-run CSVs of a statistic into one table with scenario and planning horizon
+    Combines the per-run CSVs of a statistic into one table, with the carriers
+    summed per group and converted to the summary units.
     """
-    unit, divisor, mapping = STATISTICS[statistic]
-    results = {}
-    for key, path in zip(keys, paths):
-        results[key], unlimited = map_sector(
-            read_statistic(path), sectors[mapping], divisor
-        )
-        if unlimited:
-            logger.info(f"{statistic} {key}: carriers with unlimited values, left out: {unlimited}")
+    tables, unmapped = [], set()
+    for (run, horizon), path in zip(keys, paths):
+        data = pd.read_csv(path)
+        # The demand CSV has no panel column, all demand goes into one panel
+        if "panel" not in data:
+            data.insert(0, "panel", "Demand")
 
-    data = pd.concat(results).reset_index().rename(columns={'level_0':'scenario','level_1':'planning_horizon'})
+        data["group"] = [
+            mappings.get(p, {}).get(c, OTHER) for p, c in zip(data.panel, data.carrier)
+        ]
+        other = data[data.group == OTHER]
+        unmapped |= set(zip(other.panel, other.carrier))
+
+        data["unit"] = data.unit.map(UNITS[statistic])
+        data["value"] /= data.unit.map(DIVISORS)
+
+        data = data.groupby(["panel", "group", "unit"], sort=False).value.sum().reset_index()
+        data.insert(0, "scenario", run)
+        data.insert(1, "planning_horizon", horizon)
+        tables.append(data)
+
+    if unmapped:
+        logger.warning(f"{statistic}: carriers summed as '{OTHER}': {sorted(unmapped)}")
+
+    data = pd.concat(tables, ignore_index=True)
     data.insert(2, "statistic", statistic)
-    data["unit"] = unit
-    return data
+    return data[["scenario", "planning_horizon", "statistic", "panel", "group", "value", "unit"]]
 
 
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
 
-        snakemake = mock_snakemake("export_statistics_summary")
+        snakemake = mock_snakemake(
+            "export_statistics_summary",
+            configfiles=[
+                "config/catf_model/config.base.yaml",
+                "config/catf_model/config.initial.yaml",
+            ],
+        )
 
     configure_logging(snakemake)
     set_scenario_config(snakemake)
 
-    sectors = snakemake.params.sectors
-    runs = snakemake.params.runs
-    horizons = snakemake.params.planning_horizons
+    statistics = snakemake.params.statistics
+    panels = [*statistics["panels"], "Storage"]
+    groups = {p: group_mapping(statistics["groups"], p) for p in panels}
+    sectors = {
+        "Demand": {c: s for s, carriers in snakemake.params.sectors["demand"].items() for c in carriers}
+    }
 
     # CSVs are ordered by run, then horizon
-    keys = [(run, int(h)) for run in runs for h in horizons]
+    keys = [(run, int(h)) for run in snakemake.params.runs for h in snakemake.params.planning_horizons]
     data = pd.concat(
         [
-            summarise(getattr(snakemake.input, statistic), keys, sectors, statistic)
-            for statistic in STATISTICS
+            summarise(snakemake.input.capacities, keys, "capacities", groups),
+            summarise(snakemake.input.generation, keys, "generation", groups),
+            summarise(snakemake.input.demand, keys, "demand", sectors),
         ],
         ignore_index=True,
     )
-    data.to_csv(snakemake.output.csv, index=False)
+    data.round({"value": 4}).to_csv(snakemake.output.csv, index=False)
 
-    logger.info(f"Exported {', '.join(STATISTICS)} by sector and planning horizon to {snakemake.output.csv}.")
+    logger.info(f"Exported capacities, generation and demand by group to {snakemake.output.csv}.")

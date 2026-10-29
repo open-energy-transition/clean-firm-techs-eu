@@ -18,97 +18,132 @@ catf_model:
       - co2
       - co2 stored
 
-    # Sectors to plot and the carriers assigned to them, plotted in this order
-    sectors:
-      cap_and_generation:
-        Power:
-        - solar
-        - solar rooftop
-        - solar-hsat
-        - onwind
-        - offwind-ac
-        - offwind-dc
-        - offwind-float
-        - ror
-        - hydro
-        - nuclear
-        - CCGT
-        - OCGT
-        - coal
-        - lignite
-        - oil
-        - H2 turbine
-        - H2 Fuel Cell
-        - urban central gas CHP
-        - urban central gas CHP CC
-        - urban central solid biomass CHP
-        - urban central solid biomass CHP CC
+    statistics:
+      # Panels of the capacity and generation plots. A technology is counted in a
+      # panel if it supplies energy to the panel's bus carriers, measured at the
+      # port connected to them (e.g. a CHP in Electricity and in Heat). Lines and
+      # links between buses of the panel (transmission, distribution grid) and the
+      # carriers in "exclude" are left out.
+      panels:
+        Electricity:
+          bus_carriers: [AC, low voltage]
+          exclude: [V2G]   # EV batteries, not built capacity
         Heat:
-        - urban central air heat pump
-        - urban decentral air heat pump
-        - rural air heat pump
-        - rural ground heat pump
-        - urban central resistive heater
-        - urban decentral resistive heater
-        - rural resistive heater
-        - urban central gas boiler
-        - urban decentral gas boiler
-        - rural gas boiler
-        - urban decentral biomass boiler
-        - rural biomass boiler
-        - urban central solar thermal
-        - urban decentral solar thermal
-        - rural solar thermal
-        - urban central water tanks discharger
-        - urban decentral water tanks discharger
-        - rural water tanks discharger
-        - urban central water tanks charger
-        - urban decentral water tanks charger
-        - rural water tanks charger
-        - urban central heat vent
-        - urban decentral heat vent
-        - rural heat vent
-        Electricity storage:
-        - battery discharger
-        - home battery discharger
-        - battery charger
-        - home battery charger
-        - PHS
+          bus_carriers: [urban central heat, urban decentral heat, rural heat]
         Hydrogen:
-        - H2 Electrolysis
-        - SMR
-        - SMR CC
-        - ammonia cracker
-        Fuels:
-        - Haber-Bosch
-        - Sabatier
-        - Fischer-Tropsch
-        - methanolisation
-        - biomass to liquid
-        - biomass-to-methanol
-        - electrobiofuels
-        - biogas to gas
-        - oil refining
-        Carbon management:
-        - DAC
-        - co2 sequestered
-        - process emissions
-        - process emissions CC
-        - HVC to air
-        Transport:
-        - BEV charger
-        - V2G
-        Industry and agriculture:
-        - gas for industry
-        - gas for industry CC
-        - solid biomass for industry
-        - solid biomass for industry CC
-        - coal for industry
-        - naphtha for industry
-        - industry methanol
-        - agriculture machinery oil
-      # Load carriers. Loads at CO2 buses (process emissions, t_co2) are not
-      # exported as demand by export_statistics
+          bus_carriers: [H2]
+        Fuels & conversion:
+          bus_carriers: [gas, oil, methanol, NH3]
+          # Fossil supply, imports and resource potentials, not conversion plants
+          exclude: [gas, oil, oil refining, methanol, unsustainable bioliquids]
+
+      # Built storage shown in the Storage panel of the capacity plot, as energy
+      # capacity: Store e_nom and StorageUnit p_nom times max_hours
+      storage:
+      - battery
+      - home battery
+      - urban central water tanks
+      - urban decentral water tanks
+      - rural water tanks
+      - H2 Store
+      - ammonia store
+      - PHS
+
+      # Technology groups of the capacity and generation plots, stacked in this
+      # order. Groups with "panels" only apply in these panels. Technologies not
+      # listed are plotted as "Other" and logged.
+      groups:
+        Nuclear:
+          color: "#ff8c00"
+          carriers: [nuclear]
+        Onshore wind:
+          color: "#235ebc"
+          carriers: [onwind]
+        Offshore wind:
+          color: "#6895dd"
+          carriers: [offwind-ac, offwind-dc, offwind-float]
+        Solar:
+          color: "#f9d002"
+          carriers: [solar, solar-hsat, solar rooftop]
+        Hydro:
+          color: "#298c81"
+          carriers: [hydro, ror]
+        Pumped hydro:
+          color: "#51dbcc"
+          carriers: [PHS]
+        Battery:
+          color: "#ace37f"
+          carriers: [battery discharger, home battery discharger, battery, home battery]
+        Gas power:
+          color: "#a85522"
+          carriers: [CCGT, OCGT]
+        Gas CHP:
+          color: "#8d5e56"
+          carriers: [urban central gas CHP]
+        Biomass CHP:
+          color: "#baa741"
+          carriers: [urban central solid biomass CHP]
+        Hydrogen power:
+          color: "#991f83"
+          carriers: [H2 turbine, H2 Fuel Cell]
+        Coal & lignite:
+          color: "#545454"
+          carriers: [coal, lignite]
+        Oil:
+          color: "#c9c9c9"
+          carriers: [oil]
+        Heat pumps:
+          color: "#2fb537"
+          carriers: [rural air heat pump, rural ground heat pump, urban central air heat pump, urban decentral air heat pump]
+        Resistive heaters:
+          color: "#a6d96a"
+          carriers: [rural resistive heater, urban central resistive heater, urban decentral resistive heater]
+        Gas boilers:
+          color: "#db6a25"
+          carriers: [rural gas boiler, urban central gas boiler, urban decentral gas boiler]
+        Biomass boilers:
+          color: "#8a9a5b"
+          carriers: [rural biomass boiler, urban decentral biomass boiler]
+        Oil boilers:
+          color: "#adadad"
+          carriers: [rural oil boiler, urban decentral oil boiler]
+        Solar thermal:
+          color: "#ffbf2b"
+          carriers: [rural solar thermal, urban central solar thermal, urban decentral solar thermal]
+        Thermal storage:
+          color: "#e69487"
+          carriers: [rural water tanks discharger, urban central water tanks discharger, urban decentral water tanks discharger, rural water tanks, urban central water tanks, urban decentral water tanks]
+        Electrolysis:
+          color: "#ff29d9"
+          carriers: [H2 Electrolysis]
+        SMR:
+          color: "#870c71"
+          carriers: [SMR, SMR CC]
+        Ammonia:
+          color: "#076987"
+          carriers: [Haber-Bosch, ammonia cracker]
+        Biofuels & biogas:
+          color: "#e3d37d"
+          carriers: [biogas to gas, biomass to liquid, biomass-to-methanol]
+        Synthetic fuels:
+          color: "#25c49a"
+          carriers: [Fischer-Tropsch, Sabatier, methanolisation, electrobiofuels]
+        Hydrogen storage:
+          color: "#bf13a0"
+          carriers: [H2 Store]
+        Ammonia storage:
+          color: "#00ace0"
+          carriers: [ammonia store]
+        # Heat released by conversion plants, listed last so it overrides their group in Heat
+        Waste heat:
+          color: "#c46868"
+          panels: [Heat]
+          carriers: [Haber-Bosch, Fischer-Tropsch, Sabatier, methanolisation, H2 Electrolysis, H2 Fuel Cell]
+
+    # Sectors of the demand plot and the load carriers assigned to them, plotted
+    # in this order. Loads at CO2 buses (process emissions, t_co2) are not
+    # exported as demand by export_statistics
+    sectors:
       demand:
         Power:
           - electricity
@@ -138,10 +173,6 @@ catf_model:
     colors:
       Power: "#2a78d6"
       Heat: "#eb6834"
-      Electricity storage: "#1baf7a"
-      Hydrogen: "#eda100"
-      Fuels: "#e87ba4"
-      Carbon management: "#008300"
       Transport: "#6250d6"
       Industry and agriculture: "#e34948"
-      Others: "#8a5a2b"
+      Other: "#8a5a2b"
