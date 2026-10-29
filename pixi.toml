@@ -203,6 +203,7 @@ pytest = ">=8.4.2"
 [feature.catf-model.tasks]
 catf-initial = "snakemake -call solve_networks --configfile config/catf_model/config.base.yaml config/catf_model/config.initial.yaml"
 catf-postprocess = "snakemake -call catf_post_processing --configfile config/catf_model/config.base.yaml config/catf_model/config.initial.yaml"
+catf-sensitivity = "snakemake -call solve_networks --configfile config/catf_model/config.base.yaml config/catf_model/config.sensitivity.yaml"
 
 [environments]
 doc = { features = ["doc"], no-default-feature = true }
