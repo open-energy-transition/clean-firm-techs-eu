@@ -10,7 +10,7 @@ def cost_sensitivity_years(w):
 
 
 rule build_cost_sensitivity:
-    """Scales established-technology costs by a factor for the CATF cost sensitivity."""
+    """Builds the CATF custom cost file: baseline cost factors (e.g. solar +30%) followed by the sensitivity factor for the cost sensitivity scenarios."""
     input:
         costs=lambda w: [
             rules.retrieve_cost_data.output["costs"].format(horizon=year)
@@ -28,6 +28,6 @@ rule build_cost_sensitivity:
         mem_mb=1000,
     params:
         cost_years=cost_sensitivity_years,
-        cost_factors=config_provider("catf_model","cost_factors",default={})
+        cost_factors=config_provider("catf_model", "cost_factors", default={}),
     script:
         scripts("catf_model/build_cost_sensitivity.py")

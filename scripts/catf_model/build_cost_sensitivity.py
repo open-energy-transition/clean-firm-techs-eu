@@ -115,7 +115,7 @@ def scale_sensitivity_costs(
         for v in costs.loc[selection, "value"]
     ]
     scaled["source"] = "CATF established-technology cost sensitivity"
-    logger.info(f"Applied scaling for cost sensitivity scenarios")
+    logger.info("Applied scaling for cost sensitivity scenarios")
     return scaled
 
 
