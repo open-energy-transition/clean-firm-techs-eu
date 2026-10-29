@@ -1,0 +1,23 @@
+# Overlay on config.base.yaml to run the cost sensitivity
+# defined in scenarios.sensitivity.yaml.
+
+run:
+  prefix: sensitivity
+  name: all
+  scenarios:
+    enable: true
+    file: config/catf_model/scenarios.sensitivity.yaml
+  # Share scenario-independent resources (e.g. clustered network, availability)
+  # across the runs.
+  shared_resources:
+    policy: base
+    # Keep processed cost files per scenario. Required because compose_network
+    # requests them without the {horizon} wildcard, which "base" would treat as shared.
+    exclude:
+    - costs_
+    # Built per scenario from catf_model.cost_sensitivity
+    - custom_costs_sensitivity
+
+costs:
+  # Built per run by build_scenario_cost_sensitivity
+  custom_cost_fn: resources/sensitivity/{run}/custom_costs_sensitivity.csv
