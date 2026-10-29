@@ -17,3 +17,131 @@ catf_model:
       - NH3
       - co2
       - co2 stored
+
+    # Sectors to plot and the carriers assigned to them, plotted in this order
+    sectors:
+      cap_and_generation:
+        Power:
+        - solar
+        - solar rooftop
+        - solar-hsat
+        - onwind
+        - offwind-ac
+        - offwind-dc
+        - offwind-float
+        - ror
+        - hydro
+        - nuclear
+        - CCGT
+        - OCGT
+        - coal
+        - lignite
+        - oil
+        - H2 turbine
+        - H2 Fuel Cell
+        - urban central gas CHP
+        - urban central gas CHP CC
+        - urban central solid biomass CHP
+        - urban central solid biomass CHP CC
+        Heat:
+        - urban central air heat pump
+        - urban decentral air heat pump
+        - rural air heat pump
+        - rural ground heat pump
+        - urban central resistive heater
+        - urban decentral resistive heater
+        - rural resistive heater
+        - urban central gas boiler
+        - urban decentral gas boiler
+        - rural gas boiler
+        - urban decentral biomass boiler
+        - rural biomass boiler
+        - urban central solar thermal
+        - urban decentral solar thermal
+        - rural solar thermal
+        - urban central water tanks discharger
+        - urban decentral water tanks discharger
+        - rural water tanks discharger
+        - urban central water tanks charger
+        - urban decentral water tanks charger
+        - rural water tanks charger
+        - urban central heat vent
+        - urban decentral heat vent
+        - rural heat vent
+        Electricity storage:
+        - battery discharger
+        - home battery discharger
+        - battery charger
+        - home battery charger
+        - PHS
+        Hydrogen:
+        - H2 Electrolysis
+        - SMR
+        - SMR CC
+        - ammonia cracker
+        Fuels:
+        - Haber-Bosch
+        - Sabatier
+        - Fischer-Tropsch
+        - methanolisation
+        - biomass to liquid
+        - biomass-to-methanol
+        - electrobiofuels
+        - biogas to gas
+        - oil refining
+        Carbon management:
+        - DAC
+        - co2 sequestered
+        - process emissions
+        - process emissions CC
+        - HVC to air
+        Transport:
+        - BEV charger
+        - V2G
+        Industry and agriculture:
+        - gas for industry
+        - gas for industry CC
+        - solid biomass for industry
+        - solid biomass for industry CC
+        - coal for industry
+        - naphtha for industry
+        - industry methanol
+        - agriculture machinery oil
+      # Load carriers. Loads at CO2 buses (process emissions, t_co2) are not
+      # exported as demand by export_statistics
+      demand:
+        Power:
+          - electricity
+        Heat:
+          - urban central heat
+          - urban decentral heat
+          - rural heat
+          - agriculture heat
+        Transport:
+          - land transport oil
+          - land transport EV
+          - land transport fuel cell
+        Industry and agriculture:
+          - agriculture electricity
+          - gas for industry
+          - coal for industry
+          - agriculture machinery oil
+          - industry methanol
+          - naphtha for industry
+          - solid biomass for industry
+          - NH3
+          - H2 for industry
+          - low-temperature heat for industry
+          - agriculture machinery electric
+          - industry electricity
+
+    colors:
+      Power: "#2a78d6"
+      Heat: "#eb6834"
+      Electricity storage: "#1baf7a"
+      Hydrogen: "#eda100"
+      Fuels: "#e87ba4"
+      Carbon management: "#008300"
+      Transport: "#6250d6"
+      Industry and agriculture: "#e34948"
+      Others: "#8a5a2b"
