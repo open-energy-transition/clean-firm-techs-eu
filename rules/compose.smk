@@ -274,5 +274,6 @@ rule compose_network:
         ),
         co2_budget=config_provider("co2_budget"),
         adjustments=config_provider("adjustments"),
+        cost_factors=config_provider("catf_model", "cost_factors", default={}),
     script:
         scripts("compose_network.py")

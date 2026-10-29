@@ -63,9 +63,38 @@ INVESTMENT_TECHNOLOGIES = [
 FUEL_TECHNOLOGIES = ["gas"]
 
 
-def scale_costs(costs: pd.DataFrame, factor: float, cost_year: str) -> pd.DataFrame:
+def apply_cost_factors(
+    costs: pd.DataFrame, base_factors: dict[str, float], param: str
+) -> pd.DataFrame:
     """
-    Return scaled cost rows in the format of the custom cost file.
+    Return costs dataframe with base costs scaled for technologies specified in the config parameter 'cost_factors' in the format of the custom cost file.
+    """
+    for tech, factor in base_factors.items():
+        if tech != "distribution grid reinforcement":
+            tech_rows = costs.query("technology == @tech and parameter == @param").index
+
+            if tech_rows.empty:
+                logger.warning(
+                    f"Technology {tech} not found to raise {param} by factor {factor}"
+                )
+                continue
+
+            if factor != 1:
+                costs.loc[tech_rows, "value"] = (
+                    costs.loc[tech_rows, "value"] * factor
+                ).round(6)
+                costs.loc[tech_rows, "source"] = (
+                    f"CATF established-technology base cost scaling by {factor}"
+                )
+    logger.info(f"Applied cost factor scaling to {param}")
+    return costs
+
+
+def scale_sensitivity_costs(
+    costs: pd.DataFrame, factor: float, cost_year: str
+) -> pd.DataFrame:
+    """
+    Return scaled cost rows for applying sensitivities in the format of the custom cost file.
     """
     selection = (
         costs.technology.isin(INVESTMENT_TECHNOLOGIES)
@@ -86,7 +115,7 @@ def scale_costs(costs: pd.DataFrame, factor: float, cost_year: str) -> pd.DataFr
         for v in costs.loc[selection, "value"]
     ]
     scaled["source"] = "CATF established-technology cost sensitivity"
-
+    logger.info("Applied scaling for cost sensitivity scenarios")
     return scaled
 
 
@@ -101,12 +130,22 @@ if __name__ == "__main__":
         )
     configure_logging(snakemake)
 
+    base_factors = snakemake.params.cost_factors
     factor = float(snakemake.wildcards.factor)
     cost_years = snakemake.params.cost_years
 
-    default = pd.read_csv(snakemake.input.default, dtype={"planning_horizon": "str"})
+    default = apply_cost_factors(
+        pd.read_csv(snakemake.input.default, dtype={"planning_horizon": "str"}),
+        base_factors,
+        "marginal_cost",
+    )
+
     scaled = [
-        scale_costs(pd.read_csv(fn), factor, year)
+        scale_sensitivity_costs(
+            apply_cost_factors(pd.read_csv(fn), base_factors, "investment"),
+            factor,
+            year,
+        )
         for fn, year in zip(snakemake.input.costs, cost_years)
     ]
 
