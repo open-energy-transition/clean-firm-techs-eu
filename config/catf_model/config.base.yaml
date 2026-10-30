@@ -29,6 +29,14 @@ sector:
   H2_network: true
   hydrogen_turbine: true
 
+  # Demand-side flexibility (baseline: EV smart charging and V2G on, residential heat DSM off)
+  bev_dsm: true
+  bev_dsm_availability: 0.5
+  v2g: true
+  residential_heat:
+    dsm:
+      enable: false
+
   # Firm technologies excluded from baseline
   # Hydrogen to power
   hydrogen_fuel_cell: false
