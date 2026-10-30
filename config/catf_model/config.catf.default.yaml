@@ -17,3 +17,227 @@ catf_model:
       - NH3
       - co2
       - co2 stored
+
+    statistics:
+      # Panels of the capacity and generation plots. A technology is counted in a
+      # panel if it supplies energy to the panel's bus carriers, measured at the
+      # port connected to them (e.g. a CHP in Electricity and in Heat). Lines and
+      # links between buses of the panel (transmission, distribution grid) and the
+      # carriers in "exclude" are left out.
+      panels:
+        Electricity:
+          bus_carriers: [AC, low voltage]
+          exclude: [V2G]   # EV batteries, not built capacity
+        Heat:
+          bus_carriers: [urban central heat, urban decentral heat, rural heat]
+        Hydrogen:
+          bus_carriers: [H2]
+        Fuels & conversion:
+          bus_carriers: [gas, oil, methanol, NH3]
+          # Fossil supply, imports and resource potentials, not conversion plants
+          exclude: [gas, oil, oil refining, methanol, unsustainable bioliquids]
+
+      # Built storage shown in the Storage panel of the capacity plot, as energy
+      # capacity: Store e_nom and StorageUnit p_nom times max_hours
+      storage:
+      - battery
+      - home battery
+      - urban central water tanks
+      - urban decentral water tanks
+      - rural water tanks
+      - H2 Store
+      - ammonia store
+      - PHS
+
+      # Technology groups of the capacity, generation and cost plots, stacked in
+      # this order. Groups with "panels" only apply in these panels. Technologies
+      # not listed are plotted as "Other" and logged.
+      groups:
+        Nuclear:
+          color: "#ff8c00"
+          carriers: [nuclear]
+        Onshore wind:
+          color: "#235ebc"
+          carriers: [onwind]
+        Offshore wind:
+          color: "#6895dd"
+          carriers: [offwind-ac, offwind-dc, offwind-float]
+        Solar:
+          color: "#f9d002"
+          carriers: [solar, solar-hsat, solar rooftop]
+        Hydro:
+          color: "#298c81"
+          carriers: [hydro, ror]
+        Pumped hydro:
+          color: "#51dbcc"
+          carriers: [PHS]
+        Battery:
+          color: "#ace37f"
+          carriers: [battery discharger, home battery discharger, battery, home battery, battery charger, home battery charger]
+        Gas power:
+          color: "#a85522"
+          carriers: [CCGT, OCGT]
+        Gas CHP:
+          color: "#8d5e56"
+          carriers: [urban central gas CHP]
+        Biomass CHP:
+          color: "#baa741"
+          carriers: [urban central solid biomass CHP]
+        Hydrogen power:
+          color: "#991f83"
+          carriers: [H2 turbine, H2 Fuel Cell]
+        Coal & lignite:
+          color: "#545454"
+          carriers: [coal, lignite]
+        Oil:
+          color: "#c9c9c9"
+          carriers: [oil]
+        Heat pumps:
+          color: "#2fb537"
+          carriers: [rural air heat pump, rural ground heat pump, urban central air heat pump, urban decentral air heat pump]
+        Resistive heaters:
+          color: "#a6d96a"
+          carriers: [rural resistive heater, urban central resistive heater, urban decentral resistive heater]
+        Gas boilers:
+          color: "#db6a25"
+          carriers: [rural gas boiler, urban central gas boiler, urban decentral gas boiler]
+        Biomass boilers:
+          color: "#8a9a5b"
+          carriers: [rural biomass boiler, urban decentral biomass boiler]
+        Oil boilers:
+          color: "#adadad"
+          carriers: [rural oil boiler, urban decentral oil boiler]
+        Solar thermal:
+          color: "#ffbf2b"
+          carriers: [rural solar thermal, urban central solar thermal, urban decentral solar thermal]
+        Thermal storage:
+          color: "#e69487"
+          carriers: [rural water tanks discharger, urban central water tanks discharger, urban decentral water tanks discharger, rural water tanks, urban central water tanks, urban decentral water tanks]
+        Electrolysis:
+          color: "#ff29d9"
+          carriers: [H2 Electrolysis]
+        SMR:
+          color: "#870c71"
+          carriers: [SMR, SMR CC]
+        Ammonia:
+          color: "#076987"
+          carriers: [Haber-Bosch, ammonia cracker]
+        Biofuels & biogas:
+          color: "#e3d37d"
+          carriers: [biogas to gas, biomass to liquid, biomass-to-methanol]
+        Synthetic fuels:
+          color: "#25c49a"
+          carriers: [Fischer-Tropsch, Sabatier, methanolisation, electrobiofuels]
+        Hydrogen storage:
+          color: "#bf13a0"
+          carriers: [H2 Store]
+        Ammonia storage:
+          color: "#00ace0"
+          carriers: [ammonia store]
+        # Groups only in the cost plot, as these carriers have no capacity or generation panel
+        Networks:
+          color: "#6c9459"
+          carriers: [AC, DC, electricity distribution grid, gas pipeline, gas pipeline new, H2 pipeline, H2 pipeline retrofitted, CO2 pipeline]
+        # Fuel purchases. Coal and lignite are in "Coal & lignite", as their supply has the same carrier as the plants
+        Natural gas supply:   # incl. the gas storage (Store gas), which has the same carrier
+          color: "#5b7c99"
+          carriers: [gas]
+        Oil supply:
+          color: "#5e4b3c"
+          carriers: [oil primary]
+        Solid biomass supply:
+          color: "#9a7d0a"
+          carriers: [solid biomass, unsustainable solid biomass]
+        Biogas supply:
+          color: "#7f9c3d"
+          carriers: [biogas, unsustainable biogas]
+        Bioliquids supply:
+          color: "#d4a017"
+          carriers: [unsustainable bioliquids]
+        # Heat released by conversion plants, listed last so it overrides their group in Heat
+        Waste heat:
+          color: "#c46868"
+          panels: [Heat]
+          carriers: [Haber-Bosch, Fischer-Tropsch, Sabatier, methanolisation, H2 Electrolysis, H2 Fuel Cell]
+
+      # Categories of the capex and opex plots, stacked in this order, each made
+      # of technology groups. Fuel families (Gas, Oil, Coal & lignite, Bioenergy)
+      # hold their plants and all their fuel purchases, whichever sector uses them
+      cost_categories:
+        Nuclear:
+          color: "#ff8c00"
+          groups: [Nuclear]
+        Wind:
+          color: "#235ebc"
+          groups: [Onshore wind, Offshore wind]
+        Solar:
+          color: "#f9d002"
+          groups: [Solar]
+        Hydro:
+          color: "#298c81"
+          groups: [Hydro, Pumped hydro]
+        Gas:
+          color: "#5b7c99"
+          groups: [Gas power, Gas CHP, Natural gas supply]
+        Oil:
+          color: "#5e4b3c"
+          groups: [Oil, Oil supply]
+        Coal & lignite:
+          color: "#545454"
+          groups: [Coal & lignite]
+        Bioenergy:
+          color: "#7f9c3d"
+          groups: [Biomass CHP, Biomass boilers, Biofuels & biogas, Solid biomass supply, Biogas supply, Bioliquids supply]
+        Heating:
+          color: "#17becf"
+          groups: [Heat pumps, Resistive heaters, Gas boilers, Oil boilers, Solar thermal]
+        Storage:
+          color: "#ace37f"
+          groups: [Battery, Thermal storage, Hydrogen storage, Ammonia storage]
+        Hydrogen & e-fuels:
+          color: "#bf13a0"
+          groups: [Electrolysis, SMR, Ammonia, Synthetic fuels, Hydrogen power]
+        Networks:
+          color: "#9467bd"
+          groups: [Networks]
+
+    # Sectors of the demand plot and the load carriers assigned to them, plotted
+    # in this order. Loads at CO2 buses (process emissions, t_co2) are not
+    # exported as demand by export_statistics
+    sectors:
+      demand:
+        Power:
+          - electricity
+        Heat:
+          - urban central heat
+          - urban decentral heat
+          - rural heat
+          - agriculture heat
+        Transport:
+          - land transport oil
+          - land transport EV
+          - land transport fuel cell
+        Industry and agriculture:
+          - agriculture electricity
+          - gas for industry
+          - coal for industry
+          - agriculture machinery oil
+          - industry methanol
+          - naphtha for industry
+          - solid biomass for industry
+          - NH3
+          - H2 for industry
+          - low-temperature heat for industry
+          - agriculture machinery electric
+          - industry electricity
+
+    # Colors of the demand sectors, the system cost components and "Other"
+    colors:
+      Capex: "#2a78d6"
+      Opex: "#eda100"
+      CO2 cap penalty: "#9e9e9e"
+      Power: "#2a78d6"
+      Heat: "#eb6834"
+      Transport: "#6250d6"
+      Industry and agriculture: "#e34948"
+      Other: "#8a5a2b"
