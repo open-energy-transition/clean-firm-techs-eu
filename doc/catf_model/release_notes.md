@@ -7,6 +7,8 @@
 <!-- Upcoming Release -->
 <!-- ================= -->
 
+* Adjust demand response in initial scenarios: High Need scenario limits EV demand response to 25% of BEVs, Low Need scenario enables residential heat demand response ([#33](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/33)).
+
 * Update investment costs for solar related technologies by +30% ([#26](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/26)).
 
 * Add initial scenarios (baseline, High Need, and Low Need) scaling investment costs of solar, wind, batteries and gas plants, and the gas fuel price ([#24](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/24)).
