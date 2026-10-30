@@ -140,7 +140,7 @@ catf_model:
           carriers: [AC, DC, electricity distribution grid, gas pipeline, gas pipeline new, H2 pipeline, H2 pipeline retrofitted, CO2 pipeline]
         # Fuel purchases. Coal and lignite are in "Coal & lignite", as their supply has the same carrier as the plants
         Natural gas supply:   # incl. the gas storage (Store gas), which has the same carrier
-          color: "#b2182b"
+          color: "#5b7c99"
           carriers: [gas]
         Oil supply:
           color: "#5e4b3c"
