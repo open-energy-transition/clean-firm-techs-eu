@@ -5653,6 +5653,11 @@
           "description": "Add the cost of electricity grid connection for onshore wind and solar.",
           "type": "boolean"
         },
+        "electricity_demand_factor": {
+          "default": 1.0,
+          "description": "Factor applied in all hours to the low voltage electricity load (carrier `electricity`, i.e. households, services and rail), after electric heating and industry demand have been subtracted. Industry and agriculture electricity, transport and heating demand are not scaled.",
+          "type": "number"
+        },
         "transmission_efficiency": {
           "description": "Configuration for `sector.transmission_efficiency` settings.",
           "properties": {
@@ -13195,6 +13200,11 @@
           "default": true,
           "description": "Add the cost of electricity grid connection for onshore wind and solar.",
           "type": "boolean"
+        },
+        "electricity_demand_factor": {
+          "default": 1.0,
+          "description": "Factor applied in all hours to the low voltage electricity load (carrier `electricity`, i.e. households, services and rail), after electric heating and industry demand have been subtracted. Industry and agriculture electricity, transport and heating demand are not scaled.",
+          "type": "number"
         },
         "transmission_efficiency": {
           "description": "Configuration for `sector.transmission_efficiency` settings.",
