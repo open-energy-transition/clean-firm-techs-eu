@@ -1,7 +1,7 @@
 # Initial scenarios. High Need and Low Need scale the investment costs of
 # established technologies (solar, wind, batteries, gas plants) and the gas
 # fuel price by +33% and -25% compared to the baseline. In the baseline run, the default PyPSA-Eur demand response settings are inherited i.e., EV DSR is on and residential heat DSR is off. In the, high-need scenario, EV demand response is reduced to 25%
-# of BEVs (default 50%); Low Need adds residential heat demand response.
+# of BEVs (default 50%); low-need scenario switches on residential heat demand response.
 # All other assumptions are inherited from config.base.yaml.
 # Scaled cost files are built by rule build_cost_sensitivity
 # (rules/catf_model/cost_sensitivity.smk); the factor is taken from the file name.
