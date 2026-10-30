@@ -870,6 +870,10 @@ class SectorConfig(BaseModel):
         True,
         description="Add the cost of electricity grid connection for onshore wind and solar.",
     )
+    electricity_demand_factor: float = Field(
+        1.0,
+        description="Factor applied in all hours to the low voltage electricity load (carrier `electricity`, i.e. households, services and rail), after electric heating and industry demand have been subtracted. Industry and agriculture electricity, transport and heating demand are not scaled.",
+    )
 
     transmission_efficiency: _TransmissionEfficiencyConfig = Field(
         default_factory=_TransmissionEfficiencyConfig,

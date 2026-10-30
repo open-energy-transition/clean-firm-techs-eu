@@ -2,6 +2,9 @@
 # established technologies (solar, wind, batteries, gas plants) and the gas
 # fuel price by +33% and -25% compared to the baseline. In the baseline run, the default PyPSA-Eur demand response settings are inherited i.e., EV DSR is on and residential heat DSR is off. In the, high-need scenario, EV demand response is reduced to 25%
 # of BEVs (default 50%); low-need scenario switches on residential heat demand response.
+# High Need and Low Need scale the low voltage electricity load (households,
+# services, rail) by +10% and -10% in all hours; industry, agriculture, transport
+# and heating demand are not scaled.
 # All other assumptions are inherited from config.base.yaml.
 # Scaled cost files are built by rule build_cost_sensitivity
 # (rules/catf_model/cost_sensitivity.smk); the factor is taken from the file name.
@@ -13,11 +16,13 @@ baseline:
 high-need:
   sector:
     bev_dsm_availability: 0.25   # 25% of BEVs participate in DSM
+    electricity_demand_factor: 1.1   # +10% low voltage electricity load in all hours
   costs:
     custom_cost_fn: resources/initial/{run}/custom_costs_x1.33.csv
 
 low-need:
   sector:
+    electricity_demand_factor: 0.9   # -10% low voltage electricity load in all hours
     residential_heat:
       dsm:
         enable: true

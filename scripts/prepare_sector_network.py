@@ -6434,4 +6434,11 @@ def main(
     if options["cluster_heat_buses"] and not first_year_myopic:
         cluster_heat_buses(n)
 
+    # Scale the low voltage electricity load (households, services, rail) in all
+    # hours, after electric heating and industry demand have been subtracted
+    if (factor := options["electricity_demand_factor"]) != 1.0:
+        loads = n.loads.index[n.loads.carrier == "electricity"]
+        n.loads_t.p_set[loads] *= factor
+        logger.info(f"Scaled the low voltage electricity load by {factor}.")
+
     logger.info("Completed sector components")
