@@ -138,9 +138,22 @@ catf_model:
         Networks:
           color: "#6c9459"
           carriers: [AC, DC, electricity distribution grid, gas pipeline, gas pipeline new, H2 pipeline, H2 pipeline retrofitted, CO2 pipeline]
-        Fuel supply:   # fuel purchases, and the gas storage (Store gas)
-          color: "#7a6a5a"
-          carriers: [gas, oil primary, biogas, solid biomass, unsustainable biogas, unsustainable solid biomass, unsustainable bioliquids]
+        # Fuel purchases. Coal and lignite are in "Coal & lignite", as their supply has the same carrier as the plants
+        Natural gas supply:   # incl. the gas storage (Store gas), which has the same carrier
+          color: "#b2182b"
+          carriers: [gas]
+        Oil supply:
+          color: "#5e4b3c"
+          carriers: [oil primary]
+        Solid biomass supply:
+          color: "#9a7d0a"
+          carriers: [solid biomass, unsustainable solid biomass]
+        Biogas supply:
+          color: "#7f9c3d"
+          carriers: [biogas, unsustainable biogas]
+        Bioliquids supply:
+          color: "#d4a017"
+          carriers: [unsustainable bioliquids]
         # Heat released by conversion plants, listed last so it overrides their group in Heat
         Waste heat:
           color: "#c46868"

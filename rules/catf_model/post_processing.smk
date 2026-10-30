@@ -193,13 +193,15 @@ rule export_statistics_summary:
 
 
 rule plot_statistics:
-    """Plots the installed capacity and generation per carrier, the demand by sector and the system costs across all runs and planning horizons."""
+    """Plots the installed capacity and generation per carrier, the demand by sector, the capex and opex per technology and the system costs across all runs and planning horizons."""
     input:
         statistics_summary=rules.export_statistics_summary.output.csv,
     output:
         capacities=CATF_COMPARISON + "plots/capacities_by_carrier.png",
         generation=CATF_COMPARISON + "plots/generation_by_carrier.png",
         demand=CATF_COMPARISON + "plots/demand_by_sector.png",
+        capex=CATF_COMPARISON + "plots/capex_by_technology.png",
+        opex=CATF_COMPARISON + "plots/opex_by_technology.png",
         costs=CATF_COMPARISON + "plots/system_costs.png",
     log:
         CATF_COMPARISON + "logs/plot_statistics.log",

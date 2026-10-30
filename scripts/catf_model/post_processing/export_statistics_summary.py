@@ -11,9 +11,9 @@ capacities and generation by the technology groups in
 sectors in ``catf_model.post_processing.sectors.demand``, in a single panel
 "Demand". Carriers not assigned to a group are summed as "Other" and logged.
 
-Costs are summarised in three panels: capex and opex per technology group, and
-the total split into capex, opex and the penalty of the CO2 load sink, a slack
-that is used when the CO2 cap cannot be met.
+Costs are summarised as capex and opex per technology group, and as the total
+split into capex, opex and the penalty of the CO2 load sink, a slack that is
+used when the CO2 cap cannot be met.
 
 Writes one long-format CSV with the columns scenario, planning_horizon,
 statistic, panel, group, value and unit: capacity in GW (storage in GWh),
@@ -166,19 +166,22 @@ if __name__ == "__main__":
 
     # CSVs are ordered by run, then horizon
     keys = [(run, int(h)) for run in snakemake.params.runs for h in snakemake.params.planning_horizons]
-    # Costs: capex and opex per technology group, and the total split into capex,
-    # opex and the CO2 cap penalty
+    # Costs: capex and opex per technology group (statistics "capex" and "opex"),
+    # and the total split into capex, opex and the CO2 cap penalty (statistic "costs")
     system_costs = summarise_costs(snakemake.input.costs, keys)
     totals = system_costs.melt(
         id_vars=["scenario", "planning_horizon"], var_name="group", value_name="value"
     )
+    by_technology = technology_costs(
+        snakemake.input.costs, keys, group_mapping(statistics["groups"], "Costs")
+    )
     costs = pd.concat(
         [
-            technology_costs(snakemake.input.costs, keys, group_mapping(statistics["groups"], "Costs")),
-            totals.assign(panel="Total"),
+            by_technology.assign(statistic=by_technology.panel.str.lower()),
+            totals.assign(statistic="costs", panel="Total"),
         ]
     )
-    costs = costs.assign(statistic="costs", unit="bn EUR/a")
+    costs = costs.assign(unit="bn EUR/a")
 
     # System costs table: one row per run and horizon
     system_costs["Total"] = system_costs[["Capex", "Opex", "CO2 cap penalty"]].sum(axis=1)

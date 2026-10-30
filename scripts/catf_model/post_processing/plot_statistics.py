@@ -2,14 +2,15 @@
 #
 # SPDX-License-Identifier: MIT
 """
-Plots the installed capacity, generation, demand and system costs across runs
+Plots the installed capacity, generation, demand, capex and opex per technology
+and system costs across runs
 and planning horizons.
 
 Reads the long-format summary written by ``export_statistics_summary`` and
 writes one figure per statistic. Each figure has one panel per carrier stacked
 vertically (capacity: Electricity, Heat, Hydrogen, Fuels & conversion, Storage;
-generation: the same without Storage; costs: Capex and Opex per technology and
-the Total; demand: a single panel). All panels share
+generation: the same without Storage; capex and opex per technology, system
+costs and demand: a single panel). All panels share
 the x-axis, with one bar per planning horizon grouped by scenario. Each panel
 has its own unit, so only values of the same unit are stacked; the total is
 annotated above each bar. All values are positive, as exported by
@@ -48,10 +49,12 @@ TITLES = {
     "capacities": "Installed capacity",
     "generation": "Generation",
     "demand": "Final demand",
-    "costs": "Total system costs",
+    "capex": "Capex by technology",
+    "opex": "Opex by technology",
+    "costs": "System costs",
 }
 
-# Stacking order of the Total cost panel, as in export_statistics_summary
+# Stacking order of the system costs, as in export_statistics_summary
 COSTS = ["Capex", "Opex", "CO2 cap penalty"]
 
 
@@ -201,8 +204,9 @@ if __name__ == "__main__":
         "capacities": list(groups),
         "generation": list(groups),
         "demand": list(sectors),
-        # Technology groups in the Capex and Opex panels, cost components in the Total panel
-        "costs": list(groups) + COSTS,
+        "capex": list(groups),
+        "opex": list(groups),
+        "costs": COSTS,
     }
 
     summary = pd.read_csv(snakemake.input.statistics_summary)
