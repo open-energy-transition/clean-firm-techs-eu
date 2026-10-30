@@ -2,14 +2,13 @@
 #
 # SPDX-License-Identifier: MIT
 """
-Plots the installed capacity, generation, demand, capex and opex per technology
-and system costs across runs
-and planning horizons.
+Plots the installed capacity, generation, demand, capex and opex per cost
+category and system costs across runs and planning horizons.
 
 Reads the long-format summary written by ``export_statistics_summary`` and
 writes one figure per statistic. Each figure has one panel per carrier stacked
 vertically (capacity: Electricity, Heat, Hydrogen, Fuels & conversion, Storage;
-generation: the same without Storage; capex and opex per technology, system
+generation: the same without Storage; capex and opex per cost category, system
 costs and demand: a single panel). All panels share
 the x-axis, with one bar per planning horizon grouped by scenario. Each panel
 has its own unit, so only values of the same unit are stacked; the total is
@@ -49,8 +48,8 @@ TITLES = {
     "capacities": "Installed capacity",
     "generation": "Generation",
     "demand": "Final demand",
-    "capex": "Capex by technology",
-    "opex": "Opex by technology",
+    "capex": "Capex by category",
+    "opex": "Opex by category",
     "costs": "System costs",
 }
 
@@ -198,20 +197,25 @@ if __name__ == "__main__":
     set_scenario_config(snakemake)
 
     groups = snakemake.params.statistics["groups"]
+    categories = snakemake.params.statistics["cost_categories"]
     sectors = snakemake.params.sectors["demand"]
-    colors = {g: spec["color"] for g, spec in groups.items()} | snakemake.params.colors
-    orders = {
-        "capacities": list(groups),
-        "generation": list(groups),
-        "demand": list(sectors),
-        "capex": list(groups),
-        "opex": list(groups),
-        "costs": COSTS,
+    # Cost categories share some names with groups (e.g. Oil) but not their colors
+    group_colors = {g: spec["color"] for g, spec in groups.items()} | snakemake.params.colors
+    category_colors = {c: spec["color"] for c, spec in categories.items()} | snakemake.params.colors
+
+    # Stacking order and colors per statistic
+    figures = {
+        "capacities": (list(groups), group_colors),
+        "generation": (list(groups), group_colors),
+        "demand": (list(sectors), group_colors),
+        "capex": (list(categories), category_colors),
+        "opex": (list(categories), category_colors),
+        "costs": (COSTS, group_colors),
     }
 
     summary = pd.read_csv(snakemake.input.statistics_summary)
 
-    for statistic, order in orders.items():
+    for statistic, (order, colors) in figures.items():
         data = summary[summary.statistic == statistic]
         if data.empty:
             raise ValueError(f"No '{statistic}' rows in {snakemake.input.statistics_summary}.")

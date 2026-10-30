@@ -160,6 +160,47 @@ catf_model:
           panels: [Heat]
           carriers: [Haber-Bosch, Fischer-Tropsch, Sabatier, methanolisation, H2 Electrolysis, H2 Fuel Cell]
 
+      # Categories of the capex and opex plots, stacked in this order, each made
+      # of technology groups. Fuel families (Gas, Oil, Coal & lignite, Bioenergy)
+      # hold their plants and all their fuel purchases, whichever sector uses them
+      cost_categories:
+        Nuclear:
+          color: "#ff8c00"
+          groups: [Nuclear]
+        Wind:
+          color: "#235ebc"
+          groups: [Onshore wind, Offshore wind]
+        Solar:
+          color: "#f9d002"
+          groups: [Solar]
+        Hydro:
+          color: "#298c81"
+          groups: [Hydro, Pumped hydro]
+        Gas:
+          color: "#5b7c99"
+          groups: [Gas power, Gas CHP, Natural gas supply]
+        Oil:
+          color: "#5e4b3c"
+          groups: [Oil, Oil supply]
+        Coal & lignite:
+          color: "#545454"
+          groups: [Coal & lignite]
+        Bioenergy:
+          color: "#7f9c3d"
+          groups: [Biomass CHP, Biomass boilers, Biofuels & biogas, Solid biomass supply, Biogas supply, Bioliquids supply]
+        Heating:
+          color: "#17becf"
+          groups: [Heat pumps, Resistive heaters, Gas boilers, Oil boilers, Solar thermal]
+        Storage:
+          color: "#ace37f"
+          groups: [Battery, Thermal storage, Hydrogen storage, Ammonia storage]
+        Hydrogen & e-fuels:
+          color: "#bf13a0"
+          groups: [Electrolysis, SMR, Ammonia, Synthetic fuels, Hydrogen power]
+        Networks:
+          color: "#9467bd"
+          groups: [Networks]
+
     # Sectors of the demand plot and the load carriers assigned to them, plotted
     # in this order. Loads at CO2 buses (process emissions, t_co2) are not
     # exported as demand by export_statistics

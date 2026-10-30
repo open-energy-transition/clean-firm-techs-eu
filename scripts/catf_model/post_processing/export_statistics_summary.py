@@ -11,7 +11,8 @@ capacities and generation by the technology groups in
 sectors in ``catf_model.post_processing.sectors.demand``, in a single panel
 "Demand". Carriers not assigned to a group are summed as "Other" and logged.
 
-Costs are summarised as capex and opex per technology group, and as the total
+Costs are summarised as capex and opex per cost category (technology groups
+merged as in ``statistics.cost_categories``), and as the total
 split into capex, opex and the penalty of the CO2 load sink, a slack that is
 used when the CO2 cap cannot be met.
 
@@ -53,6 +54,20 @@ def group_mapping(groups: dict, panel: str) -> dict[str, str]:
         if panel in spec.get("panels", [panel]):
             mapping.update(dict.fromkeys(spec["carriers"], group))
     return mapping
+
+
+def category_mapping(statistics: dict) -> dict[str, str]:
+    """Returns the cost category of each carrier, through its technology group."""
+    category = {
+        group: name
+        for name, spec in statistics["cost_categories"].items()
+        for group in spec["groups"]
+    }
+    groups = group_mapping(statistics["groups"], "Costs")
+    missing = sorted(set(groups.values()) - set(category))
+    if missing:
+        logger.warning(f"costs: groups without a cost category, summed as '{OTHER}': {missing}")
+    return {carrier: category.get(group, OTHER) for carrier, group in groups.items()}
 
 
 def summarise(
@@ -116,9 +131,9 @@ def technology_costs(
     paths: list[str], keys: list[tuple[str, int]], mapping: dict[str, str]
 ) -> pd.DataFrame:
     """
-    Returns the capex and opex per technology group, run and horizon in bn EUR/a,
+    Returns the capex and opex per cost category, run and horizon in bn EUR/a,
     without the CO2 load sink. The columns panel ("Capex" or "Opex") and group
-    match the summary.
+    (the cost category) match the summary.
     """
     tables, unmapped = [], set()
     for (run, horizon), path in zip(keys, paths):
@@ -166,15 +181,13 @@ if __name__ == "__main__":
 
     # CSVs are ordered by run, then horizon
     keys = [(run, int(h)) for run in snakemake.params.runs for h in snakemake.params.planning_horizons]
-    # Costs: capex and opex per technology group (statistics "capex" and "opex"),
+    # Costs: capex and opex per cost category (statistics "capex" and "opex"),
     # and the total split into capex, opex and the CO2 cap penalty (statistic "costs")
     system_costs = summarise_costs(snakemake.input.costs, keys)
     totals = system_costs.melt(
         id_vars=["scenario", "planning_horizon"], var_name="group", value_name="value"
     )
-    by_technology = technology_costs(
-        snakemake.input.costs, keys, group_mapping(statistics["groups"], "Costs")
-    )
+    by_technology = technology_costs(snakemake.input.costs, keys, category_mapping(statistics))
     costs = pd.concat(
         [
             by_technology.assign(statistic=by_technology.panel.str.lower()),
