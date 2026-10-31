@@ -1,4 +1,4 @@
-# Cost sensitivity. Each scenario scales the costs of one or more technology
+﻿# Cost sensitivity. Each scenario scales the costs of one or more technology
 # groups by +33% (high) or -25% (low), keeping all others at the baseline.
 # All other assumptions are inherited from config.base.yaml.
 # Factors are set per group in catf_model.cost_sensitivity and applied by rule
@@ -6,34 +6,60 @@
 # Groups and their technologies are defined in
 # catf_model.cost_sensitivity_groups (config/catf_model/config.catf.default.yaml).
 
+HIGH_FACTOR: &high 1.33
+LOW_FACTOR: &low 0.75
+
 # Solar PV (utility, tracking and rooftop)
 high-solar:
   catf_model:
     cost_sensitivity:
-      solar: 1.33
+      solar: *high
 low-solar:
   catf_model:
     cost_sensitivity:
-      solar: 0.75
+      solar: *low
 
 # Onshore and offshore wind (turbines, substations and grid connections)
 high-wind:
   catf_model:
     cost_sensitivity:
-      onwind: 1.33
-      offwind: 1.33
+      onwind: *high
+      offwind: *high
 low-wind:
   catf_model:
     cost_sensitivity:
-      onwind: 0.75
-      offwind: 0.75
+      onwind: *low
+      offwind: *low
 
 # Li-ion batteries
 high-battery:
   catf_model:
     cost_sensitivity:
-      battery: 1.33
+      battery: *high
 low-battery:
   catf_model:
     cost_sensitivity:
-      battery: 0.75
+      battery: *low
+
+
+# gas plants capital costs
+high-gas:
+  catf_model:
+    cost_sensitivity:
+      gas-plants: *high
+low-gas:
+  catf_model:
+    cost_sensitivity:
+      gas-plants: *low
+
+
+# gas fuel costs
+high-gas-fuel:
+  catf_model:
+    cost_sensitivity:
+      gas-fuel: *high
+low-gas-fuel:
+  catf_model:
+    cost_sensitivity:
+      gas-fuel: *low
+
