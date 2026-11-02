@@ -1,4 +1,4 @@
-# Overlay on config.base.yaml for quick test runs:
+# Overlay on config.base.yaml or an existing pixi task for quick test runs:
 # one week of snapshots, aggregated to 28 time segments.
 
 run:
