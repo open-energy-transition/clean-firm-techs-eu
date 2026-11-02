@@ -8,6 +8,8 @@
 <!-- ================= -->
 
 * Add a test config file ([#45](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/45))
+* 
+* Adjust demand response in initial scenarios: High Need scenario limits EV demand response to 25% of BEVs, Low Need scenario enables residential heat demand response ([#33](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/33)).
 
 * Update investment costs for solar related technologies by +30% ([#26](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/26)).
 
