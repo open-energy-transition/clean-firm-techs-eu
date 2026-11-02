@@ -43,8 +43,6 @@ rule build_scenario_cost_sensitivity:
         ],
         default="data/custom_costs.csv",
     output:
-        # No wildcards, so add "custom_costs_sensitivity" to
-        # run: shared_resources: exclude to keep it per run under policy "base"
         resources("custom_costs_sensitivity.csv"),
     log:
         logs("custom_costs_sensitivity.log"),

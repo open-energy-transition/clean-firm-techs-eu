@@ -12,9 +12,10 @@ per group. The scaled values are appended to the default custom cost file,
 which is then selected per scenario through ``costs: custom_cost_fn``.
 
 Rule ``build_cost_sensitivity`` scales all groups by the factor given in the
-output file name. Rule ``build_scenario_cost_sensitivity`` scales only the
-groups set in ``catf_model.cost_sensitivity``, each by its own factor, so that
-several groups (e.g. onshore and offshore wind) can be combined in one scenario.
+output file name. Rule ``build_scenario_cost_sensitivity`` scales the groups
+set in ``catf_model.cost_sensitivity``, each by its own factor, so that several
+groups (e.g. onshore and offshore wind) can be combined in one scenario. All
+other groups are written with factor 1.0, so the base ``cost_factors`` apply.
 
 Scaling is done on the cost table rather than via ``adjustments`` so that each
 asset vintage is scaled exactly once under myopic foresight. Fixed operation
@@ -134,11 +135,13 @@ if __name__ == "__main__":
         # build_cost_sensitivity: one factor for all groups
         factors = {group: float(snakemake.wildcards.factor) for group in groups}
     else:
-        # build_scenario_cost_sensitivity: factors per group from the scenario
-        factors = snakemake.params.cost_sensitivity or {}
+        # build_scenario_cost_sensitivity: factors per group from the scenario,
+        # other groups at 1.0 so they keep the base cost factors (e.g. solar +30%)
+        factors = {group: 1.0 for group in groups} | (
+            snakemake.params.cost_sensitivity or {}
+        )
     scaling = get_scaling(groups, factors)
     cost_years = snakemake.params.cost_years
-
     default = apply_cost_factors(
         pd.read_csv(snakemake.input.default, dtype={"planning_horizon": "str"}),
         base_factors,

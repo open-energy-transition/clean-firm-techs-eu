@@ -1,4 +1,5 @@
-﻿# Cost sensitivity. Each scenario scales the costs of one or more technology
+# Sensitivity scenarios
+# Each scenario scales the costs of one or more technology 
 # groups by +33% (high) or -25% (low), keeping all others at the baseline.
 # All other assumptions are inherited from config.base.yaml.
 # Factors are set per group in catf_model.cost_sensitivity and applied by rule
@@ -6,27 +7,45 @@
 # Groups and their technologies are defined in
 # catf_model.cost_sensitivity_groups (config/catf_model/config.catf.default.yaml).
 
-HIGH_FACTOR: &high 1.33
-LOW_FACTOR: &low 0.75
-
-# Solar PV (utility, tracking and rooftop)
+# Solar PV (utility, tracking and rooftop) and its grid connection.
+# The grid connection cost row is shared with onshore wind, so solar's share is
+# scaled per carrier via cost_factors (add_electricity_grid_connection) instead
+# of the grid-connection group. Values are the baseline 1.3 times the factor.
 high-solar:
   catf_model:
+    cost_factors:
+      distribution grid reinforcement:
+        solar: 1.729 # 1.3 * 1.33
+        solar-hsat: 1.729
     cost_sensitivity:
-      solar: *high
+      solar: &high 1.33
 low-solar:
   catf_model:
+    cost_factors:
+      distribution grid reinforcement:
+        solar: 0.975 # 1.3 * 0.75
+        solar-hsat: 0.975
     cost_sensitivity:
-      solar: *low
+      solar: &low 0.75
 
 # Onshore and offshore wind (turbines, substations and grid connections)
 high-wind:
   catf_model:
+    cost_factors:
+      distribution grid reinforcement:
+        solar: 1.3 # to retain base solar scaling
+        solar-hsat: 1.3
+        onwind: *high
     cost_sensitivity:
       onwind: *high
       offwind: *high
 low-wind:
   catf_model:
+    cost_factors:
+      distribution grid reinforcement:
+        solar: 1.3
+        solar-hsat: 1.3
+        onwind: *low
     cost_sensitivity:
       onwind: *low
       offwind: *low
