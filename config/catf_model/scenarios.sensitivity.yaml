@@ -5,7 +5,7 @@
 # Factors are set per group in catf_model.cost_sensitivity and applied by rule
 # build_scenario_cost_sensitivity (rules/catf_model/cost_sensitivity.smk).
 # Groups and their technologies are defined in
-# catf_model.cost_sensitivity_groups (config/catf_model/config.catf.default.yaml).
+# catf_model.cost_sensitivity_groups (config/catf_model/config.base.yaml).
 
 # Solar PV (utility, tracking and rooftop) and its grid connection.
 # The grid connection cost row is shared with onshore wind, so solar's share is
@@ -81,6 +81,17 @@ low-gas-fuel:
   catf_model:
     cost_sensitivity:
       gas-fuel: *low
+
+
+# Solid biomass power plants capital costs
+high-biomass:
+  catf_model:
+    cost_sensitivity:
+      biomass-plants: *high
+low-biomass:
+  catf_model:
+    cost_sensitivity:
+      biomass-plants: *low
 
 
 # Demand side flexibility

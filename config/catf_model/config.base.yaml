@@ -149,6 +149,10 @@ catf_model:
     gas-fuel:
       fuel:
       - gas
+    # Solid biomass power plants (new and existing urban central CHPs).
+    biomass-plants:
+      investment:
+      - central solid biomass CHP
 
 costs:
   # Built by build_cost_sensitivity with factor 1.0, so the baseline cost
