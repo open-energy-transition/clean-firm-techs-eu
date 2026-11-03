@@ -46,8 +46,6 @@ catf_model:
             bus_carriers: [co2]
             exclude: [co2, load]
             net_marker: true
-        # Groups below this share of the supply of every bar are merged into "Other"
-        other_threshold: 0.01
         # Technology groups, stacked in this order. Storage and transmission
         # rows always go to "Storage & grid losses"; technologies not listed
         # go to "Other" with a warning.

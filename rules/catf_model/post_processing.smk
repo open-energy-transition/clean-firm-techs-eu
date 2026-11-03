@@ -226,6 +226,9 @@ rule export_energy_balances:
         RESULTS + "logs/export_energy_balances_{horizon}.log",
     benchmark:
         (RESULTS + "benchmarks/export_energy_balances_{horizon}")
+    threads: 1
+    resources:
+        mem_mb=4000,
     script:
         scripts("catf_model/post_processing/export_energy_balances.py")
 
@@ -235,7 +238,7 @@ rule export_all_energy_balances:
     input:
         expand(
             RESULTS + "csvs/energy_balances/{horizon}.csv",
-            run=config["run"]["name"],
+            run=CATF_RUNS,
             horizon=(
                 config["planning_horizons"][-1]
                 if config["foresight"] == "perfect"
@@ -274,7 +277,7 @@ rule plot_all_energy_balances_developer:
     input:
         expand(
             RESULTS + "plots/energy_balances/developer_{horizon}.png",
-            run=config["run"]["name"],
+            run=CATF_RUNS,
             horizon=(
                 config["planning_horizons"][-1]
                 if config["foresight"] == "perfect"
@@ -289,7 +292,7 @@ rule plot_energy_balances:
         # Ordered by run, then horizon, as the script expects
         balances=expand(
             RESULTS + "csvs/energy_balances/{horizon}.csv",
-            run=config["run"]["name"],
+            run=CATF_RUNS,
             horizon=config["planning_horizons"],
         ),
     output:
@@ -311,7 +314,7 @@ rule plot_energy_balances:
     resources:
         mem_mb=2000,
     params:
-        runs=config["run"]["name"],
+        runs=CATF_RUNS,
         planning_horizons=config["planning_horizons"],
         report=config_provider(
             "catf_model",

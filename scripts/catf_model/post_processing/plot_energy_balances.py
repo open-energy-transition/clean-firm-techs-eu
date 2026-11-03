@@ -12,8 +12,8 @@ only show their losses. On the x-axis there is one bar per planning horizon,
 grouped by scenario. Technologies are grouped as configured and stacked with
 supply above and consumption below zero. Storage and transmission rows net
 out to their losses over the year and are shown as one "Storage & grid
-losses" group. Groups below ``other_threshold`` of the supply of every bar
-and technologies without a group are merged into "Other".
+losses" group. Technologies without a group are shown as "Other"; small
+groups are not merged, so every configured group keeps its name.
 
 Also writes the plotted values as a long-format CSV with the columns carrier,
 scenario, planning_horizon, group, value and unit (TWh or Mt).
@@ -87,16 +87,10 @@ def group_balance(
     )
 
 
-def merge_small_groups(table: pd.DataFrame, threshold: float) -> pd.DataFrame:
-    """Merges groups below the threshold share of the supply of every bar into Other."""
+def drop_zero_groups(table: pd.DataFrame) -> pd.DataFrame:
+    """Drops groups that are (numerically) zero in every bar, as they would only clutter the legend."""
     values = table.drop(columns="unit")
     supply = values.clip(lower=0).sum(axis=1)
-    share = values.abs().div(supply, axis=0)
-    small = [g for g in values if g not in (OTHER, LOSSES) and (share[g] < threshold).all()]
-    if small:
-        values[OTHER] = values.get(OTHER, 0.0) + values[small].sum(axis=1)
-        values = values.drop(columns=small)
-    # Groups that are (numerically) zero in every bar would only clutter the legend
     values = values.loc[:, values.abs().max() > 1e-4 * supply.max()]
     return values.assign(unit=table.unit)
 
@@ -249,7 +243,7 @@ if __name__ == "__main__":
     summary = []
     for (carrier, spec), output in zip(report["carriers"].items(), snakemake.output.plots):
         table = group_balance(balance, carrier, spec, groups)
-        table = merge_small_groups(table, report["other_threshold"])
+        table = drop_zero_groups(table)
 
         fig = plot_carrier(table, order, colors, carrier, spec.get("net_marker", False))
         fig.savefig(output, dpi=200, bbox_inches="tight")
