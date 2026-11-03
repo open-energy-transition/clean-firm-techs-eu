@@ -206,7 +206,9 @@ catf-initial-test = "snakemake -call solve_networks --configfile config/catf_mod
 catf-postprocess = "snakemake -call catf_post_processing --configfile config/catf_model/config.base.yaml config/catf_model/config.initial.yaml"
 catf-postprocess-test = "snakemake -call catf_post_processing --configfile config/catf_model/config.base.yaml config/catf_model/config.initial.yaml config/catf_model/config.test.yaml"
 catf-sensitivity = "snakemake -call solve_networks --configfile config/catf_model/config.base.yaml config/catf_model/config.sensitivity.yaml"
-
+catf-sensitivity-test = "snakemake -call solve_networks --configfile config/catf_model/config.base.yaml config/catf_model/config.sensitivity.yaml config/catf_model/config.test.yaml"
+catf-sensitivity-postprocess = "snakemake -call catf_post_processing --configfile config/catf_model/config.base.yaml config/catf_model/config.sensitivity.yaml"
+catf-sensitivity-postprocess-test = "snakemake -call catf_post_processing --configfile config/catf_model/config.base.yaml config/catf_model/config.sensitivity.yaml config/catf_model/config.test.yaml"
 [environments]
 doc = { features = ["doc"], no-default-feature = true }
 test = ["test", "dev"]
