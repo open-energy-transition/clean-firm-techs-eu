@@ -41,7 +41,11 @@ def storage_carriers(n: pypsa.Network) -> set[tuple[str, str]]:
     return (
         {("Store", c) for c in stores.carrier[cyclic].unique()}
         | {("StorageUnit", c) for c in n.storage_units.carrier[inflow == 0].unique()}
-        | {("Link", c) for c in n.links.carrier.unique() if STORAGE_LINK_PATTERN.search(c)}
+        | {
+            ("Link", c)
+            for c in n.links.carrier.unique()
+            if STORAGE_LINK_PATTERN.search(c)
+        }
     )
 
 
@@ -54,7 +58,11 @@ def energy_balance(n: pypsa.Network) -> pd.DataFrame:
     storage = storage_carriers(n)
     pairs = list(zip(balance.component, balance.carrier))
     balance["category"] = [
-        "transmission" if p in transmission else "storage" if p in storage else "technology"
+        "transmission"
+        if p in transmission
+        else "storage"
+        if p in storage
+        else "technology"
         for p in pairs
     ]
 

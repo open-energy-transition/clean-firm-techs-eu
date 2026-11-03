@@ -318,29 +318,29 @@ catf_model:
     sectors:
       demand:
         Power:
-          - electricity
+        - electricity
         Heat:
-          - urban central heat
-          - urban decentral heat
-          - rural heat
-          - agriculture heat
+        - urban central heat
+        - urban decentral heat
+        - rural heat
+        - agriculture heat
         Transport:
-          - land transport oil
-          - land transport EV
-          - land transport fuel cell
+        - land transport oil
+        - land transport EV
+        - land transport fuel cell
         Industry and agriculture:
-          - agriculture electricity
-          - gas for industry
-          - coal for industry
-          - agriculture machinery oil
-          - industry methanol
-          - naphtha for industry
-          - solid biomass for industry
-          - NH3
-          - H2 for industry
-          - low-temperature heat for industry
-          - agriculture machinery electric
-          - industry electricity
+        - agriculture electricity
+        - gas for industry
+        - coal for industry
+        - agriculture machinery oil
+        - industry methanol
+        - naphtha for industry
+        - solid biomass for industry
+        - NH3
+        - H2 for industry
+        - low-temperature heat for industry
+        - agriculture machinery electric
+        - industry electricity
 
     # Colors of the demand sectors, the system cost components and "Other"
     colors:

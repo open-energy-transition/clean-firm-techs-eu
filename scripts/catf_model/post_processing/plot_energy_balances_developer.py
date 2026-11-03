@@ -40,9 +40,7 @@ def scale_unit(unit: str) -> tuple[float, str]:
     return 1e-6, unit.replace("MWh", "TWh")
 
 
-def plot_balances(
-    balance: pd.DataFrame, carriers: list[str], title: str
-) -> plt.Figure:
+def plot_balances(balance: pd.DataFrame, carriers: list[str], title: str) -> plt.Figure:
     """Draws one horizontal bar panel per bus carrier."""
     panels = []
     for carrier in carriers:

@@ -66,7 +66,9 @@ def group_balance(
     df = balance[balance.bus_carrier.isin(spec["bus_carriers"])]
     df = df[~df.carrier.isin(spec.get("exclude", []))]
     if df.empty:
-        raise ValueError(f"No energy balance rows for {carrier}: {spec['bus_carriers']}")
+        raise ValueError(
+            f"No energy balance rows for {carrier}: {spec['bus_carriers']}"
+        )
 
     carrier_to_group = {c: g for g, v in groups.items() for c in v["carriers"]}
     group = df.carrier.map(carrier_to_group)
@@ -74,7 +76,9 @@ def group_balance(
 
     unmapped = sorted(df.carrier[group.isna()].unique())
     if unmapped:
-        logger.warning(f"{carrier}: technologies without a group, shown as {OTHER}: {unmapped}")
+        logger.warning(
+            f"{carrier}: technologies without a group, shown as {OTHER}: {unmapped}"
+        )
 
     factor, unit = scale_unit(df.unit.iloc[0])
     return (
@@ -144,9 +148,7 @@ def plot_carrier(
     # Net balance (e.g. net CO2 emissions) as marker, otherwise total supply on top
     net = values.sum(axis=1).to_numpy()
     if net_marker:
-        ax.scatter(
-            x, net, marker="D", s=22, color=TEXT_PRIMARY, zorder=4, label="Net"
-        )
+        ax.scatter(x, net, marker="D", s=22, color=TEXT_PRIMARY, zorder=4, label="Net")
     labels = net if net_marker else pos_bottom
     for xi, top, label in zip(x, pos_bottom, labels):
         ax.annotate(
@@ -198,7 +200,9 @@ def plot_carrier(
     # Legend in the order of the bars from top to bottom: supply groups from the
     # top of the stack down to zero, then consumption groups from zero downwards
     supply = values.sum() >= 0
-    order = [g for g in values if supply[g]][::-1] + [g for g in values if not supply[g]]
+    order = [g for g in values if supply[g]][::-1] + [
+        g for g in values if not supply[g]
+    ]
     handles = dict(zip(*ax.get_legend_handles_labels()[::-1]))
     labels = order + [label for label in handles if label not in order]
     fig.legend(
@@ -241,7 +245,9 @@ if __name__ == "__main__":
     order = [g for g in groups if g != LOSSES] + [LOSSES, OTHER]
 
     summary = []
-    for (carrier, spec), output in zip(report["carriers"].items(), snakemake.output.plots):
+    for (carrier, spec), output in zip(
+        report["carriers"].items(), snakemake.output.plots
+    ):
         table = group_balance(balance, carrier, spec, groups)
         table = drop_zero_groups(table)
 

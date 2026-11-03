@@ -119,8 +119,6 @@ rule plot_co2_emissions:
 
 rule export_statistics:
     """Exports the costs, capacities, generation and demand of a solved network for a given planning horizon."""
-    params:
-        statistics=config_provider("catf_model", "post_processing", "statistics"),
     input:
         network=RESULTS + "networks/solved_{horizon}.nc",
     output:
@@ -135,6 +133,8 @@ rule export_statistics:
     threads: 1
     resources:
         mem_mb=4000,
+    params:
+        statistics=config_provider("catf_model", "post_processing", "statistics"),
     script:
         scripts("catf_model/post_processing/export_statistics.py")
 
@@ -151,11 +151,6 @@ rule export_all_statistics:
 
 rule export_statistics_summary:
     """Summarises the installed capacity, generation, demand and system costs across all runs from the per-run statistics CSVs."""
-    params:
-        runs=CATF_RUNS,
-        planning_horizons=config["planning_horizons"],
-        statistics=config_provider("catf_model", "post_processing", "statistics"),
-        sectors=config_provider("catf_model", "post_processing", "sectors"),
     input:
         # Ordered by run, then horizon, as the script expects
         capacities=expand(
@@ -188,6 +183,11 @@ rule export_statistics_summary:
     threads: 1
     resources:
         mem_mb=8000,
+    params:
+        runs=CATF_RUNS,
+        planning_horizons=config["planning_horizons"],
+        statistics=config_provider("catf_model", "post_processing", "statistics"),
+        sectors=config_provider("catf_model", "post_processing", "sectors"),
     script:
         scripts("catf_model/post_processing/export_statistics_summary.py")
 
