@@ -9,6 +9,8 @@
 
 * Add a test config file ([#45](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/45))
 
+* Add a fix for handling non-availability of stores with `co2` bus_carrier in the energy balance ([#47](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/47)).
+
 * Add option `sector: electricity_demand_factors` to scale the electricity loads per carrier (households, services and rail; industry; agriculture) in all hours; High Need and Low Need scenarios increase and decrease the households, services and rail load by 10%, while industry and agriculture stay at 1.0 ([#39](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/39))
 
 * Add export of annual energy balances per technology and bus carrier, a developer plot per run and planning horizon, and report plots comparing scenarios for electricity, heat, hydrogen and CO2 ([#29](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/29)).
