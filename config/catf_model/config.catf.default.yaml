@@ -235,7 +235,7 @@ catf_model:
     colors:
       Capex: "#2a78d6"
       Opex: "#eda100"
-      CO2 cap penalty: "#9e9e9e"
+      CO2 cap penalty: "#db170d"
       Power: "#2a78d6"
       Heat: "#eb6834"
       Transport: "#6250d6"

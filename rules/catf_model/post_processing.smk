@@ -92,7 +92,7 @@ CATF_RUNS = (
 CATF_COMPARISON = (
     "results/"
     + (config["run"]["prefix"] + "/" if config["run"].get("prefix") else "")
-    + "catf_comparison/"
+    + "comparison_plots/"
 )
 
 
