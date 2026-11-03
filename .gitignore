@@ -100,3 +100,6 @@ doc/img/intro-workflow.svg
 # pixi environments
 .pixi/*
 !.pixi/config.toml
+
+# exclude catf_model data folder
+!/data/catf_model/
