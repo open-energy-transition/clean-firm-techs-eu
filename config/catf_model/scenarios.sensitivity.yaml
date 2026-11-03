@@ -103,3 +103,20 @@ low-need-dsm:
     residential_heat:
       dsm:  
         enable: true
+
+
+# Electricity demand scaling
+high-demand:
+  sector:
+    electricity_demand_factors:
+      electricity: 1.1
+      industry electricity: 1.0
+      agriculture electricity: 1.0
+      agriculture machinery electric: 1.0
+low-demand:
+  sector:
+    electricity_demand_factors:
+      electricity: 0.9
+      industry electricity: 1.0
+      agriculture electricity: 1.0
+      agriculture machinery electric: 1.0
