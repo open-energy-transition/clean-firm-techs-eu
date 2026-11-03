@@ -66,7 +66,9 @@ def category_mapping(statistics: dict) -> dict[str, str]:
     groups = group_mapping(statistics["groups"], "Costs")
     missing = sorted(set(groups.values()) - set(category))
     if missing:
-        logger.warning(f"costs: groups without a cost category, summed as '{OTHER}': {missing}")
+        logger.warning(
+            f"costs: groups without a cost category, summed as '{OTHER}': {missing}"
+        )
     return {carrier: category.get(group, OTHER) for carrier, group in groups.items()}
 
 
@@ -93,7 +95,11 @@ def summarise(
         data["unit"] = data.unit.map(UNITS[statistic])
         data["value"] /= data.unit.map(DIVISORS)
 
-        data = data.groupby(["panel", "group", "unit"], sort=False).value.sum().reset_index()
+        data = (
+            data.groupby(["panel", "group", "unit"], sort=False)
+            .value.sum()
+            .reset_index()
+        )
         data.insert(0, "scenario", run)
         data.insert(1, "planning_horizon", horizon)
         tables.append(data)
@@ -103,7 +109,9 @@ def summarise(
 
     data = pd.concat(tables, ignore_index=True)
     data.insert(2, "statistic", statistic)
-    return data[["scenario", "planning_horizon", "statistic", "panel", "group", "value", "unit"]]
+    return data[
+        ["scenario", "planning_horizon", "statistic", "panel", "group", "value", "unit"]
+    ]
 
 
 def summarise_costs(paths: list[str], keys: list[tuple[str, int]]) -> pd.DataFrame:
@@ -176,18 +184,28 @@ if __name__ == "__main__":
     panels = [*statistics["panels"], "Storage"]
     groups = {p: group_mapping(statistics["groups"], p) for p in panels}
     sectors = {
-        "Demand": {c: s for s, carriers in snakemake.params.sectors["demand"].items() for c in carriers}
+        "Demand": {
+            c: s
+            for s, carriers in snakemake.params.sectors["demand"].items()
+            for c in carriers
+        }
     }
 
     # CSVs are ordered by run, then horizon
-    keys = [(run, int(h)) for run in snakemake.params.runs for h in snakemake.params.planning_horizons]
+    keys = [
+        (run, int(h))
+        for run in snakemake.params.runs
+        for h in snakemake.params.planning_horizons
+    ]
     # Costs: capex and opex per cost category (statistics "capex" and "opex"),
     # and the total split into capex, opex and the CO2 cap penalty (statistic "costs")
     system_costs = summarise_costs(snakemake.input.costs, keys)
     totals = system_costs.melt(
         id_vars=["scenario", "planning_horizon"], var_name="group", value_name="value"
     )
-    by_technology = technology_costs(snakemake.input.costs, keys, category_mapping(statistics))
+    by_technology = technology_costs(
+        snakemake.input.costs, keys, category_mapping(statistics)
+    )
     costs = pd.concat(
         [
             by_technology.assign(statistic=by_technology.panel.str.lower()),
@@ -197,7 +215,9 @@ if __name__ == "__main__":
     costs = costs.assign(unit="bn EUR/a")
 
     # System costs table: one row per run and horizon
-    system_costs["Total"] = system_costs[["Capex", "Opex", "CO2 cap penalty"]].sum(axis=1)
+    system_costs["Total"] = system_costs[["Capex", "Opex", "CO2 cap penalty"]].sum(
+        axis=1
+    )
     system_costs.round(2).to_csv(snakemake.output.system_costs, index=False)
     logger.info(f"Exported system costs to {snakemake.output.system_costs}.")
 
@@ -206,10 +226,22 @@ if __name__ == "__main__":
             summarise(snakemake.input.capacities, keys, "capacities", groups),
             summarise(snakemake.input.generation, keys, "generation", groups),
             summarise(snakemake.input.demand, keys, "demand", sectors),
-            costs[["scenario", "planning_horizon", "statistic", "panel", "group", "value", "unit"]],
+            costs[
+                [
+                    "scenario",
+                    "planning_horizon",
+                    "statistic",
+                    "panel",
+                    "group",
+                    "value",
+                    "unit",
+                ]
+            ],
         ],
         ignore_index=True,
     )
     data.round({"value": 4}).to_csv(snakemake.output.csv, index=False)
 
-    logger.info(f"Exported capacities, generation, demand and costs to {snakemake.output.csv}.")
+    logger.info(
+        f"Exported capacities, generation, demand and costs to {snakemake.output.csv}."
+    )
