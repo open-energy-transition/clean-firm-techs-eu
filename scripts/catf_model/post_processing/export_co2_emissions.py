@@ -67,12 +67,12 @@ def horizon_emissions(
     balance = co2_atmosphere_balance(n)
 
     # The atmosphere store holds the emissions counted towards the cap; the load
-    # sink absorbs emissions above the cap at its penalty price.
-    counted = -balance.xs("Store", level="component").sum()
+    # sink absorbs emissions above the cap at its penalty price. Zero balances are
+    # dropped by energy_balance, so the store may be missing (e.g. with a zero cap).
+    is_store = balance.index.get_level_values("component") == "Store"
+    counted = -balance[is_store].sum()
     above_cap = -balance.get(("Generator", "load"), 0.0)
-    flows = balance.drop("Store", level="component").drop(
-        [("Generator", "load")], errors="ignore"
-    )
+    flows = balance[~is_store].drop([("Generator", "load")], errors="ignore")
 
     inflows = flows[flows > 0].sum()
     outflows = flows[flows < 0].sum()
