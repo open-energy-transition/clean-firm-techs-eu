@@ -82,3 +82,13 @@ low-gas-fuel:
     cost_sensitivity:
       gas-fuel: *low
 
+
+# Demand side flexibility
+high-need-dsm:
+  sector:
+    bev_dsm_availability: 0.25
+low-need-dsm:
+  sector:
+    residential_heat:
+      dsm:  
+        enable: true
