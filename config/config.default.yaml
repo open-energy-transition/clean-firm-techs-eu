@@ -1002,7 +1002,11 @@ sector:
   electricity_transmission_grid: true
   electricity_distribution_grid: true
   electricity_grid_connection: true
-  electricity_demand_factor: 1.0
+  electricity_demand_factors:
+    electricity: 1.0
+    industry electricity: 1.0
+    agriculture electricity: 1.0
+    agriculture machinery electric: 1.0
   transmission_efficiency:
     enable:
     - DC
