@@ -112,7 +112,9 @@ def plot_panel(ax: plt.Axes, table: pd.DataFrame, x: np.ndarray, colors: dict) -
     )
 
 
-def plot_statistic(data: pd.DataFrame, order: list[str], colors: dict, title: str) -> plt.Figure:
+def plot_statistic(
+    data: pd.DataFrame, order: list[str], colors: dict, title: str
+) -> plt.Figure:
     """Plots one panel per carrier, with scenarios and planning horizons on the shared x-axis."""
     bars = data.set_index(["scenario", "planning_horizon"]).index.unique()
     runs = bars.get_level_values("scenario")
@@ -129,10 +131,14 @@ def plot_statistic(data: pd.DataFrame, order: list[str], colors: dict, title: st
             fill_value=0.0,
         ).reindex(bars, fill_value=0.0)
         # Groups in the configured order, then "Other"; groups that are zero in every bar are left out
-        tables[panel] = table[[g for g in [*order, OTHER] if g in table and table[g].max() > 0]]
+        tables[panel] = table[
+            [g for g in [*order, OTHER] if g in table and table[g].max() > 0]
+        ]
 
     # Panels grow with their legend, so that long legends (e.g. capex per technology) fit
-    heights = [max(PANEL_HEIGHT, LEGEND_ENTRY_HEIGHT * len(t.columns)) for t in tables.values()]
+    heights = [
+        max(PANEL_HEIGHT, LEGEND_ENTRY_HEIGHT * len(t.columns)) for t in tables.values()
+    ]
     fig, axes = plt.subplots(
         len(tables),
         1,
@@ -148,8 +154,12 @@ def plot_statistic(data: pd.DataFrame, order: list[str], colors: dict, title: st
     for ax, (panel, table) in zip(axes, tables.items()):
         plot_panel(ax, table, x, colors)
         if len(tables) > 1:
-            ax.set_title(panel, loc="left", fontsize=10, fontweight="bold", color=TEXT_PRIMARY)
-        ax.set_ylabel(data.unit[data.panel == panel].iloc[0], color=TEXT_SECONDARY, fontsize=9)
+            ax.set_title(
+                panel, loc="left", fontsize=10, fontweight="bold", color=TEXT_PRIMARY
+            )
+        ax.set_ylabel(
+            data.unit[data.panel == panel].iloc[0], color=TEXT_SECONDARY, fontsize=9
+        )
         ax.set_facecolor(SURFACE)
         ax.grid(axis="y", color=GRID, linewidth=0.8, zorder=0)
         ax.tick_params(colors=TEXT_SECONDARY, labelsize=8, length=0)
@@ -160,7 +170,13 @@ def plot_statistic(data: pd.DataFrame, order: list[str], colors: dict, title: st
         # Vertical break between scenario groups, in the middle of each gap
         for i in range(1, len(x)):
             if runs[i] != runs[i - 1]:
-                ax.axvline((x[i - 1] + x[i]) / 2, color=BASELINE, linewidth=0.8, linestyle="--", zorder=1)
+                ax.axvline(
+                    (x[i - 1] + x[i]) / 2,
+                    color=BASELINE,
+                    linewidth=0.8,
+                    linestyle="--",
+                    zorder=1,
+                )
 
     # Planning horizons as tick labels, scenario names centred below each group
     ax = axes[-1]
@@ -200,8 +216,12 @@ if __name__ == "__main__":
     categories = snakemake.params.statistics["cost_categories"]
     sectors = snakemake.params.sectors["demand"]
     # Cost categories share some names with groups (e.g. Oil) but not their colors
-    group_colors = {g: spec["color"] for g, spec in groups.items()} | snakemake.params.colors
-    category_colors = {c: spec["color"] for c, spec in categories.items()} | snakemake.params.colors
+    group_colors = {
+        g: spec["color"] for g, spec in groups.items()
+    } | snakemake.params.colors
+    category_colors = {
+        c: spec["color"] for c, spec in categories.items()
+    } | snakemake.params.colors
 
     # Stacking order and colors per statistic
     figures = {
@@ -218,7 +238,9 @@ if __name__ == "__main__":
     for statistic, (order, colors) in figures.items():
         data = summary[summary.statistic == statistic]
         if data.empty:
-            raise ValueError(f"No '{statistic}' rows in {snakemake.input.statistics_summary}.")
+            raise ValueError(
+                f"No '{statistic}' rows in {snakemake.input.statistics_summary}."
+            )
 
         output = getattr(snakemake.output, statistic)
         fig = plot_statistic(data, order, colors, TITLES[statistic])

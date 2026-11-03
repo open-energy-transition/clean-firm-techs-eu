@@ -44,7 +44,10 @@ if __name__ == "__main__":
 
     # Summaries are ordered by run
     data = pd.DataFrame(
-        {run: read_metric(path, METRIC) for run, path in zip(runs, snakemake.input.summaries)}
+        {
+            run: read_metric(path, METRIC)
+            for run, path in zip(runs, snakemake.input.summaries)
+        }
     ).T
     cap = read_metric(snakemake.input.summaries[0], CAP)
 
@@ -72,4 +75,6 @@ if __name__ == "__main__":
 
     fig.savefig(snakemake.output.plot, dpi=200)
     plt.close(fig)
-    logger.info(f"Plotted net CO2 emissions of {len(runs)} runs to {snakemake.output.plot}.")
+    logger.info(
+        f"Plotted net CO2 emissions of {len(runs)} runs to {snakemake.output.plot}."
+    )
