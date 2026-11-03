@@ -6135,6 +6135,24 @@ def add_import_options(
         )
 
 
+def scale_electricity_demand(n: pypsa.Network, factors: dict[str, float]) -> None:
+    """
+    Scales the electricity loads per carrier by a fixed factor in all hours.
+
+    Call after electric heating and industry demand have been subtracted from
+    the "electricity" load. Loads have a static p_set (e.g. industry) or a
+    time series (electricity), so both are scaled.
+    """
+    for carrier, factor in factors.items():
+        if factor == 1.0:
+            continue
+        loads = n.loads.index[n.loads.carrier == carrier]
+        n.loads.loc[loads, "p_set"] *= factor
+        series = loads.intersection(n.loads_t.p_set.columns)
+        n.loads_t.p_set[series] *= factor
+        logger.info(f"Scaled the '{carrier}' load by {factor}.")
+
+
 def main(
     n: pypsa.Network,
     inputs,
@@ -6433,5 +6451,8 @@ def main(
     )
     if options["cluster_heat_buses"] and not first_year_myopic:
         cluster_heat_buses(n)
+
+    # After electric heating and industry demand have been subtracted
+    scale_electricity_demand(n, options["electricity_demand_factors"])
 
     logger.info("Completed sector components")

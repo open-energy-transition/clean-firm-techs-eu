@@ -870,6 +870,15 @@ class SectorConfig(BaseModel):
         True,
         description="Add the cost of electricity grid connection for onshore wind and solar.",
     )
+    electricity_demand_factors: dict[str, float] = Field(
+        default_factory=lambda: {
+            "electricity": 1.0,
+            "industry electricity": 1.0,
+            "agriculture electricity": 1.0,
+            "agriculture machinery electric": 1.0,
+        },
+        description="Factors applied in all hours to the electricity loads, per load carrier: `electricity` (households, services and rail, after electric heating and industry demand have been subtracted), `industry electricity`, `agriculture electricity` and `agriculture machinery electric`. Transport and heating demand are not scaled.",
+    )
 
     transmission_efficiency: _TransmissionEfficiencyConfig = Field(
         default_factory=_TransmissionEfficiencyConfig,
