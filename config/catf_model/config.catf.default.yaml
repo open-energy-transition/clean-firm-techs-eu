@@ -119,7 +119,7 @@ catf_model:
             color: "#110d63"
             carriers: [electricity, industry electricity, agriculture electricity, agriculture machinery electric]
           Heat demand:
-            color: "#cc1f1f"
+            color: "#f5a70c"
             carriers: [urban central heat, urban decentral heat, rural heat, agriculture heat, low-temperature heat for industry]
           Hydrogen demand:
             color: "#f073da"
