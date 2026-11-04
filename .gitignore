@@ -101,5 +101,5 @@ doc/img/intro-workflow.svg
 .pixi/*
 !.pixi/config.toml
 
-# exclude catf_model data folder
+# track catf_model data folder
 !/data/catf_model/
