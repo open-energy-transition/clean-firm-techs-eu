@@ -275,5 +275,9 @@ rule compose_network:
         co2_budget=config_provider("co2_budget"),
         adjustments=config_provider("adjustments"),
         cost_factors=config_provider("catf_model", "cost_factors", default={}),
+        catf_add_planned=config_provider(
+            "catf_model", "add_planned_capacities", default=False
+        ),
+        catf_nuclear=config_provider("catf_model", "nuclear", default={}),
     script:
         scripts("compose_network.py")
