@@ -7,6 +7,8 @@
 <!-- Upcoming Release -->
 <!-- ================= -->
 
+* Add slurm profiles for parallelising the scenario runs ([#52](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/52)).
+
 * Add a test config file ([#45](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/45))
 
 * Add a fix for handling non-availability of stores with `co2` bus_carrier in the energy balance ([#47](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/47)).
