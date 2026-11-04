@@ -12,7 +12,7 @@ cluster-generic-submit-cmd: >-
   --job-name="smk-{rule}-{wildcards}"
   --output=logs/slurm/%x-%j.out
   --partition=$(if [ {resources.mem_mb} -gt 3000 ] && [ "{resources.partition}" = "small" ]; then echo high-mem; elif [ {resources.runtime} -gt 3000 ]; then echo big; else echo {resources.partition}; fi)
-  --exclude=$(if [ "{rule}" = "compose_network" ] || [ "{rule}" = "solve_network" ]; then python profiles/catf_slurm/exclude.py; fi)
+  --exclude=$(if [ "{rule}" = "solve_network" ]; then python profiles/catf_slurm/exclude.py; fi)
 cluster-generic-cancel-cmd: scancel
 default-resources:
   mem_mb: 3000
