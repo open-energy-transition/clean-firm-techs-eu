@@ -38,6 +38,8 @@ from scripts.add_electricity import (
     sanitize_locations,
 )
 from scripts.add_existing_baseyear import main as add_existing_capacities
+from scripts.catf_model.nuclear import set_nuclear_availability
+from scripts.catf_model.planned_capacities import add_planned_capacities
 from scripts.prepare_network import (
     apply_co2_budget_constraints,
     apply_temporal_aggregation,
@@ -117,6 +119,17 @@ if __name__ == "__main__":
         apply_brownfield(
             n, n_previous, inputs, params, current_horizon, renewable_carriers
         )
+
+    if sector_mode and foresight == "myopic":
+        if params.catf_add_planned:
+            add_planned_capacities(n, inputs, params, costs, current_horizon)
+        if params.catf_nuclear:
+            set_nuclear_availability(
+                n,
+                inputs.conventional_nuclear_p_max_pu,
+                params.catf_nuclear["availability_years"],
+                params.catf_nuclear["new_build_p_max_pu"],
+            )
 
     if foresight == "perfect":
         n = prepare_perfect_foresight(n, n_previous, params, current_horizon)

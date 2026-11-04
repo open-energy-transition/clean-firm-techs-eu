@@ -77,8 +77,23 @@ industry:
   gas_for_industry_cc: false
   process_emissions_cc: false
 
+# Nuclear is modelled as links from the uranium bus (add_existing_baseyear), which
+# retire according to the power plant DateOut, so the electricity generators are removed.
+pypsa_eur:
+  Generator:
+  - onwind
+  - offwind-ac
+  - offwind-dc
+  - offwind-float
+  - solar-hsat
+  - solar
+  - ror
+
 electricity:
-  powerplants_filter: "(DateOut > 2025 or DateOut != DateOut) and (DateIn < 2026 or DateIn != DateIn)"
+  powerplants_filter: "(DateOut >= 2024 or DateOut != DateOut) and (DateIn <= 2024 or DateIn != DateIn) and Fueltype not in ['Nuclear', 'Hard Coal', 'Lignite']"
+  # Includes planned plants (DateIn > 2024), which are added in the horizon they come online
+  custom_powerplants: "Country != 'TR' and DateOut >= 2024"
+  custom_powerplants_file: data/catf_model/custom_powerplants.csv
   extendable_carriers:
     # Long-duration electricity storage (iron-air, vanadium, compressed air) excluded
     StorageUnit: []
