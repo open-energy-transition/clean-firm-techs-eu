@@ -1,4 +1,9 @@
 catf_model:
+  add_planned_capacities: true   # see scripts/catf_model/planned_capacities.py
+  # See scripts/catf_model/nuclear.py
+  nuclear:
+    availability_years: [2015, 2024]   # mean of data/nuclear_p_max_pu.csv for existing plants
+    new_build_p_max_pu: 0.9   # EUR target > 90%, best fleets ~91% (IAEA PRIS, EIA)
   post_processing:
     # Subfolder of results/<prefix>/comparison_plots/ for the plots comparing
     # the runs in run.name, so that scenario sets sharing a prefix do not

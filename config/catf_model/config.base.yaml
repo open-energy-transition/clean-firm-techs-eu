@@ -101,7 +101,9 @@ industry:
 
 electricity:
   powerplants_filter: "(DateOut >= 2024 or DateOut != DateOut) and (DateIn <= 2024 or DateIn != DateIn) and Fueltype not in ['Nuclear', 'Hard Coal', 'Lignite']"
-  custom_powerplants: "Country != 'TR' and DateIn <= 2024 and DateOut >= 2024"
+  # Includes planned plants (DateIn > 2024), which are added in the horizon they come online
+  custom_powerplants: "Country != 'TR' and DateOut >= 2024"
+  custom_powerplants_fn: data/catf_model/custom_powerplants.csv
   extendable_carriers:
     # Long-duration electricity storage (iron-air, vanadium, compressed air) excluded
     StorageUnit: []
