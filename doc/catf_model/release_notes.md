@@ -9,6 +9,8 @@
 
 * Add custom power plants (`electricity: custom_powerplants_file`) with plant-specific decommissioning dates for nuclear, hard coal and lignite; model nuclear only as links from the uranium bus with uranium supply, add planned plants in the horizon they come online (`catf_model: add_planned_capacities`) and limit nuclear availability by country (`catf_model: nuclear`) ([#49](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/49)).
 
+* Add a scenario for running the model with sensitivities as individual level ([#35](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/35/changes)).
+
 * Add a test config file ([#45](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/45))
 
 * Add a fix for handling non-availability of stores with `co2` bus_carrier in the energy balance ([#47](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/47)).
