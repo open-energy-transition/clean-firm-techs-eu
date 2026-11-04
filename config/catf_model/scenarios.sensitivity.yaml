@@ -101,7 +101,7 @@ high-need-dsm:
 low-need-dsm:
   sector:
     residential_heat:
-      dsm:  
+      dsm:
         enable: true
 
 

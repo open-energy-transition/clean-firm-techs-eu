@@ -134,7 +134,7 @@ if __name__ == "__main__":
     if hasattr(snakemake.wildcards, "factor"):
         # Biomass sensitivity not required for initial scenarios
         if "biomass-plants" in groups:
-            groups.pop('biomass-plants',None)
+            groups.pop("biomass-plants", None)
 
         # build_cost_sensitivity: one factor for all groups
         factors = {group: float(snakemake.wildcards.factor) for group in groups}
