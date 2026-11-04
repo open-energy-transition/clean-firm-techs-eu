@@ -132,9 +132,14 @@ if __name__ == "__main__":
     base_factors = snakemake.params.cost_factors or {}
     groups = snakemake.params.groups
     if hasattr(snakemake.wildcards, "factor"):
+        # Biomass sensitivity not required for initial scenarios
+        if "biomass-plants" in groups:
+            groups.pop('biomass-plants',None)
+
         # build_cost_sensitivity: one factor for all groups
         factors = {group: float(snakemake.wildcards.factor) for group in groups}
     else:
+        breakpoint()
         # build_scenario_cost_sensitivity: factors per group from the scenario,
         # other groups at 1.0 so they keep the base cost factors (e.g. solar +30%)
         factors = {group: 1.0 for group in groups} | (
