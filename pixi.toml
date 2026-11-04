@@ -201,14 +201,15 @@ validate-config = "pytest test/test_config_schema.py::test_config_file_is_valid 
 pytest = ">=8.4.2"
 
 [feature.catf-model.tasks]
-catf-initial = "snakemake -call solve_networks --configfile config/catf_model/config.base.yaml config/catf_model/config.initial.yaml"
-catf-initial-test = "snakemake -call solve_networks --configfile config/catf_model/config.base.yaml config/catf_model/config.initial.yaml config/catf_model/config.test.yaml"
-catf-postprocess = "snakemake -call catf_post_processing --configfile config/catf_model/config.base.yaml config/catf_model/config.initial.yaml"
-catf-postprocess-test = "snakemake -call catf_post_processing --configfile config/catf_model/config.base.yaml config/catf_model/config.initial.yaml config/catf_model/config.test.yaml"
-catf-sensitivity = "snakemake -call solve_networks --configfile config/catf_model/config.base.yaml config/catf_model/config.sensitivity.yaml"
-catf-sensitivity-test = "snakemake -call solve_networks --configfile config/catf_model/config.base.yaml config/catf_model/config.sensitivity.yaml config/catf_model/config.test.yaml"
-catf-sensitivity-postprocess = "snakemake -call catf_post_processing --configfile config/catf_model/config.base.yaml config/catf_model/config.sensitivity.yaml"
-catf-sensitivity-postprocess-test = "snakemake -call catf_post_processing --configfile config/catf_model/config.base.yaml config/catf_model/config.sensitivity.yaml config/catf_model/config.test.yaml"
+# Scenario set: "initial" (default) or "sensitivity", i.e. config/catf_model/config.<scenarios>.yaml
+# e.g. pixi run catf-solve sensitivity; 
+# extra snakemake flags go after "--":
+# pixi run catf-solve sensitivity -- -n
+catf-solve = { cmd = "snakemake -call solve_networks --configfile config/catf_model/config.base.yaml config/catf_model/config.{{ scenarios }}.yaml", args = [{ arg = "scenarios", default = "initial" }] }
+catf-postprocess = { cmd = "snakemake -call catf_post_processing --configfile config/catf_model/config.base.yaml config/catf_model/config.{{ scenarios }}.yaml", args = [{ arg = "scenarios", default = "initial" }] }
+# Solve and post-process on one week at 28 segments (config.test.yaml), results under results/test/
+catf-test = { cmd = "snakemake -call catf_post_processing --configfile config/catf_model/config.base.yaml config/catf_model/config.{{ scenarios }}.yaml config/catf_model/config.test.yaml", args = [{ arg = "scenarios", default = "initial" }] }
+
 [environments]
 doc = { features = ["doc"], no-default-feature = true }
 test = ["test", "dev"]
