@@ -139,7 +139,6 @@ if __name__ == "__main__":
         # build_cost_sensitivity: one factor for all groups
         factors = {group: float(snakemake.wildcards.factor) for group in groups}
     else:
-        breakpoint()
         # build_scenario_cost_sensitivity: factors per group from the scenario,
         # other groups at 1.0 so they keep the base cost factors (e.g. solar +30%)
         factors = {group: 1.0 for group in groups} | (
