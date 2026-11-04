@@ -1,0 +1,122 @@
+# Sensitivity scenarios
+# Each scenario scales the costs of one or more technology 
+# groups by +33% (high) or -25% (low), keeping all others at the baseline.
+# All other assumptions are inherited from config.base.yaml.
+# Factors are set per group in catf_model.cost_sensitivity and applied by rule
+# build_scenario_cost_sensitivity (rules/catf_model/cost_sensitivity.smk).
+# Groups and their technologies are defined in
+# catf_model.cost_sensitivity_groups (config/catf_model/config.base.yaml).
+
+# Solar PV (utility, tracking and rooftop) and its grid connection.
+# The grid connection cost row is shared with onshore wind, so solar's share is
+# scaled per carrier via cost_factors (add_electricity_grid_connection) instead
+# of the grid-connection group. Values are the baseline 1.3 times the factor.
+high-solar:
+  catf_model:
+    cost_factors:
+      distribution grid reinforcement:
+        solar: 1.729 # 1.3 * 1.33
+        solar-hsat: 1.729
+    cost_sensitivity:
+      solar: &high 1.33
+low-solar:
+  catf_model:
+    cost_factors:
+      distribution grid reinforcement:
+        solar: 0.975 # 1.3 * 0.75
+        solar-hsat: 0.975
+    cost_sensitivity:
+      solar: &low 0.75
+
+# Onshore and offshore wind (turbines, substations and grid connections)
+high-wind:
+  catf_model:
+    cost_factors:
+      distribution grid reinforcement:
+        solar: 1.3 # to retain base solar scaling
+        solar-hsat: 1.3
+        onwind: *high
+    cost_sensitivity:
+      onwind: *high
+      offwind: *high
+low-wind:
+  catf_model:
+    cost_factors:
+      distribution grid reinforcement:
+        solar: 1.3
+        solar-hsat: 1.3
+        onwind: *low
+    cost_sensitivity:
+      onwind: *low
+      offwind: *low
+
+# Li-ion batteries
+high-battery:
+  catf_model:
+    cost_sensitivity:
+      battery: *high
+low-battery:
+  catf_model:
+    cost_sensitivity:
+      battery: *low
+
+
+# gas plants capital costs
+high-gas:
+  catf_model:
+    cost_sensitivity:
+      gas-plants: *high
+low-gas:
+  catf_model:
+    cost_sensitivity:
+      gas-plants: *low
+
+
+# gas fuel costs
+high-gas-fuel:
+  catf_model:
+    cost_sensitivity:
+      gas-fuel: *high
+low-gas-fuel:
+  catf_model:
+    cost_sensitivity:
+      gas-fuel: *low
+
+
+# Solid biomass power plants capital costs
+high-biomass:
+  catf_model:
+    cost_sensitivity:
+      biomass-plants: *high
+low-biomass:
+  catf_model:
+    cost_sensitivity:
+      biomass-plants: *low
+
+
+# Demand side flexibility
+high-need-dsm:
+  sector:
+    bev_dsm_availability: 0.25
+low-need-dsm:
+  sector:
+    residential_heat:
+      dsm:
+        enable: true
+
+
+# Electricity demand scaling
+high-demand:
+  sector:
+    electricity_demand_factors:
+      electricity: 1.1
+      industry electricity: 1.0
+      agriculture electricity: 1.0
+      agriculture machinery electric: 1.0
+low-demand:
+  sector:
+    electricity_demand_factors:
+      electricity: 0.9
+      industry electricity: 1.0
+      agriculture electricity: 1.0
+      agriculture machinery electric: 1.0
