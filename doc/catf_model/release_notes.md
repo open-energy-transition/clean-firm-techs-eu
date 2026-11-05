@@ -9,6 +9,8 @@
 
 * Show biogenic fuels (e.g. biogas) as lower emissions of their consumers instead of negative emissions in the CO2 balance plot ([#53](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/53)).
 
+* Add slurm profiles for parallelising the scenario runs ([#52](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/52)).
+
 * Add a scenario for running the model with sensitivities as individual level ([#35](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/35/changes)).
 
 * Add a test config file ([#45](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/45))
