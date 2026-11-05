@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MIT
 
 # Config and scenario files may use {prefix} in costs.custom_cost_fn (e.g.
-# resources/{prefix}/{run}/custom_costs_x1.33.csv), so that they work with any
+# resources/{prefix}/{run}/custom_costs.csv), so that they work with any
 # run.prefix, e.g. config/catf_model/config.test.yaml.
 _prefix = run.get("prefix", "")
 for _overrides in [config, *scenarios.values()]:
