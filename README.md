@@ -1,93 +1,131 @@
-<!--
-SPDX-FileCopyrightText: Contributors to PyPSA-Eur <https://github.com/pypsa/pypsa-eur>
-SPDX-License-Identifier: CC-BY-4.0
--->
+<!-- SPDX-FileCopyrightText: Contributors to clean-techs-firm-eu <https://github.com/open-energy-transition/clean-firm-techs-eu/> -->
+<!-- SPDX-FileCopyrightText: Open Energy Transition gGmbH -->
+<!-- SPDX-License-Identifier: CC-BY-4.0 -->
 
-[![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/pypsa/pypsa-eur?include_prereleases)](https://github.com/PyPSA/pypsa-eur/releases)
-[![Documentation](https://readthedocs.org/projects/pypsa-eur/badge/?version=latest)](https://pypsa-eur.readthedocs.io/en/latest/?badge=latest)
-[![Test workflows](https://github.com/pypsa/pypsa-eur/actions/workflows/test.yaml/badge.svg)](https://github.com/pypsa/pypsa-eur/actions/workflows/test.yaml)
-![Size](https://img.shields.io/github/repo-size/pypsa/pypsa-eur)
-[![Zenodo PyPSA-Eur](https://zenodo.org/badge/DOI/10.5281/zenodo.3520874.svg)](https://doi.org/10.5281/zenodo.3520874)
-[![Zenodo PyPSA-Eur-Sec](https://zenodo.org/badge/DOI/10.5281/zenodo.3938042.svg)](https://doi.org/10.5281/zenodo.3938042)
-[![Snakemake](https://img.shields.io/badge/snakemake-≥9-brightgreen.svg?style=flat)](https://snakemake.readthedocs.io)
-[![Discord](https://img.shields.io/discord/911692131440148490?logo=discord)](https://discord.gg/AnuJBk23FU)
-[![REUSE status](https://api.reuse.software/badge/github.com/pypsa/pypsa-eur)](https://api.reuse.software/info/github.com/pypsa/pypsa-eur)
+The clean-firm-tech-eu repository is a reproducible modelling study that assesses the value of advanced clean firm technologies in Europe considering a decarbonisation pathway. It has been developed on top of the PyPSA-Eur workflow. 
 
-# PyPSA-Eur: A Sector-Coupled Open Optimisation Model of the European Energy System
+# Instructions to run the model
 
-PyPSA-Eur is an open model dataset of the European energy system at the
-transmission network level that covers the full ENTSO-E area and all energy sectors, including transport, heating, biomass, industry, and agriculture.
-Besides the power grid, pipeline networks for gas, hydrogen, carbon dioxide, and liquid fuels are included.
-The model is suitable both for planning studies and operational studies.
-The model is built from open data using a Snakemake workflow and fully open source.
-It is designed to be imported into the open-source energy system modelling framework [PyPSA](https://pypsa.org).
+## Configuration files
 
-> [!NOTE]
-> PyPSA-Eur has many contributors, with the maintenance currently led by the [Department of Digital Transformation in
-> Energy Systems](https://tu.berlin/en/ensys) at the [Technical University of
-> Berlin](https://www.tu.berlin).
-> Previous versions were developed at the [Karlsruhe
-> Institute of Technology](http://www.kit.edu/english/index.php) funded by the
-> [Helmholtz Association](https://www.helmholtz.de/en/).
+The CATF model is built from stacked config files in `config/catf_model/`. Files listed later override earlier ones.
 
+| File | Purpose |
+|---|---|
+| `config.base.yaml` | Base CATF assumptions (clustering, costs, solver settings, cost sensitivity groups). Always first. |
+| `config.initial.yaml` | Turns on the initial scenario set (`run.prefix: initial`, `run.name: all`) defined in `scenarios.initial.yaml`. |
+| `scenarios.initial.yaml` | Initial scenarios: `baseline`, `high-need`, `low-need`. |
+| `config.sensitivity.yaml` | Turns on the sensitivity scenario set (`run.prefix: sensitivity`, `run.name: all`) defined in `scenarios.sensitivity.yaml`. |
+| `scenarios.sensitivity.yaml` | Individual sensitivities: one technology group, demand or flexibility setting changed at a time. |
+| `config.test.yaml` | Optional overlay for quick tests: one week of snapshots, 28 time segments, `run.prefix: test`. |
 
-Among many other things, the dataset consists of:
+### Initial scenarios
 
-- A power grid model based on [OpenStreetMap](https://zenodo.org/records/18619025) for voltage levels above 220kV (optional above 60kV).
-- The open power plant database
-  [powerplantmatching](https://github.com/PyPSA/powerplantmatching).
-- Electrical demand time series from the [ENTSO-E Transparency Platform](https://transparency.entsoe.eu/).
-- Renewable time series based on ERA5 and SARAH-3, assembled using [atlite](https://github.com/PyPSA/atlite).
-- Geographical potentials for wind and solar generators based land eligibility analysis in [atlite](https://github.com/PyPSA/atlite).
-- Energy balances compiled from Eurostat and JRC-IDEES datasets.
+- **baseline**: default PyPSA-Eur demand response; cost file `custom_costs_x1.0.csv`.
+- **high-need**: investment costs of established technologies and the gas price +33% (`x1.33`); household, services and rail electricity load +10%; EV demand response reduced to 25% of BEVs.
+- **low-need**: costs and gas price -25% (`x0.75`); electricity load -10%; residential heat demand response on.
 
-The high-voltage grid and the power plant fleet are shown in this map of the unclustered model (as of 1 January 2026):
+The scaled cost files are built by rule `build_cost_sensitivity` (`rules/catf_model/cost_sensitivity.smk`), which reads the factor from the file name and applies it to all groups in `catf_model.cost_sensitivity_groups`.
 
-![PyPSA-Eur Unclustered](doc/img/base.png)
+### Sensitivity scenarios
 
+Each scenario changes one assumption and keeps everything else at the baseline. Cost sensitivities are +33% (`high-*`) or -25% (`low-*`).
 
-For computational reasons the model is usually clustered down
-to 50-250 nodes. The image below shows the electricity network and power plants clustered to NUTS2 regions:
+| Scenarios | What changes |
+|---|---|
+| `high-solar` / `low-solar` | Solar PV investment costs (utility, tracking, rooftop) and solar's share of the grid connection cost |
+| `high-wind` / `low-wind` | Onshore and offshore wind (turbines, substations, grid connections) |
+| `high-battery` / `low-battery` | Li-ion battery storage and inverters |
+| `high-gas` / `low-gas` | Gas plant investment costs (OCGT, CCGT, central gas CHP) |
+| `high-gas-fuel` / `low-gas-fuel` | Gas fuel price |
+| `high-biomass` / `low-biomass` | Solid biomass CHP investment costs |
+| `high-need-dsm` / `low-need-dsm` | EV demand response at 25% of BEVs / residential heat demand response on |
+| `high-demand` / `low-demand` | Household, services and rail electricity load +10% / -10% |
 
-![network diagram](doc/img/elec.png)
-
-This diagram gives an overview of the sectors and the links between
-them within each model region:
-
-![sector diagram](doc/img/multisector_figure.png)
+The technologies in each cost group are listed under `catf_model.cost_sensitivity_groups` in `config.base.yaml`. Each scenario sets its factors per group in `catf_model.cost_sensitivity`. Rule `build_scenario_cost_sensitivity` then builds a cost file for that scenario at `resources/sensitivity/<scenario>/custom_costs_sensitivity.csv`.
 
 
+## Running with pixi tasks
 
-# Warnings
+The tasks are defined in `pixi.toml` under `[feature.catf-model.tasks]` and run in the `catf-model` environment. Each one takes an optional scenario set, `initial` (default) or `sensitivity`. This picks `config/catf_model/config.<set>.yaml`.
 
-PyPSA-Eur is under active development and has several
-[limitations](https://pypsa-eur.readthedocs.io/en/latest/limitations/) which
-you should understand before using the model. The github repository
-[issues](https://github.com/PyPSA/pypsa-eur/issues) collect known topics we are
-working on (please feel free to help or make suggestions). The
-[documentation](https://pypsa-eur.readthedocs.io/) remains somewhat patchy. You
-can find showcases of the model's capabilities in the Joule paper [The potential
-role of a hydrogen network in
-Europe](https://doi.org/10.1016/j.joule.2023.06.016), another [paper in Joule
-with a description of the industry
-sector](https://doi.org/10.1016/j.joule.2022.04.016), or in [a 2021 presentation
-at EMP-E](https://nworbmot.org/energy/brown-empe.pdf). We do not recommend to
-use the full resolution network model for simulations. At high granularity the
-assignment of loads and generators to the nearest network node may not be a
-correct assumption, depending on the topology of the underlying distribution
-grid, and local grid bottlenecks may cause unrealistic load-shedding or
-generator curtailment. We recommend to cluster the network to a couple of
-hundred nodes to remove these local inconsistencies. See the discussion in
-Section 3.4 "Model validation" of the paper.
+| Task | What it does |
+|---|---|
+| `catf-solve [set]` | Solves all scenarios of the set (`solve_networks`). |
+| `catf-postprocess [set]` | Runs CATF post-processing (`catf_post_processing`) on the solved scenarios. |
+| `catf-test [set]` | Solves and post-processes the set with the `config.test.yaml` overlay (one week, 28 segments; outputs under `results/test/`). |
 
-# Contributing and Support
-We strongly welcome anyone interested in contributing to this project. If you have any ideas, suggestions or encounter problems, feel invited to file issues or make pull requests on GitHub.
--   To **discuss** with other PyPSA users, organise projects, share news, and get in touch with the community you can use the [Discord server](https://discord.gg/AnuJBk23FU).
--   For **bugs and feature requests**, please use the [PyPSA-Eur Github Issues page](https://github.com/PyPSA/pypsa-eur/issues).
+Run the test version first to check the workflow end to end:
 
-# Licence
+```bash
+pixi run -e catf-model catf-test
+```
 
-The code in PyPSA-Eur is released as free software under the
-[MIT License](https://opensource.org/licenses/MIT), see [`doc/licenses.md`](doc/licenses.md).
-However, different licenses and terms of use may apply to the various
-input data, see [`doc/data_sources.md`](doc/data_sources.md).
+```bash
+pixi run -e catf-model catf-test sensitivity
+```
+
+Initial scenarios, then post-processing:
+
+```bash
+pixi run -e catf-model catf-solve
+```
+
+```bash
+pixi run -e catf-model catf-postprocess
+```
+
+Sensitivity scenarios, then post-processing:
+
+```bash
+pixi run -e catf-model catf-solve sensitivity
+```
+
+```bash
+pixi run -e catf-model catf-postprocess sensitivity
+```
+
+Extra Snakemake flags go after `--`. Without it, pixi stops with "received more arguments than expected". For example, a dry run that lists the jobs without running them:
+
+```bash
+pixi run -e catf-model catf-solve sensitivity -- -n
+```
+
+Outputs are written under `resources/<prefix>/` and `results/<prefix>/`, with `<prefix>` being `initial`, `sensitivity` or `test`. Each scenario gets its own subfolder.
+
+### Running a subset of scenarios
+
+`config.initial.yaml` and `config.sensitivity.yaml` set `run.name: all`, which runs every scenario in the matching scenarios file. To run only some of them, change `run.name` to a list:
+
+```yaml
+run:
+  name:
+  - high-solar
+  - low-solar
+```
+
+## Running on a SLURM cluster
+
+Locally, the pixi tasks run every job on the current machine (`-call` uses all cores). On a SLURM cluster, the `profiles/catf_slurm` profile submits each Snakemake job as its own `sbatch` job instead. The solves for each scenario and planning horizon do not depend on each other, so they run in parallel. With 16 sensitivity scenarios this makes the biggest difference. Scenario-independent steps (clustering, renewable availability, etc.) are shared between scenarios and run only once (`run.shared_resources.policy: base`).
+
+### Starting a run
+
+Run Snakemake from a login node inside `tmux` or `screen`. It has to stay alive for the whole run to submit and track jobs.
+
+```bash
+tmux new -s catf
+```
+
+Add `--profile profiles/catf_slurm` after `--` to any pixi task:
+
+```bash
+pixi run -e catf-model catf-test -- --profile profiles/catf_slurm
+```
+
+```bash
+pixi run -e catf-model catf-solve -- --profile profiles/catf_slurm
+```
+
+```bash
+pixi run -e catf-model catf-solve sensitivity -- --profile profiles/catf_slurm
+```
