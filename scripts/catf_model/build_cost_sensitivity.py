@@ -19,6 +19,11 @@ in one scenario. All other groups are written with factor 1.0, so the base
 in ``add_electricity_grid_connection`` (see ``cost_factors_with_sensitivity``
 in rules/catf_model/cost_sensitivity.smk).
 
+Instead of a factor, a group can be set by a dict with ``factor`` (default
+1.0), ``year`` (technology-data year to take the values from, written for all
+planning horizons) and ``value`` (absolute value in the unit of the cost row,
+only for groups with a single row), e.g. ``hydrogen: {factor: 0.6, year: 2040}``.
+
 Scaling is done on the cost table rather than via ``adjustments`` so that each
 asset vintage is scaled exactly once under myopic foresight. Fixed operation
 and maintenance costs are given in %/year of investment and therefore scale
@@ -34,11 +39,26 @@ from scripts._helpers import configure_logging
 logger = logging.getLogger(__name__)
 
 
-def get_scaling(
-    groups: dict[str, dict[str, list[str]]], factors: dict[str, float]
-) -> dict[tuple[str, str], tuple[str, float]]:
+def get_spec(group: str, spec, rows: list) -> dict:
     """
-    Return the group and factor for every (technology, parameter) to scale.
+    Return the settings of a group as a dict with factor, year and value.
+    """
+    spec = dict(spec) if isinstance(spec, dict) else {"factor": spec}
+    if unknown := set(spec) - {"factor", "year", "value"}:
+        raise ValueError(f"Unknown settings {sorted(unknown)} for group '{group}'.")
+    if "value" in spec and (len(rows) != 1 or "factor" in spec):
+        raise ValueError(f"'value' of group '{group}' needs a single row, no factor.")
+    spec["factor"] = float(spec.get("factor", 1.0))
+    if "year" in spec:
+        spec["year"] = str(spec["year"])
+    return spec
+
+
+def get_scaling(
+    groups: dict[str, dict[str, list[str]]], factors: dict
+) -> dict[tuple[str, str], tuple[str, dict]]:
+    """
+    Return the group and its settings for every (technology, parameter) to scale.
     """
     unknown = set(factors) - set(groups)
     if unknown:
@@ -48,17 +68,21 @@ def get_scaling(
 
     scaling = {}
     for group, factor in factors.items():
-        for param, techs in groups[group].items():
-            # Carriers, scaled per carrier in add_electricity_grid_connection
-            if param == "grid_connection":
-                continue
-            for tech in techs:
-                if (tech, param) in scaling:
-                    raise ValueError(
-                        f"{param} of {tech} is in both groups "
-                        f"'{scaling[(tech, param)][0]}' and '{group}'."
-                    )
-                scaling[(tech, param)] = (group, float(factor))
+        # Carriers in grid_connection are scaled per carrier in add_electricity_grid_connection
+        rows = [
+            (tech, param)
+            for param, techs in groups[group].items()
+            if param != "grid_connection"
+            for tech in techs
+        ]
+        spec = get_spec(group, factor, rows)
+        for tech, param in rows:
+            if (tech, param) in scaling:
+                raise ValueError(
+                    f"{param} of {tech} is in both groups "
+                    f"'{scaling[(tech, param)][0]}' and '{group}'."
+                )
+            scaling[(tech, param)] = (group, spec)
     return scaling
 
 
@@ -90,33 +114,35 @@ def apply_cost_factors(
 
 
 def scale_sensitivity_costs(
-    costs: pd.DataFrame,
-    scaling: dict[tuple[str, str], tuple[str, float]],
+    costs: dict[str, pd.DataFrame],
+    scaling: dict[tuple[str, str], tuple[str, dict]],
     cost_year: str,
 ) -> pd.DataFrame:
     """
     Return scaled cost rows for applying sensitivities in the format of the custom cost file.
     """
-    keys = list(zip(costs.technology, costs.parameter))
-    selection = [key in scaling for key in keys]
-    scaled = costs.loc[selection].copy()
+    rows = []
+    for (tech, param), (group, spec) in scaling.items():
+        year = spec.get("year", cost_year)
+        row = costs[year].query("technology == @tech and parameter == @param").copy()
+        if row.empty:
+            raise ValueError(f"Missing cost entry for {tech} {param} in {year}.")
+        original = row["value"].iloc[0]
+        if "value" in spec:
+            row["value"] = float(spec["value"])
+            change = f"set to {spec['value']}"
+        else:
+            row["value"] = round(original * spec["factor"], 6)
+            change = f"scaled by {spec['factor']}"
+        row["further description"] = (
+            f"costs_{year} value {original:.4f} {change} (group {group})"
+        )
+        rows.append(row)
 
-    if len(scaled) != len(scaling):
-        found = set(zip(scaled.technology, scaled.parameter))
-        missing = set(scaling) - found
-        raise ValueError(f"Missing cost entries for {cost_year}: {sorted(missing)}")
-
-    matched = [scaling[key] for key in zip(scaled.technology, scaled.parameter)]
-    groups = [group for group, _ in matched]
-    factors = [factor for _, factor in matched]
-    scaled["value"] = (scaled["value"] * factors).round(6)
+    scaled = pd.concat(rows, ignore_index=True)
     scaled["planning_horizon"] = cost_year
-    scaled["further description"] = [
-        f"Original value {v:.4f} scaled by {f} (group {g})"
-        for v, f, g in zip(costs.loc[selection, "value"], factors, groups)
-    ]
-    scaled["source"] = "CATF established-technology cost sensitivity"
-    logger.info("Applied scaling for cost sensitivity scenarios")
+    scaled["source"] = "CATF cost sensitivity"
+    logger.info(f"Applied scaling for cost sensitivity scenarios in {cost_year}")
     return scaled
 
 
@@ -149,14 +175,12 @@ if __name__ == "__main__":
         "marginal_cost",
     )
 
-    scaled = [
-        scale_sensitivity_costs(
-            apply_cost_factors(pd.read_csv(fn), base_factors, "investment"),
-            scaling,
-            year,
-        )
-        for fn, year in zip(snakemake.input.costs, cost_years)
-    ]
+    # Cost files of the planning horizons and of the years set with `year`
+    costs = {
+        year: apply_cost_factors(pd.read_csv(fn), base_factors, "investment")
+        for fn, year in zip(snakemake.input.costs, snakemake.params.source_years)
+    }
+    scaled = [scale_sensitivity_costs(costs, scaling, year) for year in cost_years]
 
     df = pd.concat([default, *scaled], ignore_index=True)[default.columns]
     df.to_csv(snakemake.output[0], index=False)

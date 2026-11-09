@@ -20,6 +20,18 @@ The CATF model is built from stacked config files in `config/catf_model/`. Files
 
 All scenario sets share one prefix (`catf`) and one scenario file. A run that is in several sets, such as `baseline`, is solved only once and reused. The set overlays only choose the runs (`run.name`) and the folder of the comparison plots (`catf_model.post_processing.comparison`). Settings that change a run belong in `scenarios.yaml`, not in an overlay; otherwise the run would be rebuilt.
 
+## Scenario sets
+
+The scenarios are grouped into three sets. Each set is compared to the same `baseline`, but asks a different question:
+
+| Set | Question | Runs | What changes from the baseline |
+|---|---|---|---|
+| Initial (`config.initial.yaml`) | How does the system change if conditions are favourable or unfavourable overall? | `high-need`, `low-need` | Several assumptions at once: costs of established technologies, gas price, electricity demand and demand response |
+| Sensitivity (`config.sensitivity.yaml`) | Which single assumption of the initial scenarios matters most? | 16 runs, `high-*` / `low-*` | One assumption at a time |
+| Advanced (in preparation) | What is the value of each advanced clean firm technology? | 10 runs, `high-*` / `low-*` | One advanced technology made available, with high or low costs |
+
+In the baseline, the initial and the sensitivity scenarios, the advanced technologies are not available.
+
 ### Initial scenarios
 
 - **baseline**: default PyPSA-Eur demand response; baseline costs.
@@ -43,7 +55,64 @@ Each scenario changes one assumption and keeps everything else at the baseline. 
 | `high-need-dsm` / `low-need-dsm` | EV demand response at 25% of BEVs / residential heat demand response on |
 | `high-demand` / `low-demand` | Household, services and rail electricity load +10% / -10% |
 
+### Advanced technology scenarios (in preparation)
+
+Each scenario makes one advanced technology available and keeps everything else at the baseline. Following the stakeholder cost assumptions, the technologies can only be built from 2040, and their costs are the same in 2040 and 2050.
+
+| Scenarios | Technology | High costs | Low costs |
+|---|---|---|---|
+| `high-nuclear` / `low-nuclear` | New nuclear | 8,880 EUR/kW, financial lifetime 40 years | 6,490 EUR/kW, 60 years |
+| `high-egs` / `low-egs` | Enhanced geothermal | Near-term costs | Subsurface costs -50%, surface costs -15% |
+| `high-ccs` / `low-ccs` | Carbon capture (power, industry, SMR) and direct air capture | Capture: PyPSA 2040 +25%; DAC: PyPSA 2025 | Capture: PyPSA 2040 -20%; DAC: PyPSA 2040 |
+| `high-hydrogen` / `low-hydrogen` | Electrolysis and fuel cells | PyPSA 2040 | PyPSA 2040 -40% |
+| `high-iron-air` / `low-iron-air` | Iron-air storage | PyPSA 2025 (~3,000 EUR/kW) | PyPSA 2040 (~1,400 EUR/kW) |
+
+In both nuclear scenarios, the existing nuclear plants also run for 80 years. Unlike the new technologies, this already applies from 2030.
+
+### Cost groups
+
 The technologies in each cost group are listed under `catf_model.cost_sensitivity_groups` in `config.base.yaml`. Each scenario, including High Need and Low Need, sets its factors per group in `catf_model.cost_sensitivity`; groups not set keep factor 1.0. Rule `build_cost_sensitivity` (`rules/catf_model/cost_sensitivity.smk`) then builds a cost file for every run at `resources/catf/<scenario>/custom_costs.csv`, on top of the baseline cost factors (`catf_model.cost_factors`, e.g. solar +30%).
+
+Instead of a factor, a group can be set with a dict:
+
+- `factor`: multiplier (default 1.0);
+- `year`: technology-data year to take the values from, used for all planning horizons;
+- `value`: absolute value in the unit of the cost row, only for groups with a single row.
+
+A lifetime is a cost row too, so it is set with its own group of parameter `lifetime` and a `value`. For example, groups in `config.base.yaml`:
+
+```yaml
+catf_model:
+  cost_sensitivity_groups:
+    hydrogen:
+      investment: [electrolysis, fuel cell]
+    nuclear:
+      investment: [nuclear]
+    nuclear-lifetime:
+      lifetime: [nuclear]
+```
+
+and a scenario in `scenarios.yaml`:
+
+```yaml
+low-advanced-example:
+  catf_model:
+    cost_sensitivity:
+      hydrogen: {factor: 0.6, year: 2040}  # 2040 costs -40%, also in 2030 and 2050
+      nuclear: {value: 6490}               # EUR/kW_e, the unit of the cost row
+      nuclear-lifetime: {value: 60}        # years
+```
+
+give these rows in `resources/catf/low-advanced-example/custom_costs.csv` (shown for 2050; the values are the same in every planning horizon):
+
+| technology | parameter | value | further description |
+|---|---|---|---|
+| electrolysis | investment | 905.28 | costs_2040 value 1508.8015 scaled by 0.6 (group hydrogen) |
+| fuel cell | investment | 761.41 | costs_2040 value 1269.0130 scaled by 0.6 (group hydrogen) |
+| nuclear | investment | 6490 | costs_2050 value 10805.7038 set to 6490 (group nuclear) |
+| nuclear | lifetime | 60 | costs_2050 value 40.0000 set to 60 (group nuclear-lifetime) |
+
+A cost row only sets the costs; whether a technology can be built is set by the model switches (e.g. `sector: electrolysis`).
 
 
 ## Running with pixi tasks
