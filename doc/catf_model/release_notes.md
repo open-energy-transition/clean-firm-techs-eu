@@ -7,6 +7,8 @@
 <!-- Upcoming Release -->
 <!-- ================= -->
 
+* Add `year` and `value` options for cost sensitivity groups, used for the advanced technology scenarios ([#59](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/59)).
+
 * Run all scenario sets under one prefix (`catf`) and one `scenarios.yaml`, so shared runs (e.g. `baseline`) are solved once; base cost factors and cost sensitivities are now applied as separate stages ([#56](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/56)).
 
 * Add slurm profiles for parallelising the scenario runs ([#52](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/52)).
