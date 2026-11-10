@@ -20,6 +20,10 @@ default-resources:
   runtime: 2h
   partition: small
   tmpdir: "'/scratch/local'"
+set-resources:
+  # rule default (2000 MB) is too low under SLURM's hard memory limit -> OOM kill
+  build_biomass_potentials:
+    mem_mb: 5000
 restart-times: 0
 max-jobs-per-timespan: "1/3s"
 max-status-checks-per-second: 1
