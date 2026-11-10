@@ -27,6 +27,7 @@ import logging
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from matplotlib.ticker import MaxNLocator
 
 from scripts._helpers import configure_logging, set_scenario_config
 
@@ -72,9 +73,15 @@ def load_metrics(costs_fn: str, co2_fns: list[str], runs: list[str]) -> pd.DataF
     return df
 
 
-def signed(value: float) -> str:
+def decimals(size: float) -> int:
+    """Returns the number of decimals to show values up to size."""
+    return 0 if size >= 10 else 1 if size >= 1 else 2
+
+
+def signed(value: float, digits: int = 0) -> str:
     """Formats a change with sign, without "-0" for values close to zero."""
-    return f"{round(value) + 0:+,.0f}" if round(value) else "0"
+    value = round(value, digits)
+    return f"{value + 0:+,.{digits}f}" if value else "0"
 
 
 def sensitivity_changes(
@@ -130,6 +137,10 @@ def plot_changes(
 
     # At least +-1% so that panels without any change still have an axis
     limit = max(df.relative.abs().max() * 1.25, 1)
+    # Decimals depend on the size of the values, e.g. for small test models
+    change_digits = decimals(df.change.abs().max())
+    reference_digits = 0 if reference.abs().max() >= 100 else 1
+    tick_digits = 0 if limit >= 3 else 1
     fig, axes = plt.subplots(
         1,
         len(horizons),
@@ -170,7 +181,7 @@ def plot_changes(
         for points, offset, va in [(low, -9, "top"), (high, 8, "bottom")]:
             for yi, (_, row) in zip(y, points.iterrows()):
                 ax.annotate(
-                    signed(row.change),
+                    signed(row.change, change_digits),
                     (row.relative, yi),
                     xytext=(0, offset),
                     textcoords="offset points",
@@ -184,9 +195,13 @@ def plot_changes(
         ax.axvline(0, color=TEXT_PRIMARY, linewidth=0.9, linestyle="--", zorder=1.8)
         ax.set_xlim(-limit, limit)
         ax.set_ylim(-0.7, len(labels) - 0.3)
-        ax.xaxis.set_major_formatter(lambda v, _: f"{v:+.0f}%" if v else "0")
+        # Ticks at 1, 2 or 5 times a power of ten, so that they fit the decimals
+        ax.xaxis.set_major_locator(MaxNLocator(nbins=8, steps=[1, 2, 5, 10]))
+        ax.xaxis.set_major_formatter(
+            lambda v, _: f"{v:+.{tick_digits}f}%" if round(v, tick_digits) else "0"
+        )
         ax.set_title(
-            f"{horizon}\nReference: {reference[horizon]:,.0f} {unit}",
+            f"{horizon}\nReference: {reference[horizon]:,.{reference_digits}f} {unit}",
             loc="left",
             fontsize=10,
             color=TEXT_PRIMARY,
