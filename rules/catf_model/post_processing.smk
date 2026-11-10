@@ -329,10 +329,34 @@ rule plot_energy_balances:
         scripts("catf_model/post_processing/plot_energy_balances.py")
 
 
+rule plot_sensitivity_system_costs:
+    """Plots the change in system costs of the low and high sensitivity runs against a reference run per planning horizon."""
+    input:
+        costs=rules.export_statistics_summary.output.system_costs,
+    output:
+        plot=CATF_COMPARISON + "plots/sensitivity_system_costs.png",
+        csv=CATF_COMPARISON + "sensitivity_system_costs.csv",
+    log:
+        CATF_COMPARISON + "logs/plot_sensitivity_system_costs.log",
+    threads: 1
+    resources:
+        mem_mb=2000,
+    params:
+        sensitivity=config_provider("catf_model", "post_processing", "sensitivity"),
+    script:
+        scripts("catf_model/post_processing/plot_sensitivity_system_costs.py")
+
+
 rule catf_post_processing:
     """Collects all CATF post-processing outputs."""
     input:
         rules.plot_energy_balances.output,
+        # Only for scenario sets with low and high pairs
+        (
+            rules.plot_sensitivity_system_costs.output
+            if config["catf_model"]["post_processing"]["sensitivity"]["pairs"]
+            else []
+        ),
         rules.export_all_marginal_prices.input,
         rules.export_all_co2_emissions.input,
         rules.export_all_energy_balances.input,

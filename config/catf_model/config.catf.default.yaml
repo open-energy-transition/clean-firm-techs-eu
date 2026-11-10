@@ -356,3 +356,15 @@ catf_model:
       Transport: "#6250d6"
       Industry and agriculture: "#e34948"
       Other: "#8a5a2b"
+
+    # Change in system costs of low and high runs against a reference run of
+    # the same scenario set (plot_sensitivity_system_costs); only plotted if
+    # "pairs" is set in the scenario set overlay.
+    sensitivity:
+      reference_run: baseline
+      # Cost components summed to the system costs (columns of system_costs.csv).
+      # The CO2 cap penalty is part of the objective; without it, a run that
+      # emits more above the cap can look cheaper.
+      costs: [Capex, Opex, CO2 cap penalty]
+      # Rows of the plot: label -> [low run, high run]
+      pairs: {}
