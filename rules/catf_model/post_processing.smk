@@ -329,10 +329,40 @@ rule plot_energy_balances:
         scripts("catf_model/post_processing/plot_energy_balances.py")
 
 
+rule plot_sensitivity:
+    """Plots the change in system costs, Capex, Opex and CO2 emissions of the low and high runs against a reference run per planning horizon."""
+    input:
+        costs=rules.export_statistics_summary.output.system_costs,
+        # Ordered by run, as the script expects
+        co2=expand(RESULTS + "csvs/co2_emissions/summary.csv", run=CATF_RUNS),
+    output:
+        total_costs=CATF_COMPARISON + "plots/sensitivity_total_costs.png",
+        capex=CATF_COMPARISON + "plots/sensitivity_capex.png",
+        opex=CATF_COMPARISON + "plots/sensitivity_opex.png",
+        co2_emissions=CATF_COMPARISON + "plots/sensitivity_co2_emissions.png",
+        csv=CATF_COMPARISON + "sensitivity.csv",
+    log:
+        CATF_COMPARISON + "logs/plot_sensitivity.log",
+    threads: 1
+    resources:
+        mem_mb=2000,
+    params:
+        runs=CATF_RUNS,
+        sensitivity=config_provider("catf_model", "post_processing", "sensitivity"),
+    script:
+        scripts("catf_model/post_processing/plot_sensitivity.py")
+
+
 rule catf_post_processing:
     """Collects all CATF post-processing outputs."""
     input:
         rules.plot_energy_balances.output,
+        # Only for scenario sets with low and high pairs
+        (
+            rules.plot_sensitivity.output
+            if config["catf_model"]["post_processing"]["sensitivity"]["pairs"]
+            else []
+        ),
         rules.export_all_marginal_prices.input,
         rules.export_all_co2_emissions.input,
         rules.export_all_energy_balances.input,

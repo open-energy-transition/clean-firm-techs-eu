@@ -356,3 +356,11 @@ catf_model:
       Transport: "#6250d6"
       Industry and agriculture: "#e34948"
       Other: "#8a5a2b"
+
+    # Change in system costs, Capex, Opex and CO2 emissions of low and high runs
+    # against a reference run of the same scenario set (plot_sensitivity); only
+    # plotted if "pairs" is set in the scenario set overlay.
+    sensitivity:
+      reference_run: baseline
+      # Rows of the plot: label -> [low run, high run]
+      pairs: {}

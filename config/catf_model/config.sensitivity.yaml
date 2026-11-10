@@ -26,3 +26,14 @@ catf_model:
   post_processing:
     # Comparison plots in results/catf/comparison_plots/sensitivity/
     comparison: sensitivity
+    # Rows of the system cost sensitivity plot: label -> [low run, high run]
+    sensitivity:
+      pairs:
+        Solar investment: [low-solar, high-solar]
+        Wind investment: [low-wind, high-wind]
+        Battery investment: [low-battery, high-battery]
+        Gas plant investment: [low-gas, high-gas]
+        Gas fuel price: [low-gas-fuel, high-gas-fuel]
+        Biomass plant investment: [low-biomass, high-biomass]
+        Electricity demand ±10%: [low-demand, high-demand]
+        Demand flexibility: [low-need-dsm, high-need-dsm]
