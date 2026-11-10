@@ -88,7 +88,7 @@ catf_model:
             color: "#2fb537"
             carriers: [rural air heat pump, rural ground heat pump, urban central air heat pump, urban decentral air heat pump]
           Resistive heaters:
-            color: "#a6d96a"
+            color: "#d2a679"
             carriers: [rural resistive heater, urban central resistive heater, urban decentral resistive heater]
           Gas boilers:
             color: "#db6a25"
@@ -132,6 +132,26 @@ catf_model:
           Storage & grid losses:
             color: "#8c8c8c"
             carriers: [electricity distribution grid]
+
+    # Electricity dispatch in representative weeks (plot_dispatch)
+    dispatch:
+      # Start dates of the weeks in the weather year; weeks outside the modelled
+      # period are skipped, and if none is inside, the whole period is plotted
+      weeks:
+        Winter week: "2013-01-14"
+        Summer week: "2013-07-08"
+      # Added to energy_balances.report.groups: storage nets out over the year
+      # but not over the hours, so it gets its own groups here
+      groups:
+        Battery:
+          color: "#ace37f"
+          carriers: [battery charger, battery discharger, home battery charger, home battery discharger]
+        Pumped hydro:
+          color: "#51dbcc"
+          carriers: [PHS]
+        # Transmission losses and pipeline compression
+        Storage & grid losses:
+          carriers: [AC, DC, gas pipeline, gas pipeline new, H2 pipeline]
 
     statistics:
       # Panels of the capacity and generation plots. A technology is counted in a
@@ -211,7 +231,7 @@ catf_model:
           color: "#2fb537"
           carriers: [rural air heat pump, rural ground heat pump, urban central air heat pump, urban decentral air heat pump]
         Resistive heaters:
-          color: "#a6d96a"
+          color: "#d2a679"
           carriers: [rural resistive heater, urban central resistive heater, urban decentral resistive heater]
         Gas boilers:
           color: "#db6a25"
