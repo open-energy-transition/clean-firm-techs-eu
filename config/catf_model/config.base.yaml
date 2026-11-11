@@ -106,6 +106,17 @@ electricity:
     StorageUnit: []
   transmission_limit: v1.0
 
+# Without nuclear: it is modelled as links in the sector model
+pypsa_eur:
+  Generator:
+  - onwind
+  - offwind-ac
+  - offwind-dc
+  - offwind-float
+  - solar-hsat
+  - solar
+  - ror
+
 co2_budget:
   2040: 0.1
   2050: 0.0
@@ -182,6 +193,11 @@ catf_model:
     biomass-plants:
       investment:
       - central solid biomass CHP
+
+  # Cost years in which the absolute values of catf_model.cost_overwrites
+  # (advanced-technology scenarios, set in scenarios.yaml) apply: advanced
+  # technologies have the same costs in 2040 and 2050.
+  cost_overwrite_years: [2040, 2050]
 
 costs:
   # Built per run by build_cost_sensitivity, so the baseline cost factors

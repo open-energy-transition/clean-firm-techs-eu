@@ -168,9 +168,9 @@ catf_model:
       # this order. Groups with "panels" only apply in these panels. Technologies
       # not listed are plotted as "Other" and logged.
       groups:
-        Nuclear:
+        Nuclear:   # incl. the uranium supply (fuel cost)
           color: "#ff8c00"
-          carriers: [nuclear]
+          carriers: [nuclear, uranium]
         Onshore wind:
           color: "#235ebc"
           carriers: [onwind]
