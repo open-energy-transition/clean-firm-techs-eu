@@ -19,6 +19,11 @@ in one scenario. All other groups are written with factor 1.0, so the base
 in ``add_electricity_grid_connection`` (see ``cost_factors_with_sensitivity``
 in rules/catf_model/cost_sensitivity.smk).
 
+Absolute values in ``catf_model.cost_overwrites`` (e.g. the nuclear investment
+cost of an advanced-technology scenario) replace the values of a technology and
+parameter in the cost years of ``catf_model.cost_overwrite_years``, after all
+scaling. They are given in the units of the technology-data cost files.
+
 Scaling is done on the cost table rather than via ``adjustments`` so that each
 asset vintage is scaled exactly once under myopic foresight. Fixed operation
 and maintenance costs are given in %/year of investment and therefore scale
@@ -120,6 +125,40 @@ def scale_sensitivity_costs(
     return scaled
 
 
+def overwrite_cost_rows(
+    costs: pd.DataFrame,
+    rows: pd.DataFrame,
+    overwrites: dict[str, dict[str, float]],
+    cost_year: str,
+) -> pd.DataFrame:
+    """
+    Return the custom cost rows of a cost year with the values of the overwrites,
+    replacing scaled rows of the same technology and parameter.
+    """
+    new = []
+    for tech, params in overwrites.items():
+        for param, value in params.items():
+            match = costs.query("technology == @tech and parameter == @param")
+            if match.empty:
+                raise ValueError(
+                    f"No cost entry for {param} of {tech} in {cost_year} to overwrite."
+                )
+            row = match.iloc[[0]].copy()
+            row["further description"] = (
+                f"Original value {row['value'].iat[0]:.4f} overwritten"
+            )
+            row["value"] = float(value)
+            row["planning_horizon"] = cost_year
+            row["source"] = "CATF advanced-technology cost assumptions"
+            new.append(row)
+
+    new = pd.concat(new)
+    replaced = set(zip(new.technology, new.parameter))
+    keep = [key not in replaced for key in zip(rows.technology, rows.parameter)]
+    logger.info(f"Overwrote {len(new)} cost entries for {cost_year}")
+    return pd.concat([rows.loc[keep], new])
+
+
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
@@ -128,9 +167,9 @@ if __name__ == "__main__":
             "build_cost_sensitivity",
             configfiles=[
                 "config/catf_model/config.base.yaml",
-                "config/catf_model/config.sensitivity.yaml",
+                "config/catf_model/config.advanced.yaml",
             ],
-            run="high-wind",
+            run="low-nuclear",
         )
     configure_logging(snakemake)
 
@@ -149,14 +188,16 @@ if __name__ == "__main__":
         "marginal_cost",
     )
 
-    scaled = [
-        scale_sensitivity_costs(
-            apply_cost_factors(pd.read_csv(fn), base_factors, "investment"),
-            scaling,
-            year,
-        )
-        for fn, year in zip(snakemake.input.costs, cost_years)
-    ]
+    overwrites = snakemake.params.cost_overwrites or {}
+    overwrite_years = {str(year) for year in snakemake.params.cost_overwrite_years}
+
+    scaled = []
+    for fn, year in zip(snakemake.input.costs, cost_years):
+        costs = apply_cost_factors(pd.read_csv(fn), base_factors, "investment")
+        rows = scale_sensitivity_costs(costs, scaling, year)
+        if overwrites and year in overwrite_years:
+            rows = overwrite_cost_rows(costs, rows, overwrites, year)
+        scaled.append(rows)
 
     df = pd.concat([default, *scaled], ignore_index=True)[default.columns]
     df.to_csv(snakemake.output[0], index=False)

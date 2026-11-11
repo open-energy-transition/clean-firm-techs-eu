@@ -16,6 +16,7 @@ The CATF model is built from stacked config files in `config/catf_model/`. Files
 | `scenarios.yaml` | All scenarios: the initial scenarios (`baseline`, `high-need`, `low-need`) and the individual sensitivities. |
 | `config.initial.yaml` | Initial scenario set: picks `baseline`, `high-need` and `low-need` with `run.name`. |
 | `config.sensitivity.yaml` | Sensitivity scenario set: picks `baseline` and the individual sensitivities with `run.name`. |
+| `config.advanced.yaml` | Advanced-technology scenario set: picks `baseline` and the advanced-technology scenarios with `run.name`. |
 | `config.test.yaml` | Optional overlay for quick tests: one week of snapshots, 28 time segments, `run.prefix: test`. |
 
 All scenario sets share one prefix (`catf`) and one scenario file. A run that is in several sets, such as `baseline`, is solved only once and reused. The set overlays only choose the runs (`run.name`) and the folder of the comparison plots (`catf_model.post_processing.comparison`). Settings that change a run belong in `scenarios.yaml`, not in an overlay; otherwise the run would be rebuilt.
@@ -44,6 +45,14 @@ Each scenario changes one assumption and keeps everything else at the baseline. 
 | `high-demand` / `low-demand` | Household, services and rail electricity load +10% / -10% |
 
 The technologies in each cost group are listed under `catf_model.cost_sensitivity_groups` in `config.base.yaml`. Each scenario, including High Need and Low Need, sets its factors per group in `catf_model.cost_sensitivity`; groups not set keep factor 1.0. Rule `build_cost_sensitivity` (`rules/catf_model/cost_sensitivity.smk`) then builds a cost file for every run at `resources/catf/<scenario>/custom_costs.csv`, on top of the baseline cost factors (`catf_model.cost_factors`, e.g. solar +30%).
+
+### Advanced-technology scenarios
+
+Each scenario sets a high or low cost case for one advanced technology, following the stakeholder cost assumptions. Costs are given as absolute values per technology and parameter in `catf_model.cost_overwrites`, in the units of the technology-data cost files, and apply in the cost years of `catf_model.cost_overwrite_years` (2040 and 2050, with equal costs). How a value is derived (e.g. `1.25x PyPSA 2040`) is noted in a comment next to it.
+
+| Scenarios | What changes |
+|---|---|
+| `high-nuclear` / `low-nuclear` | New-build nuclear investment cost 8880 / 6490 EUR/kW and financial lifetime 40 / 60 years |
 
 
 ## Running with pixi tasks

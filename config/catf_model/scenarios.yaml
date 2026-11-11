@@ -131,3 +131,20 @@ low-demand:
       industry electricity: 1.0
       agriculture electricity: 1.0
       agriculture machinery electric: 1.0
+
+# --- Advanced technologies: absolute costs in 2040 and 2050 ---
+# (catf_model.cost_overwrite_years), in technology-data units
+
+# New-build nuclear, CATF nuclear team (2025 EUR). PyPSA: 10806 EUR/kW, 40 years
+high-nuclear:   # committed series
+  catf_model:
+    cost_overwrites:
+      nuclear:
+        investment: 8880   # EUR/kW_e
+        lifetime: 40       # financial lifetime, years
+low-nuclear:    # standardised European fleet with state financing
+  catf_model:
+    cost_overwrites:
+      nuclear:
+        investment: 6490   # EUR/kW_e
+        lifetime: 60       # financial lifetime, years

@@ -183,6 +183,11 @@ catf_model:
       investment:
       - central solid biomass CHP
 
+  # Cost years in which the absolute values of catf_model.cost_overwrites
+  # (advanced-technology scenarios, set in scenarios.yaml) apply: advanced
+  # technologies have the same costs in 2040 and 2050.
+  cost_overwrite_years: [2040, 2050]
+
 costs:
   # Built per run by build_cost_sensitivity, so the baseline cost factors
   # (catf_model.cost_factors, e.g. solar +30%) always apply. {prefix} is filled

@@ -1,0 +1,14 @@
+# Overlay on config.base.yaml for the advanced-technology scenarios defined in
+# scenarios.yaml. The baseline is shared with the other scenario sets and solved
+# only once.
+
+run:
+  name:
+  - baseline
+  - high-nuclear
+  - low-nuclear
+
+catf_model:
+  post_processing:
+    # Comparison plots in results/catf/comparison_plots/advanced/
+    comparison: advanced

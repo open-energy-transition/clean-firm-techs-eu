@@ -21,7 +21,7 @@ def cost_factors_with_sensitivity(w):
 
 
 rule build_cost_sensitivity:
-    """Builds the CATF custom cost file of a run: baseline cost factors (e.g. solar +30%) followed by the per-group factors in catf_model.cost_sensitivity."""
+    """Builds the CATF custom cost file of a run: baseline cost factors (e.g. solar +30%) followed by the per-group factors in catf_model.cost_sensitivity and the absolute values in catf_model.cost_overwrites."""
     input:
         costs=lambda w: [
             rules.retrieve_cost_data.output["costs"].format(horizon=year)
@@ -41,5 +41,9 @@ rule build_cost_sensitivity:
         cost_factors=config_provider("catf_model", "cost_factors", default={}),
         groups=config_provider("catf_model", "cost_sensitivity_groups"),
         cost_sensitivity=config_provider("catf_model", "cost_sensitivity", default={}),
+        cost_overwrites=config_provider("catf_model", "cost_overwrites", default={}),
+        cost_overwrite_years=config_provider(
+            "catf_model", "cost_overwrite_years", default=[]
+        ),
     script:
         scripts("catf_model/build_cost_sensitivity.py")
