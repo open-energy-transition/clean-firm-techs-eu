@@ -54,6 +54,10 @@ catf_model:
               gas: [biogas to gas, biogas to gas CC]
               oil: [unsustainable bioliquids, biomass to liquid, biomass to liquid CC, electrobiofuels]
               methanol: [biomass-to-methanol]
+            # Consumers whose carbon is emitted by another technology pass
+            # their share of the credit on to it
+            emitted_by:
+              naphtha for industry: HVC to air
         # Technology groups, stacked in this order. Storage and transmission
         # rows always go to "Storage & grid losses"; technologies not listed
         # go to "Other" with a warning.

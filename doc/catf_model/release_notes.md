@@ -7,7 +7,7 @@
 <!-- Upcoming Release -->
 <!-- ================= -->
 
-* Show biogenic fuels (e.g. biogas) as lower emissions of their consumers instead of negative emissions in the CO2 balance plot ([#53](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/53)).
+* Show biogenic fuels (e.g. biogas) as lower emissions of their consumers instead of negative emissions in the CO2 balance plot and in `csvs/co2_emissions/by_technology.csv` ([#53](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/53)).
 
 * Increase `build_biomass_potentials` memory in the slurm profile to avoid out-of-memory failures ([#58](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/58)).
 

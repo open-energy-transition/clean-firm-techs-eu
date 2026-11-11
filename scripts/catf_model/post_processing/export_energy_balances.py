@@ -73,7 +73,9 @@ def energy_balance(n: pypsa.Network) -> pd.DataFrame:
 
 
 def allocate_biogenic_credits(
-    balance: pd.DataFrame, credits: dict[str, list[str]]
+    balance: pd.DataFrame,
+    credits: dict[str, list[str]],
+    emitted_by: dict[str, str] | None = None,
 ) -> pd.DataFrame:
     """
     Moves the CO2 credit of biogenic fuel production to the consumers of the fuel.
@@ -84,8 +86,11 @@ def allocate_biogenic_credits(
     the carriers listed for a fuel bus carrier (e.g. gas: [biogas to gas]) is
     split over the technologies withdrawing from that bus carrier by their share
     of its use, so consumers show the emissions of the fossil share of their
-    fuel. The net CO2 balance is unchanged.
+    fuel. Consumers whose carbon is emitted by another technology pass their
+    share on to it (``emitted_by``, e.g. naphtha for industry: HVC to air). The
+    net CO2 balance is unchanged.
     """
+    emitted_by = emitted_by or {}
     keys = ["scenario", "planning_horizon"]
     allocated = []
     for (run, horizon), df in balance.groupby(keys, sort=False):
@@ -109,7 +114,10 @@ def allocate_biogenic_credits(
             share = use.value / use.value.sum()
             allocated.append(
                 use.assign(
-                    bus_carrier="co2", unit=df.unit[co2].iloc[0], value=share * credit
+                    bus_carrier="co2",
+                    carrier=use.carrier.replace(emitted_by),
+                    unit=df.unit[co2].iloc[0],
+                    value=share * credit,
                 )
             )
             df = df[~is_credit]

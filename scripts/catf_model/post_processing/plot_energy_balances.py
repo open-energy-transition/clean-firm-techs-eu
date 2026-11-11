@@ -258,7 +258,9 @@ if __name__ == "__main__":
     ):
         df = balance
         if "biogenic_credits" in spec:
-            df = allocate_biogenic_credits(balance, spec["biogenic_credits"])
+            df = allocate_biogenic_credits(
+                balance, spec["biogenic_credits"], spec.get("emitted_by")
+            )
         table = group_balance(df, carrier, spec, groups)
         table = drop_zero_groups(table)
 

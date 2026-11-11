@@ -70,15 +70,15 @@ def co2_atmosphere_balance(n: pypsa.Network) -> pd.Series:
     )
 
 
-def allocated_flows(
-    n: pypsa.Network, horizon: int, credits: dict[str, list[str]]
-) -> pd.Series:
+def allocated_flows(n: pypsa.Network, horizon: int, co2_report: dict) -> pd.Series:
     """
     Returns the CO2 flows per component and carrier in tCO2, with the credit of
     biogenic fuel production moved to the consumers of the fuel.
     """
     balance = energy_balance(n).assign(scenario="", planning_horizon=horizon)
-    balance = allocate_biogenic_credits(balance, credits)
+    balance = allocate_biogenic_credits(
+        balance, co2_report["biogenic_credits"], co2_report.get("emitted_by")
+    )
     co2 = balance[balance.bus_carrier == "co2"]
     flows = co2.groupby(["component", "carrier"]).value.sum()
     is_cap = (flows.index.get_level_values("component") == "Store") | (
@@ -91,7 +91,7 @@ def horizon_emissions(
     n: pypsa.Network,
     horizon: int,
     baseline_1990: float,
-    credits: dict[str, list[str]] | None = None,
+    co2_report: dict | None = None,
 ) -> tuple[pd.Series, pd.Series]:
     """Returns the emission summary and the CO2 flows per technology of one horizon."""
     balance = co2_atmosphere_balance(n)
@@ -143,8 +143,8 @@ def horizon_emissions(
     )
     summary.index.names = ["metric", "unit"]
 
-    if credits:
-        flows = allocated_flows(n, horizon, credits)
+    if co2_report and co2_report.get("biogenic_credits"):
+        flows = allocated_flows(n, horizon, co2_report)
 
     return summary, flows / 1e6
 
@@ -183,7 +183,7 @@ if __name__ == "__main__":
     ):
         n = pypsa.Network(path)
         summaries[horizon], flows[horizon] = horizon_emissions(
-            n, int(horizon), baseline_1990, snakemake.params.biogenic_credits
+            n, int(horizon), baseline_1990, snakemake.params.co2_report
         )
 
     summary = pd.DataFrame(summaries)
