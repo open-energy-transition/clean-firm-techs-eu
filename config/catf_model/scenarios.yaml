@@ -1,0 +1,133 @@
+# CATF scenarios; everything not set here comes from config.base.yaml.
+# Cost factors are per group of catf_model.cost_sensitivity_groups
+# (config.base.yaml), on top of the base cost factors (solar +30%).
+
+# --- Initial scenarios ---
+
+baseline: {}
+
+high-need:
+  sector:
+    bev_dsm_availability: 0.25   # 25% of BEVs participate in DSM (default 50%)
+    electricity_demand_factors:   # in all hours
+      electricity: 1.1   # households, services, rail: +10%
+      industry electricity: 1.0
+      agriculture electricity: 1.0
+      agriculture machinery electric: 1.0
+  catf_model:
+    cost_sensitivity:   # biomass plants stay at baseline
+      solar: 1.33
+      onwind: 1.33
+      offwind: 1.33
+      battery: 1.33
+      gas-plants: 1.33
+      gas-fuel: 1.33
+
+low-need:
+  sector:
+    electricity_demand_factors:   # in all hours
+      electricity: 0.9   # households, services, rail: -10%
+      industry electricity: 1.0
+      agriculture electricity: 1.0
+      agriculture machinery electric: 1.0
+    residential_heat:
+      dsm:
+        enable: true
+  catf_model:
+    cost_sensitivity:   # biomass plants stay at baseline
+      solar: 0.75
+      onwind: 0.75
+      offwind: 0.75
+      battery: 0.75
+      gas-plants: 0.75
+      gas-fuel: 0.75
+
+# --- Individual sensitivities: one change from the baseline each ---
+
+# Solar PV and its grid connection
+high-solar:
+  catf_model:
+    cost_sensitivity:
+      solar: 1.33
+low-solar:
+  catf_model:
+    cost_sensitivity:
+      solar: 0.75
+
+# Onshore and offshore wind
+high-wind:
+  catf_model:
+    cost_sensitivity:
+      onwind: 1.33
+      offwind: 1.33
+low-wind:
+  catf_model:
+    cost_sensitivity:
+      onwind: 0.75
+      offwind: 0.75
+
+# Li-ion batteries
+high-battery:
+  catf_model:
+    cost_sensitivity:
+      battery: 1.33
+low-battery:
+  catf_model:
+    cost_sensitivity:
+      battery: 0.75
+
+# Gas plant investment costs
+high-gas:
+  catf_model:
+    cost_sensitivity:
+      gas-plants: 1.33
+low-gas:
+  catf_model:
+    cost_sensitivity:
+      gas-plants: 0.75
+
+# Gas fuel price
+high-gas-fuel:
+  catf_model:
+    cost_sensitivity:
+      gas-fuel: 1.33
+low-gas-fuel:
+  catf_model:
+    cost_sensitivity:
+      gas-fuel: 0.75
+
+# Solid biomass CHP investment costs
+high-biomass:
+  catf_model:
+    cost_sensitivity:
+      biomass-plants: 1.33
+low-biomass:
+  catf_model:
+    cost_sensitivity:
+      biomass-plants: 0.75
+
+# Demand-side flexibility
+high-need-dsm:
+  sector:
+    bev_dsm_availability: 0.25
+low-need-dsm:
+  sector:
+    residential_heat:
+      dsm:
+        enable: true
+
+# Electricity demand of households, services and rail
+high-demand:
+  sector:
+    electricity_demand_factors:
+      electricity: 1.1
+      industry electricity: 1.0
+      agriculture electricity: 1.0
+      agriculture machinery electric: 1.0
+low-demand:
+  sector:
+    electricity_demand_factors:
+      electricity: 0.9
+      industry electricity: 1.0
+      agriculture electricity: 1.0
+      agriculture machinery electric: 1.0

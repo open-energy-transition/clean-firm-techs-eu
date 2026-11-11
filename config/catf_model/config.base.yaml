@@ -1,3 +1,25 @@
+# All runs share one prefix and one scenario file, so a run (e.g. baseline) is
+# solved once and reused by every scenario set. The overlays (e.g.
+# config.initial.yaml) only choose the runs with run.name and the folder of the
+# comparison plots. Settings that change a run belong in scenarios.yaml, not in
+# an overlay, otherwise its results would be rebuilt.
+run:
+  prefix: catf
+  name: [baseline]
+  scenarios:
+    enable: true
+    file: config/catf_model/scenarios.yaml
+  # Share scenario-independent resources (e.g. clustered network, availability)
+  # across the runs.
+  shared_resources:
+    policy: base
+    # Keep processed cost files per scenario. Required because compose_network
+    # requests them without the {horizon} wildcard, which "base" would treat as shared.
+    exclude:
+    - costs_
+    # Built per run from catf_model.cost_sensitivity
+    - custom_costs
+
 planning_horizons: [2030, 2040, 2050]
 
 foresight: myopic
@@ -89,6 +111,8 @@ co2_budget:
   2050: 0.0
 
 catf_model:
+  # Base cost adjustments of all runs (stakeholder feedback: solar +30%). Set
+  # only here; scenarios scale on top of them with catf_model.cost_sensitivity.
   cost_factors:
     solar: 1.3
     solar-utility: 1.3
@@ -97,12 +121,16 @@ catf_model:
     solar-rooftop commercial: 1.3
     solar-rooftop residential: 1.3
 
+    # Per carrier, applied in add_electricity_grid_connection, as onshore wind
+    # and utility solar share one cost row
     distribution grid reinforcement:
       solar: 1.3
       solar-hsat: 1.3
 
   # Technologies scaled per cost sensitivity group, by cost parameter
-  # (column "parameter" of the technology-data cost files).
+  # (column "parameter" of the technology-data cost files). grid_connection
+  # lists the carriers whose grid connection cost is scaled with the group,
+  # on top of the base factors above.
   cost_sensitivity_groups:
     # Solar ("solar" is overwritten by "solar-utility" in prepare_costs)
     solar:
@@ -113,13 +141,14 @@ catf_model:
       - solar-rooftop
       - solar-rooftop commercial
       - solar-rooftop residential
+      grid_connection:
+      - solar
+      - solar-hsat
     onwind:
       investment:
       - onwind
-    # Grid connection of onshore wind and utility solar (add_electricity_grid_connection)
-    grid-connection:
-      investment:
-      - distribution grid reinforcement
+      grid_connection:
+      - onwind
     # Offshore wind turbines, substations and grid connections
     offwind:
       investment:
@@ -155,10 +184,10 @@ catf_model:
       - central solid biomass CHP
 
 costs:
-  # Built by build_cost_sensitivity with factor 1.0, so the baseline cost
-  # factors (catf_model.cost_factors, e.g. solar +30%) always apply.
-  # Scenario files override this with per-run paths under their run.prefix.
-  custom_cost_fn: resources/custom_costs_x1.0.csv
+  # Built per run by build_cost_sensitivity, so the baseline cost factors
+  # (catf_model.cost_factors, e.g. solar +30%) always apply. {prefix} is filled
+  # in by rules/catf_model/catf_default.smk.
+  custom_cost_fn: resources/{prefix}/{run}/custom_costs.csv
 
 clustering:
   cluster_network:

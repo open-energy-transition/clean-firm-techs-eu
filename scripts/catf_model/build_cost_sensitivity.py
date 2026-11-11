@@ -11,11 +11,13 @@ price) are read from the technology-data cost files and multiplied by a factor
 per group. The scaled values are appended to the default custom cost file,
 which is then selected per scenario through ``costs: custom_cost_fn``.
 
-Rule ``build_cost_sensitivity`` scales all groups by the factor given in the
-output file name. Rule ``build_scenario_cost_sensitivity`` scales the groups
-set in ``catf_model.cost_sensitivity``, each by its own factor, so that several
-groups (e.g. onshore and offshore wind) can be combined in one scenario. All
-other groups are written with factor 1.0, so the base ``cost_factors`` apply.
+The groups set in ``catf_model.cost_sensitivity`` are scaled each by its own
+factor, so that several groups (e.g. onshore and offshore wind) can be combined
+in one scenario. All other groups are written with factor 1.0, so the base
+``cost_factors`` apply. The grid connection costs of the carriers in a group's
+``grid_connection`` are not part of the cost file; they are scaled per carrier
+in ``add_electricity_grid_connection`` (see ``cost_factors_with_sensitivity``
+in rules/catf_model/cost_sensitivity.smk).
 
 Scaling is done on the cost table rather than via ``adjustments`` so that each
 asset vintage is scaled exactly once under myopic foresight. Fixed operation
@@ -47,6 +49,9 @@ def get_scaling(
     scaling = {}
     for group, factor in factors.items():
         for param, techs in groups[group].items():
+            # Carriers, scaled per carrier in add_electricity_grid_connection
+            if param == "grid_connection":
+                continue
             for tech in techs:
                 if (tech, param) in scaling:
                     raise ValueError(
@@ -120,7 +125,7 @@ if __name__ == "__main__":
         from scripts._helpers import mock_snakemake
 
         snakemake = mock_snakemake(
-            "build_scenario_cost_sensitivity",
+            "build_cost_sensitivity",
             configfiles=[
                 "config/catf_model/config.base.yaml",
                 "config/catf_model/config.sensitivity.yaml",
@@ -131,19 +136,11 @@ if __name__ == "__main__":
 
     base_factors = snakemake.params.cost_factors or {}
     groups = snakemake.params.groups
-    if hasattr(snakemake.wildcards, "factor"):
-        # Biomass sensitivity not required for initial scenarios
-        if "biomass-plants" in groups:
-            groups.pop("biomass-plants", None)
-
-        # build_cost_sensitivity: one factor for all groups
-        factors = {group: float(snakemake.wildcards.factor) for group in groups}
-    else:
-        # build_scenario_cost_sensitivity: factors per group from the scenario,
-        # other groups at 1.0 so they keep the base cost factors (e.g. solar +30%)
-        factors = {group: 1.0 for group in groups} | (
-            snakemake.params.cost_sensitivity or {}
-        )
+    # Factors per group from the scenario, other groups at 1.0 so they keep the
+    # base cost factors (e.g. solar +30%)
+    factors = {group: 1.0 for group in groups} | (
+        snakemake.params.cost_sensitivity or {}
+    )
     scaling = get_scaling(groups, factors)
     cost_years = snakemake.params.cost_years
     default = apply_cost_factors(

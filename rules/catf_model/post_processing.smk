@@ -8,10 +8,13 @@ CATF_RUNS = (
     if isinstance(config["run"]["name"], list)
     else [config["run"]["name"]]
 )
+# One subfolder per scenario set, as sets share a prefix (and runs)
 CATF_COMPARISON = (
     "results/"
     + (config["run"]["prefix"] + "/" if config["run"].get("prefix") else "")
     + "comparison_plots/"
+    + config["catf_model"]["post_processing"]["comparison"]
+    + "/"
 )
 
 

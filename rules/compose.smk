@@ -274,6 +274,8 @@ rule compose_network:
         ),
         co2_budget=config_provider("co2_budget"),
         adjustments=config_provider("adjustments"),
-        cost_factors=config_provider("catf_model", "cost_factors", default={}),
+        # CATF: base cost factors combined with the run's cost sensitivity. Defined
+        # in rules/catf_model/cost_sensitivity.smk, included later, hence the lambda
+        cost_factors=lambda w: cost_factors_with_sensitivity(w),
     script:
         scripts("compose_network.py")
