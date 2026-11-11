@@ -83,6 +83,16 @@ rule export_co2_emissions:
         co2_budget=config_provider("co2_budget"),
         foresight=config_provider("foresight"),
         planning_horizons=config_provider("planning_horizons"),
+        biogenic_credits=config_provider(
+            "catf_model",
+            "post_processing",
+            "energy_balances",
+            "report",
+            "carriers",
+            "CO2",
+            "biogenic_credits",
+            default={},
+        ),
     script:
         scripts("catf_model/post_processing/export_co2_emissions.py")
 
