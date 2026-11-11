@@ -48,11 +48,14 @@ The technologies in each cost group are listed under `catf_model.cost_sensitivit
 
 ### Advanced-technology scenarios
 
-Each scenario sets a high or low cost case for one advanced technology, following the stakeholder cost assumptions. Costs are given as absolute values per technology and parameter in `catf_model.cost_overwrites`, in the units of the technology-data cost files, and apply in the cost years of `catf_model.cost_overwrite_years` (2040 and 2050, with equal costs). How a value is derived (e.g. `1.25x PyPSA 2040`) is noted in a comment next to it.
+Each scenario makes one advanced technology buildable from 2040 and sets its high or low cost case, following the stakeholder cost assumptions. The technology is enabled in the scenario (e.g. `sector: conventional_generation` for nuclear), and its potential is set to zero in 2030 with `adjustments` per planning horizon. Costs are given as absolute values per technology and parameter in `catf_model.cost_overwrites`, in the units of the technology-data cost files, and apply in the cost years of `catf_model.cost_overwrite_years` (2040 and 2050, with equal costs). How a value is derived (e.g. `1.25x PyPSA 2040`) is noted in a comment next to it.
 
-| Scenarios | What changes |
+| Scenario | What changes (from 2040) |
 |---|---|
-| `high-nuclear` / `low-nuclear` | New-build nuclear investment cost 8880 / 6490 EUR/kW and financial lifetime 40 / 60 years |
+| `high-nuclear` | New-build nuclear: investment 8880 EUR/kW, financial lifetime 40 years |
+| `low-nuclear` | New-build nuclear: investment 6490 EUR/kW, financial lifetime 60 years |
+
+New-build nuclear is not available in the baseline; the PyPSA default cost is 10806 EUR/kW with a 40-year lifetime. In all runs, existing and new-build nuclear are links from the uranium bus, which is supplied at the uranium fuel cost.
 
 
 ## Running with pixi tasks

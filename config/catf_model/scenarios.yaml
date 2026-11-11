@@ -132,17 +132,41 @@ low-demand:
       agriculture electricity: 1.0
       agriculture machinery electric: 1.0
 
-# --- Advanced technologies: absolute costs in 2040 and 2050 ---
-# (catf_model.cost_overwrite_years), in technology-data units
+# --- Advanced technologies: buildable from 2040, absolute costs in 2040 and 2050 ---
+# Costs in catf_model.cost_overwrites apply in catf_model.cost_overwrite_years,
+# in technology-data units. Each technology is made buildable with a potential
+# of zero in 2030 (adjustments per planning horizon).
 
 # New-build nuclear, CATF nuclear team (2025 EUR). PyPSA: 10806 EUR/kW, 40 years
 high-nuclear:   # committed series
+  sector:
+    conventional_generation:   # new-build nuclear besides the gas plants
+      OCGT: gas
+      CCGT: gas
+      nuclear: uranium
+  adjustments:
+    sector:
+      absolute:
+        Link:
+          nuclear:   # new build from 2040; existing plants are not extendable
+            p_nom_max: {2030: 0, 2040: .inf, 2050: .inf}
   catf_model:
     cost_overwrites:
       nuclear:
         investment: 8880   # EUR/kW_e
         lifetime: 40       # financial lifetime, years
 low-nuclear:    # standardised European fleet with state financing
+  sector:
+    conventional_generation:
+      OCGT: gas
+      CCGT: gas
+      nuclear: uranium
+  adjustments:
+    sector:
+      absolute:
+        Link:
+          nuclear:
+            p_nom_max: {2030: 0, 2040: .inf, 2050: .inf}
   catf_model:
     cost_overwrites:
       nuclear:

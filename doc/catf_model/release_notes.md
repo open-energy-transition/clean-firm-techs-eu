@@ -7,7 +7,7 @@
 <!-- Upcoming Release -->
 <!-- ================= -->
 
-* Add option `catf_model: cost_overwrites` to set absolute cost values per technology and parameter in 2040 and 2050, and the advanced-technology scenarios `high-nuclear` and `low-nuclear` ([#63](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/63)).
+* Add option `catf_model: cost_overwrites` to set absolute cost values per technology and parameter in 2040 and 2050, and the advanced-technology scenarios `high-nuclear` and `low-nuclear` with new-build nuclear from 2040. Existing nuclear is now modelled only as links from the uranium bus (with build years and lifetimes) instead of also as generators, and uranium is supplied at its fuel cost so that nuclear links can run ([#63](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/63)).
 
 * Run all scenario sets under one prefix (`catf`) and one `scenarios.yaml`, so shared runs (e.g. `baseline`) are solved once; base cost factors and cost sensitivities are now applied as separate stages ([#56](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/56)).
 
