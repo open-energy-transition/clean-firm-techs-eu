@@ -109,6 +109,17 @@ electricity:
     StorageUnit: []
   transmission_limit: v1.0
 
+# Without nuclear: it is modelled as links in the sector model
+pypsa_eur:
+  Generator:
+  - onwind
+  - offwind-ac
+  - offwind-dc
+  - offwind-float
+  - solar-hsat
+  - solar
+  - ror
+
 co2_budget:
   2040: 0.1
   2050: 0.0
