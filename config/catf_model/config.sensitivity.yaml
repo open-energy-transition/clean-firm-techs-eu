@@ -21,6 +21,8 @@ run:
   - low-need-dsm
   - high-demand
   - low-demand
+  - optimal-transmission-expansion
+  - volumetric-transmission-expansion
 
 catf_model:
   post_processing:

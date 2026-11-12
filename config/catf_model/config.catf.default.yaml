@@ -4,6 +4,15 @@ catf_model:
     # the runs in run.name, so that scenario sets sharing a prefix do not
     # overwrite each other's comparison plots
     comparison: all
+    # Transmission expansion plot: volume of the runs compared to the reference
+    # run. Made by catf_post_processing only if the reference and all runs are
+    # in run.name (e.g. the sensitivity set).
+    transmission:
+      reference: baseline
+      runs: [optimal-transmission-expansion, volumetric-transmission-expansion]
+      colors:
+        AC: "#70af1d"
+        DC: "#8a1caf"
     marginal_prices:
       # Bus carriers to export, or "all" for every bus carrier in the network
       carriers:
