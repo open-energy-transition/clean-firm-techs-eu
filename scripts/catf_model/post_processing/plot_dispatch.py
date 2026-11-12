@@ -118,7 +118,7 @@ def plot_dispatch(
             )
         ax.axhline(0, color=TEXT_PRIMARY, linewidth=0.8)
         ax.set_title(name, loc="left", fontsize=10, color=TEXT_PRIMARY)
-        ax.set_ylabel("GW (supply + / consumption −)", fontsize=8, color=TEXT_SECONDARY)
+        ax.set_ylabel("GW (consumption − / supply +)", fontsize=8, color=TEXT_SECONDARY)
         ax.set_xlim(x[0], x[-1])
         ax.set_facecolor(SURFACE)
         ax.tick_params(colors=TEXT_SECONDARY, labelsize=8)
