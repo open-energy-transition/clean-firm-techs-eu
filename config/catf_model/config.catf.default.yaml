@@ -1,5 +1,9 @@
 catf_model:
   post_processing:
+    # Subfolder of results/<prefix>/comparison_plots/ for the plots comparing
+    # the runs in run.name, so that scenario sets sharing a prefix do not
+    # overwrite each other's comparison plots
+    comparison: all
     marginal_prices:
       # Bus carriers to export, or "all" for every bus carrier in the network
       carriers:

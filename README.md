@@ -12,20 +12,21 @@ The CATF model is built from stacked config files in `config/catf_model/`. Files
 
 | File | Purpose |
 |---|---|
-| `config.base.yaml` | Base CATF assumptions (clustering, costs, solver settings, cost sensitivity groups). Always first. |
-| `config.initial.yaml` | Turns on the initial scenario set (`run.prefix: initial`, `run.name: all`) defined in `scenarios.initial.yaml`. |
-| `scenarios.initial.yaml` | Initial scenarios: `baseline`, `high-need`, `low-need`. |
-| `config.sensitivity.yaml` | Turns on the sensitivity scenario set (`run.prefix: sensitivity`, `run.name: all`) defined in `scenarios.sensitivity.yaml`. |
-| `scenarios.sensitivity.yaml` | Individual sensitivities: one technology group, demand or flexibility setting changed at a time. |
+| `config.base.yaml` | Base CATF assumptions (clustering, costs, solver settings, cost sensitivity groups) and the shared run settings (`run.prefix: catf`, scenario file). Always first. |
+| `scenarios.yaml` | All scenarios: the initial scenarios (`baseline`, `high-need`, `low-need`) and the individual sensitivities. |
+| `config.initial.yaml` | Initial scenario set: picks `baseline`, `high-need` and `low-need` with `run.name`. |
+| `config.sensitivity.yaml` | Sensitivity scenario set: picks `baseline` and the individual sensitivities with `run.name`. |
 | `config.test.yaml` | Optional overlay for quick tests: one week of snapshots, 28 time segments, `run.prefix: test`. |
+
+All scenario sets share one prefix (`catf`) and one scenario file. A run that is in several sets, such as `baseline`, is solved only once and reused. The set overlays only choose the runs (`run.name`) and the folder of the comparison plots (`catf_model.post_processing.comparison`). Settings that change a run belong in `scenarios.yaml`, not in an overlay; otherwise the run would be rebuilt.
 
 ### Initial scenarios
 
-- **baseline**: default PyPSA-Eur demand response; cost file `custom_costs_x1.0.csv`.
-- **high-need**: investment costs of established technologies and the gas price +33% (`x1.33`); household, services and rail electricity load +10%; EV demand response reduced to 25% of BEVs.
-- **low-need**: costs and gas price -25% (`x0.75`); electricity load -10%; residential heat demand response on.
+- **baseline**: default PyPSA-Eur demand response; baseline costs.
+- **high-need**: investment costs of established technologies (solar, wind, batteries, gas plants) and the gas price +33%; household, services and rail electricity load +10%; EV demand response reduced to 25% of BEVs.
+- **low-need**: costs and gas price -25%; electricity load -10%; residential heat demand response on.
 
-The scaled cost files are built by rule `build_cost_sensitivity` (`rules/catf_model/cost_sensitivity.smk`), which reads the factor from the file name and applies it to all groups in `catf_model.cost_sensitivity_groups`.
+Biomass plants keep baseline costs in the initial scenarios.
 
 ### Sensitivity scenarios
 
@@ -42,7 +43,7 @@ Each scenario changes one assumption and keeps everything else at the baseline. 
 | `high-need-dsm` / `low-need-dsm` | EV demand response at 25% of BEVs / residential heat demand response on |
 | `high-demand` / `low-demand` | Household, services and rail electricity load +10% / -10% |
 
-The technologies in each cost group are listed under `catf_model.cost_sensitivity_groups` in `config.base.yaml`. Each scenario sets its factors per group in `catf_model.cost_sensitivity`. Rule `build_scenario_cost_sensitivity` then builds a cost file for that scenario at `resources/sensitivity/<scenario>/custom_costs_sensitivity.csv`.
+The technologies in each cost group are listed under `catf_model.cost_sensitivity_groups` in `config.base.yaml`. Each scenario, including High Need and Low Need, sets its factors per group in `catf_model.cost_sensitivity`; groups not set keep factor 1.0. Rule `build_cost_sensitivity` (`rules/catf_model/cost_sensitivity.smk`) then builds a cost file for every run at `resources/catf/<scenario>/custom_costs.csv`, on top of the baseline cost factors (`catf_model.cost_factors`, e.g. solar +30%).
 
 
 ## Running with pixi tasks
@@ -91,18 +92,13 @@ Extra Snakemake flags go after `--`. Without it, pixi stops with "received more 
 pixi run -e catf-model catf-solve sensitivity -- -n
 ```
 
-Outputs are written under `resources/<prefix>/` and `results/<prefix>/`, with `<prefix>` being `initial`, `sensitivity` or `test`. Each scenario gets its own subfolder.
+Outputs are written under `resources/<prefix>/` and `results/<prefix>/`, with `<prefix>` being `catf` or `test`. Each scenario gets its own subfolder. The plots comparing the runs of a set are written to `results/<prefix>/comparison_plots/<set>/`, e.g. `results/catf/comparison_plots/initial/`.
 
-### Running a subset of scenarios
+Run the sets one after the other, not at the same time: both include `baseline`, and two Snakemake processes must not build the same files. A set started after another reuses the runs that are already solved.
 
-`config.initial.yaml` and `config.sensitivity.yaml` set `run.name: all`, which runs every scenario in the matching scenarios file. To run only some of them, change `run.name` to a list:
+### Comparing other runs
 
-```yaml
-run:
-  name:
-  - high-solar
-  - low-solar
-```
+To compare another selection of runs, add an overlay like `config.initial.yaml` with its own `run.name` and `catf_model.post_processing.comparison`. Runs already solved under the prefix are reused.
 
 ## Running on a SLURM cluster
 
