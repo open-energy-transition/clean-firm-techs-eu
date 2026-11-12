@@ -15,6 +15,11 @@ out to their losses over the year and are shown as one "Storage & grid
 losses" group. Technologies without a group are shown as "Other"; small
 groups are not merged, so every configured group keeps its name.
 
+For CO2, the credit that biogenic fuel production (e.g. biogas upgrading)
+takes from the atmosphere can be moved to the consumers of the fuel
+(``biogenic_credits``), so that biogenic fuels show as lower emissions of
+their consumers instead of as negative emissions of their production.
+
 Also writes the plotted values as a long-format CSV with the columns carrier,
 scenario, planning_horizon, group, value and unit (TWh or Mt).
 """
@@ -27,6 +32,9 @@ import numpy as np
 import pandas as pd
 
 from scripts._helpers import configure_logging, set_scenario_config
+from scripts.catf_model.post_processing.export_energy_balances import (
+    allocate_biogenic_credits,
+)
 from scripts.catf_model.post_processing.plot_energy_balances_developer import (
     scale_unit,
 )
@@ -248,7 +256,12 @@ if __name__ == "__main__":
     for (carrier, spec), output in zip(
         report["carriers"].items(), snakemake.output.plots
     ):
-        table = group_balance(balance, carrier, spec, groups)
+        df = balance
+        if "biogenic_credits" in spec:
+            df = allocate_biogenic_credits(
+                balance, spec["biogenic_credits"], spec.get("emitted_by")
+            )
+        table = group_balance(df, carrier, spec, groups)
         table = drop_zero_groups(table)
 
         fig = plot_carrier(table, order, colors, carrier, spec.get("net_marker", False))

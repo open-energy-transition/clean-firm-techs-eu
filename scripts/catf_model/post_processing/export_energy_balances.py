@@ -72,6 +72,60 @@ def energy_balance(n: pypsa.Network) -> pd.DataFrame:
     return balance[["bus_carrier", "component", "carrier", "category", "unit", "value"]]
 
 
+def allocate_biogenic_credits(
+    balance: pd.DataFrame,
+    credits: dict[str, list[str]],
+    emitted_by: dict[str, str] | None = None,
+) -> pd.DataFrame:
+    """
+    Moves the CO2 credit of biogenic fuel production to the consumers of the fuel.
+
+    Technologies such as biogas upgrading take the carbon of the fuel they
+    produce out of the atmosphere, which every consumer of the fuel then emits
+    again at the full fossil intensity. Per scenario and horizon, the credit of
+    the carriers listed for a fuel bus carrier (e.g. gas: [biogas to gas]) is
+    split over the technologies withdrawing from that bus carrier by their share
+    of its use, so consumers show the emissions of the fossil share of their
+    fuel. Consumers whose carbon is emitted by another technology pass their
+    share on to it (``emitted_by``, e.g. naphtha for industry: HVC to air). The
+    net CO2 balance is unchanged.
+    """
+    emitted_by = emitted_by or {}
+    keys = ["scenario", "planning_horizon"]
+    allocated = []
+    for (run, horizon), df in balance.groupby(keys, sort=False):
+        co2 = df.bus_carrier == "co2"
+        for fuel, carriers in credits.items():
+            is_credit = co2 & df.carrier.isin(carriers)
+            credit = df.loc[is_credit, "value"].sum()
+            if not credit:
+                continue
+            use = df[
+                (df.bus_carrier == fuel)
+                & (df.category == "technology")
+                & (df.value < 0)
+                & ~df.carrier.isin(carriers)
+            ]
+            if use.empty:
+                logger.warning(
+                    f"{run} {horizon}: no consumers of {fuel}, keeping its biogenic credit."
+                )
+                continue
+            share = use.value / use.value.sum()
+            allocated.append(
+                use.assign(
+                    bus_carrier="co2",
+                    carrier=use.carrier.replace(emitted_by),
+                    unit=df.unit[co2].iloc[0],
+                    value=share * credit,
+                )
+            )
+            df = df[~is_credit]
+            co2 = df.bus_carrier == "co2"
+        allocated.append(df)
+    return pd.concat(allocated, ignore_index=True)
+
+
 if __name__ == "__main__":
     if "snakemake" not in globals():
         from scripts._helpers import mock_snakemake
