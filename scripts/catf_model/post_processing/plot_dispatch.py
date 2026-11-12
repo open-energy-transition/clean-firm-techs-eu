@@ -125,12 +125,17 @@ def plot_dispatch(
         for side in ["top", "right"]:
             ax.spines[side].set_visible(False)
 
-    # Legend once, without the duplicates from the negative stack
+    # Legend once, in the order of the plot from top to bottom: supply from the
+    # top of the stack down to zero, then consumption from zero down. Groups
+    # with both (e.g. storage) are listed where most of their volume is.
     handles, labels = axes[0, 0].get_legend_handles_labels()
     unique = dict(zip(labels, handles))
+    data = dispatch[shown]
+    is_supply = data.clip(lower=0).sum() >= -data.clip(upper=0).sum()
+    order = [*shown[is_supply][::-1], *shown[~is_supply]]
     fig.legend(
-        unique.values(),
-        unique.keys(),
+        [unique[g] for g in order],
+        order,
         loc="outside right upper",
         frameon=False,
         fontsize=8,
