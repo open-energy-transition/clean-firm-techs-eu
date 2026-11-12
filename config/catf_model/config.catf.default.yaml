@@ -152,6 +152,28 @@ catf_model:
         # Transmission losses and pipeline compression
         Storage & grid losses:
           carriers: [AC, DC, gas pipeline, gas pipeline new, H2 pipeline]
+      # Stacking order from zero outwards, for supply and consumption: steady
+      # bands first, then variable ones and backup, storage outermost. Groups
+      # not listed follow in the order of the groups.
+      order:
+      - Nuclear
+      - Coal & lignite
+      - Biomass CHP
+      - Gas CHP
+      - Hydro
+      - Wind
+      - Solar
+      - Gas power
+      - Oil
+      - Storage & grid losses
+      - Electricity demand
+      - Ammonia
+      - Synthetic fuels
+      - Heat pumps
+      - Resistive heaters
+      - Transport
+      - Battery
+      - Pumped hydro
 
     statistics:
       # Panels of the capacity and generation plots. A technology is counted in a

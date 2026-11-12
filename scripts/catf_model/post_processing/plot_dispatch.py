@@ -49,15 +49,21 @@ def merge_groups(groups: dict, extra: dict) -> dict:
     return merged
 
 
-def group_dispatch(dispatch: pd.DataFrame, groups: dict) -> pd.DataFrame:
-    """Returns the dispatch per snapshot and technology group in GW."""
+def group_dispatch(
+    dispatch: pd.DataFrame, groups: dict, order: list[str] | None = None
+) -> pd.DataFrame:
+    """
+    Returns the dispatch per snapshot and technology group in GW, with the
+    groups in ``order`` first (stacked from zero outwards).
+    """
     carrier_to_group = {c: g for g, v in groups.items() for c in v["carriers"]}
     group = dispatch.columns.map(lambda c: carrier_to_group.get(c, OTHER))
     unmapped = sorted(dispatch.columns[group == OTHER])
     if unmapped:
         logger.warning(f"Technologies without a group, shown as {OTHER}: {unmapped}")
     grouped = dispatch.T.groupby(group, sort=False).sum().T / 1e3
-    order = [g for g in [*groups, OTHER] if g in grouped]
+    order = [g for g in [*(order or []), *groups, OTHER] if g in grouped]
+    order = list(dict.fromkeys(order))
     return grouped[order]
 
 
@@ -168,7 +174,7 @@ if __name__ == "__main__":
     )["objective"]
     dispatch = pd.read_csv(snakemake.input.dispatch, index_col=0, parse_dates=True)
 
-    dispatch = hourly(group_dispatch(dispatch, groups), hours)
+    dispatch = hourly(group_dispatch(dispatch, groups, spec.get("order")), hours)
 
     title = f"Electricity dispatch, {snakemake.wildcards.run}, {snakemake.wildcards.horizon}"
     fig = plot_dispatch(dispatch, spec["weeks"], colors, title)
