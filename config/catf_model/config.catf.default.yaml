@@ -50,6 +50,18 @@ catf_model:
             bus_carriers: [co2]
             exclude: [co2, load]
             net_marker: true
+            # Biogenic fuel production (e.g. biogas upgrading) takes the carbon
+            # of its fuel out of the atmosphere, and every consumer emits it
+            # again. Per fuel bus carrier, the credit of these carriers is moved
+            # to the fuel's consumers by their share of its use.
+            biogenic_credits:
+              gas: [biogas to gas, biogas to gas CC]
+              oil: [unsustainable bioliquids, biomass to liquid, biomass to liquid CC, electrobiofuels]
+              methanol: [biomass-to-methanol]
+            # Consumers whose carbon is emitted by another technology pass
+            # their share of the credit on to it
+            emitted_by:
+              naphtha for industry: HVC to air
         # Technology groups, stacked in this order. Storage and transmission
         # rows always go to "Storage & grid losses"; technologies not listed
         # go to "Other" with a warning.
@@ -116,7 +128,7 @@ catf_model:
             carriers: [BEV charger, V2G, land transport oil]
           Industry & agriculture:
             color: "#6b4f9e"
-            carriers: [gas for industry, coal for industry, process emissions, HVC to air, oil refining, industry methanol, agriculture machinery oil]
+            carriers: [gas for industry, coal for industry, naphtha for industry, process emissions, HVC to air, oil refining, industry methanol, agriculture machinery oil]
           Electricity demand:
             color: "#110d63"
             carriers: [electricity, industry electricity, agriculture electricity, agriculture machinery electric]
