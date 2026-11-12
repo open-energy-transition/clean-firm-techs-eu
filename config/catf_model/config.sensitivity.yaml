@@ -5,22 +5,24 @@
 run:
   name:
   - baseline
-  - high-solar
-  - low-solar
-  - high-wind
-  - low-wind
-  - high-battery
-  - low-battery
-  - high-gas
-  - low-gas
-  - high-gas-fuel
-  - low-gas-fuel
-  - high-biomass
-  - low-biomass
-  - high-need-dsm
-  - low-need-dsm
-  - high-demand
-  - low-demand
+  # - high-solar
+  # - low-solar
+  # - high-wind
+  # - low-wind
+  # - high-battery
+  # - low-battery
+  # - high-gas
+  # - low-gas
+  # - high-gas-fuel
+  # - low-gas-fuel
+  # - high-biomass
+  # - low-biomass
+  # - high-need-dsm
+  # - low-need-dsm
+  # - high-demand
+  # - low-demand
+  - optimal-transmission-expansion
+  - volumetric-transmission-expansion
 
 catf_model:
   post_processing:

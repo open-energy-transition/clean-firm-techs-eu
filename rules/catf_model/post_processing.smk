@@ -329,9 +329,87 @@ rule plot_energy_balances:
         scripts("catf_model/post_processing/plot_energy_balances.py")
 
 
+rule export_transmission:
+    """Exports the existing and optimal capacity of each AC line and DC link of a solved network."""
+    input:
+        network=RESULTS + "networks/solved_{horizon}.nc",
+    output:
+        RESULTS + "csvs/transmission/{horizon}.csv",
+    log:
+        RESULTS + "logs/export_transmission_{horizon}.log",
+    benchmark:
+        (RESULTS + "benchmarks/export_transmission_{horizon}")
+    threads: 1
+    resources:
+        mem_mb=4000,
+    script:
+        scripts("catf_model/post_processing/export_transmission.py")
+
+
+CATF_TRANSMISSION = config["catf_model"]["post_processing"]["transmission"]
+# Reference run first, as the script expects
+CATF_TRANSMISSION_RUNS = [CATF_TRANSMISSION["reference"], *CATF_TRANSMISSION["runs"]]
+
+
+rule plot_transmission_expansion:
+    """Plots the transmission volume of the runs (e.g. lcopt, lvopt) and its change compared to the reference run (e.g. baseline)."""
+    input:
+        # Ordered by run, then horizon, as the script expects
+        capacities=expand(
+            RESULTS + "csvs/transmission/{horizon}.csv",
+            run=CATF_TRANSMISSION_RUNS,
+            horizon=config["planning_horizons"],
+        ),
+    output:
+        plot=CATF_COMPARISON + "plots/transmission_expansion.png",
+        csv=CATF_COMPARISON + "transmission_expansion.csv",
+    log:
+        CATF_COMPARISON + "logs/plot_transmission_expansion.log",
+    threads: 1
+    resources:
+        mem_mb=2000,
+    params:
+        runs=CATF_TRANSMISSION_RUNS,
+        planning_horizons=config["planning_horizons"],
+        colors=CATF_TRANSMISSION["colors"],
+    script:
+        scripts("catf_model/post_processing/plot_transmission_expansion.py")
+
+
+rule plot_transmission_expansion_map:
+    """Plots maps of the transmission capacity of the runs (e.g. lcopt, lvopt) compared to the reference run (e.g. baseline), per planning horizon."""
+    input:
+        # Ordered by run, then horizon, as the script expects
+        capacities=rules.plot_transmission_expansion.input.capacities,
+        regions=resources("onshore_regions.geojson"),
+    output:
+        CATF_COMPARISON + "plots/transmission_expansion_map.png",
+    log:
+        CATF_COMPARISON + "logs/plot_transmission_expansion_map.log",
+    threads: 1
+    resources:
+        mem_mb=4000,
+    params:
+        runs=CATF_TRANSMISSION_RUNS,
+        planning_horizons=config["planning_horizons"],
+        colors=CATF_TRANSMISSION["colors"],
+        plotting=config_provider("plotting"),
+    script:
+        scripts("catf_model/post_processing/plot_transmission_expansion_map.py")
+
+
 rule catf_post_processing:
     """Collects all CATF post-processing outputs."""
     input:
+        # Only for scenario sets with the runs to compare (e.g. sensitivity)
+        (
+            [
+                rules.plot_transmission_expansion.output,
+                rules.plot_transmission_expansion_map.output,
+            ]
+            if set(CATF_TRANSMISSION_RUNS) <= set(CATF_RUNS)
+            else []
+        ),
         rules.plot_energy_balances.output,
         rules.export_all_marginal_prices.input,
         rules.export_all_co2_emissions.input,
