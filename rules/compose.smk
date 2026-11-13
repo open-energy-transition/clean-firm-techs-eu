@@ -279,5 +279,9 @@ rule compose_network:
         # CATF: base cost factors combined with the run's cost sensitivity. Defined
         # in rules/catf_model/cost_sensitivity.smk, included later, hence the lambda
         cost_factors=lambda w: cost_factors_with_sensitivity(w),
+        catf_add_planned=config_provider(
+            "catf_model", "add_planned_capacities", default=False
+        ),
+        catf_nuclear=config_provider("catf_model", "nuclear", default={}),
     script:
         scripts("compose_network.py")

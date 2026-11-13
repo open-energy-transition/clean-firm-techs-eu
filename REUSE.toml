@@ -142,3 +142,8 @@ path = [
 ]
 SPDX-FileCopyrightText = "clean-firm-techs-eu authors"
 SPDX-License-Identifier = "CC0-1.0"
+
+[[annotations]]
+path = ["data/catf_model/**"]
+SPDX-FileCopyrightText = "clean-firm-techs-eu authors"
+SPDX-License-Identifier = "CC-BY-4.0"
