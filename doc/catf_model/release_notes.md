@@ -7,6 +7,8 @@
 <!-- Upcoming Release -->
 <!-- ================= -->
 
+* Replace existing nuclear, hard coal and lignite power plants from powerplantmatching by the custom plant list `data/catf_model/custom_powerplants.csv` (set with `electricity: custom_powerplants_fn`) with plant-specific decommissioning dates, add planned plants in the horizon they come online (`catf_model: add_planned_capacities`) and set nuclear availability by country (`catf_model: nuclear`). Existing nuclear is now modelled only as links from the uranium bus instead of also as generators, and uranium is supplied at its fuel cost ([#49](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/49)).
+
 * Show biogenic fuels (e.g. biogas) as lower emissions of their consumers instead of negative emissions in the CO2 balance plot and in `csvs/co2_emissions/by_technology.csv` ([#53](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/53)).
 
 * Run all scenario sets under one prefix (`catf`) and one `scenarios.yaml`, so shared runs (e.g. `baseline`) are solved once; base cost factors and cost sensitivities are now applied as separate stages ([#56](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/56)).
