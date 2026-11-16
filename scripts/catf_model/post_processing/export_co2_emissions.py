@@ -18,6 +18,12 @@ include biogenic carbon uptake (e.g. by biofuel and biogas production) that
 is emitted again by other technologies, so they are not limited to permanent
 removals such as DAC or BECCS. Net emissions are unaffected by this.
 
+In ``by_technology.csv``, the credit of biogenic fuel production (e.g. biogas
+upgrading) can be moved to the consumers of the fuel (``biogenic_credits``), as
+in the CO2 energy balance plot, so that biogenic fuels show as lower emissions
+of their consumers instead of as negative emissions. The summary keeps the
+physical flows.
+
 The 1990 baseline is computed in the same way as for the CO2 cap in
 ``prepare_network``, so it is also available for horizons with a zero cap.
 """
@@ -28,6 +34,10 @@ import pandas as pd
 import pypsa
 
 from scripts._helpers import configure_logging, set_scenario_config
+from scripts.catf_model.post_processing.export_energy_balances import (
+    allocate_biogenic_credits,
+    energy_balance,
+)
 from scripts.co2_budget import co2_limit_name
 from scripts.prepare_sector_network import co2_emissions_year
 
@@ -60,8 +70,28 @@ def co2_atmosphere_balance(n: pypsa.Network) -> pd.Series:
     )
 
 
+def allocated_flows(n: pypsa.Network, horizon: int, co2_report: dict) -> pd.Series:
+    """
+    Returns the CO2 flows per component and carrier in tCO2, with the credit of
+    biogenic fuel production moved to the consumers of the fuel.
+    """
+    balance = energy_balance(n).assign(scenario="", planning_horizon=horizon)
+    balance = allocate_biogenic_credits(
+        balance, co2_report["biogenic_credits"], co2_report.get("emitted_by")
+    )
+    co2 = balance[balance.bus_carrier == "co2"]
+    flows = co2.groupby(["component", "carrier"]).value.sum()
+    is_cap = (flows.index.get_level_values("component") == "Store") | (
+        flows.index == ("Generator", "load")
+    )
+    return flows[~is_cap]
+
+
 def horizon_emissions(
-    n: pypsa.Network, horizon: int, baseline_1990: float
+    n: pypsa.Network,
+    horizon: int,
+    baseline_1990: float,
+    co2_report: dict | None = None,
 ) -> tuple[pd.Series, pd.Series]:
     """Returns the emission summary and the CO2 flows per technology of one horizon."""
     balance = co2_atmosphere_balance(n)
@@ -113,6 +143,9 @@ def horizon_emissions(
     )
     summary.index.names = ["metric", "unit"]
 
+    if co2_report and co2_report.get("biogenic_credits"):
+        flows = allocated_flows(n, horizon, co2_report)
+
     return summary, flows / 1e6
 
 
@@ -150,7 +183,7 @@ if __name__ == "__main__":
     ):
         n = pypsa.Network(path)
         summaries[horizon], flows[horizon] = horizon_emissions(
-            n, int(horizon), baseline_1990
+            n, int(horizon), baseline_1990, snakemake.params.co2_report
         )
 
     summary = pd.DataFrame(summaries)
