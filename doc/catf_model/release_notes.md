@@ -9,7 +9,11 @@
 
 * Add plots comparing the system costs, Capex, Opex and CO2 emissions of the low and high runs of a scenario set with the baseline per planning horizon ([#61](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/61)).
 
+* Show biogenic fuels (e.g. biogas) as lower emissions of their consumers instead of negative emissions in the CO2 balance plot and in `csvs/co2_emissions/by_technology.csv` ([#53](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/53)).
+
 * Run all scenario sets under one prefix (`catf`) and one `scenarios.yaml`, so shared runs (e.g. `baseline`) are solved once; base cost factors and cost sensitivities are now applied as separate stages ([#56](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/56)).
+
+* Increase `build_biomass_potentials` memory in the slurm profile to avoid out-of-memory failures ([#58](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/58)).
 
 * Add slurm profiles for parallelising the scenario runs ([#52](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/52)).
 
