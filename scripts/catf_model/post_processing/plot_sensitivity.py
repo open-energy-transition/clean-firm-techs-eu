@@ -84,6 +84,41 @@ def signed(value: float, digits: int = 0) -> str:
     return f"{value + 0:+,.{digits}f}" if value else "0"
 
 
+def complete_pairs(
+    pairs: dict[str, list[str]], runs: list[str], reference_run: str
+) -> dict[str, list[str]]:
+    """
+    Returns the pairs whose low and high run are both in the scenario set.
+
+    Pairs with a run that is not in ``run.name`` are skipped with a warning, so
+    a set with only some of the scenarios still plots their pairs.
+    """
+    if reference_run not in runs:
+        raise ValueError(
+            f"Reference run '{reference_run}' of the sensitivity plot is not in "
+            f"run.name {runs}. Add it to run.name or change "
+            "catf_model.post_processing.sensitivity.reference_run."
+        )
+
+    complete = {k: v for k, v in pairs.items() if set(v) <= set(runs)}
+    skipped = {k: [r for r in v if r not in runs] for k, v in pairs.items()}
+    skipped = {k: v for k, v in skipped.items() if v}
+    if skipped:
+        logger.warning(
+            "Skipping sensitivity pairs with runs not in run.name "
+            f"(pair: missing runs): {skipped}. To silence this, remove them from "
+            "catf_model.post_processing.sensitivity.pairs in the scenario set "
+            "overlay (e.g. config/catf_model/config.sensitivity.yaml)."
+        )
+    if not complete:
+        raise ValueError(
+            f"No sensitivity pair has both runs in run.name {runs}. Each pair in "
+            "catf_model.post_processing.sensitivity.pairs must refer to runs "
+            "listed in run.name of the scenario set overlay."
+        )
+    return complete
+
+
 def sensitivity_changes(
     values: pd.Series, pairs: dict[str, list[str]], reference_run: str
 ) -> pd.DataFrame:
@@ -91,12 +126,6 @@ def sensitivity_changes(
     Returns the change of the low and high run of each pair from the reference
     run per horizon, absolute and in percent.
     """
-    missing = sorted(
-        {r for runs in pairs.values() for r in runs} - set(values.index.unique(0))
-    )
-    if missing:
-        raise ValueError(f"Runs of the sensitivity pairs not found: {missing}")
-
     reference = values.xs(reference_run)
     rows = []
     for label, (low, high) in pairs.items():
@@ -252,10 +281,11 @@ if __name__ == "__main__":
         snakemake.input.costs, snakemake.input.co2, snakemake.params.runs
     )
 
+    pairs = complete_pairs(
+        spec["pairs"], list(snakemake.params.runs), spec["reference_run"]
+    )
     changes = {
-        metric: sensitivity_changes(
-            values[metric], spec["pairs"], spec["reference_run"]
-        )
+        metric: sensitivity_changes(values[metric], pairs, spec["reference_run"])
         for metric in METRICS
     }
     # Same row order in all figures, by the spread of the total system costs
