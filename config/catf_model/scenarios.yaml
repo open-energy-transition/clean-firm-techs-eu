@@ -132,11 +132,9 @@ low-demand:
       agriculture electricity: 1.0
       agriculture machinery electric: 1.0
 
-optimal-transmission-expansion:
+transmission-optimal-expansion:
   electricity:
-    transmission_limit: 
-      copt
-volumetric-transmission-expansion:
+    transmission_limit: copt
+transmission-volume-1.25:
   electricity:
-    transmission_limit: 
-      v1.25 
+    transmission_limit: v1.25 

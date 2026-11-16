@@ -2,8 +2,8 @@
 #
 # SPDX-License-Identifier: MIT
 """
-Plots the transmission expansion of runs (e.g. lcopt, lvopt) compared to a
-reference run (e.g. baseline).
+Plots the transmission expansion of runs (e.g. transmission-optimal-expansion,
+transmission-volume-1.25) compared to a reference run (e.g. baseline).
 
 Reads the CSVs written by ``export_transmission`` for each run and planning
 horizon. The transmission volume is the capacity times the length of each AC

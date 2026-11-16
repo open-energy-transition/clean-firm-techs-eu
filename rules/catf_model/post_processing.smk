@@ -362,7 +362,7 @@ CATF_TRANSMISSION_RUNS = [CATF_TRANSMISSION["reference"], *CATF_TRANSMISSION["ru
 
 
 rule plot_transmission_expansion:
-    """Plots the transmission volume of the runs (e.g. lcopt, lvopt) and its change compared to the reference run (e.g. baseline)."""
+    """Plots the transmission volume of the runs (e.g. transmission-optimal-expansion, transmission-volume-1.25) and its change compared to the reference run (e.g. baseline)."""
     input:
         # Ordered by run, then horizon, as the script expects
         capacities=expand(
@@ -387,7 +387,7 @@ rule plot_transmission_expansion:
 
 
 rule plot_transmission_expansion_map:
-    """Plots maps of the transmission capacity of the runs (e.g. lcopt, lvopt) compared to the reference run (e.g. baseline), per planning horizon."""
+    """Plots maps of the transmission capacity of the runs (e.g. transmission-optimal-expansion, transmission-volume-1.25) compared to the reference run (e.g. baseline), per planning horizon."""
     input:
         # Ordered by run, then horizon, as the script expects
         capacities=rules.plot_transmission_expansion.input.capacities,

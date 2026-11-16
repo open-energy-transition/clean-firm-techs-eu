@@ -42,6 +42,10 @@ Each scenario changes one assumption and keeps everything else at the baseline. 
 | `high-biomass` / `low-biomass` | Solid biomass CHP investment costs |
 | `high-need-dsm` / `low-need-dsm` | EV demand response at 25% of BEVs / residential heat demand response on |
 | `high-demand` / `low-demand` | Household, services and rail electricity load +10% / -10% |
+| `transmission-optimal-expansion` | Cost-optimal transmission expansion (`transmission_limit: copt`) instead of today's grid volume (`v1.0`) |
+| `transmission-volume-1.25` | Transmission volume up to 25% above today's grid (`transmission_limit: v1.25`) |
+
+The sensitivity set also plots the transmission expansion of these two runs compared to `baseline`, as bars and as maps (`transmission_expansion.png`, `transmission_expansion_map.png` in the comparison plots folder). The compared runs are set in `catf_model.post_processing.transmission` (`config.catf.default.yaml`).
 
 The technologies in each cost group are listed under `catf_model.cost_sensitivity_groups` in `config.base.yaml`. Each scenario, including High Need and Low Need, sets its factors per group in `catf_model.cost_sensitivity`; groups not set keep factor 1.0. Rule `build_cost_sensitivity` (`rules/catf_model/cost_sensitivity.smk`) then builds a cost file for every run at `resources/catf/<scenario>/custom_costs.csv`, on top of the baseline cost factors (`catf_model.cost_factors`, e.g. solar +30%).
 

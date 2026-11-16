@@ -2,8 +2,9 @@
 #
 # SPDX-License-Identifier: MIT
 """
-Plots maps of the transmission expansion of runs (e.g. lcopt, lvopt) compared
-to a reference run (e.g. baseline).
+Plots maps of the transmission expansion of runs (e.g.
+transmission-optimal-expansion, transmission-volume-1.25) compared to a
+reference run (e.g. baseline).
 
 Reads the CSVs written by ``export_transmission`` for each run and planning
 horizon. There is one map per compared run (rows) and planning horizon
@@ -37,7 +38,11 @@ TEXT_SECONDARY = "#52514e"
 LAND = "#f4f3ee"
 BORDER = "#c3c2b7"
 REFERENCE_GRID = "#b5b4ad"
-REDUCTION = "#db170d"
+# Only for lines with less capacity than the reference run; not used by any
+# other color in the CATF plots (e.g. CO2 cap penalty is "#db170d")
+REDUCTION = "#b2182b"
+# Carriers without a configured color, as "Other" in plot_statistics
+OTHER_COLOR = "#898781"
 
 # Width of the line with the largest capacity difference, in points
 MAX_LINE_WIDTH = 7.0
@@ -111,6 +116,9 @@ def plot_maps(
         layout="constrained",
     )
 
+    # Whether any map draws a line with less capacity than the reference run
+    reduced = False
+
     for i, run in enumerate(compared):
         for j, h in enumerate(horizons):
             ax = axes[i, j]
@@ -139,9 +147,10 @@ def plot_maps(
                 "diff", key=abs
             )
             line_colors = np.where(
-                df["diff"] < 0, REDUCTION, df.carrier.map(colors).fillna(REDUCTION)
+                df["diff"] < 0, REDUCTION, df.carrier.map(colors).fillna(OTHER_COLOR)
             )
             draw_lines(ax, df, df["diff"].abs().to_numpy() * scale, line_colors, 2)
+            reduced |= bool((df["diff"] < 0).any())
 
             # Total change of the transmission volume, in TWkm
             volume = (
@@ -172,15 +181,18 @@ def plot_maps(
                     color=TEXT_PRIMARY,
                 )
 
-    # Legend: colors and line widths
+    # Legend: colors (less capacity only if drawn) and line widths
     handles = [
         Line2D([], [], color=color, linewidth=3, label=f"{carrier} more capacity")
         for carrier, color in colors.items()
     ]
-    handles += [
-        Line2D([], [], color=REDUCTION, linewidth=3, label="less capacity"),
-        Line2D([], [], color=REFERENCE_GRID, linewidth=0.6, label=f"{reference} grid"),
-    ]
+    if reduced:
+        handles.append(
+            Line2D([], [], color=REDUCTION, linewidth=3, label="less capacity")
+        )
+    handles.append(
+        Line2D([], [], color=REFERENCE_GRID, linewidth=0.6, label=f"{reference} grid")
+    )
     handles += [
         Line2D([], [], color=TEXT_SECONDARY, linewidth=v * scale, label=f"{v:g} GW")
         for v in legend_values(max_gw)
