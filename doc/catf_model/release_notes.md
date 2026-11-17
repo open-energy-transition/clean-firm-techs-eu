@@ -7,7 +7,7 @@
 <!-- Upcoming Release -->
 <!-- ================= -->
 
-* Add option `catf_model: cost_overwrites` to set absolute cost values per technology and parameter in 2040 and 2050, and the advanced-technology scenarios `high-nuclear` and `low-nuclear` with new-build nuclear from 2040 ([#63](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/63)).
+* Add option `catf_model: cost_overwrites` to set absolute cost values per technology and parameter in 2040 and 2050, and the advanced-technology scenarios `high-nuclear` and `low-nuclear` with new-build nuclear from 2040 Planned power plants are added as separate fixed links (`<bus> <carrier> planned-<horizon>`) with the costs without overwrites, instead of setting the minimum capacity of the extendable links; the last power grouping year is 2025, so that this applies to all plants commissioned after 2025 ([#63](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/63)).
 
 * Add sensitivity for transmission expansion scenarios ([#64](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/64)).
 

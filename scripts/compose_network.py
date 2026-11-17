@@ -122,7 +122,9 @@ if __name__ == "__main__":
 
     if sector_mode and foresight == "myopic":
         if params.catf_add_planned:
-            add_planned_capacities(n, inputs, params, costs, current_horizon)
+            # Costs without the scenario's cost overwrites (new build only)
+            costs_planned = load_costs(inputs.catf_tech_costs_planned)
+            add_planned_capacities(n, inputs, params, costs_planned, current_horizon)
         if params.catf_nuclear:
             set_nuclear_availability(
                 n,

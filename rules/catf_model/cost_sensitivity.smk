@@ -29,7 +29,9 @@ rule build_cost_sensitivity:
         ],
         default="data/custom_costs.csv",
     output:
-        resources("custom_costs.csv"),
+        costs=resources("custom_costs.csv"),
+        # Without cost_overwrites, for the planned power plants
+        planned=resources("custom_costs_planned.csv"),
     log:
         # Named like the output, so that it is also excluded from shared resources
         logs("custom_costs.log"),
@@ -47,3 +49,26 @@ rule build_cost_sensitivity:
         ),
     script:
         scripts("catf_model/build_cost_sensitivity.py")
+
+
+rule process_cost_data_planned:
+    """Processes the costs of planned power plants like process_cost_data, but from the custom cost file without catf_model.cost_overwrites, so that they keep the default costs. Only used by runs with cost overwrites."""
+    input:
+        network=resources("networks/simplified.nc"),
+        costs=lambda w: rules.retrieve_cost_data.output["costs"].format(
+            horizon=cost_year(w)
+        ),
+        custom_costs=[resources("custom_costs_planned.csv")],
+    output:
+        resources("costs_{horizon}_processed_planned.csv"),
+    log:
+        logs("build_cost_data_{horizon}_planned.log"),
+    threads: 1
+    resources:
+        mem_mb=4000,
+    params:
+        costs=config_provider("costs"),
+        max_hours=config_provider("electricity", "max_hours"),
+        cost_year=cost_year,
+    script:
+        scripts("process_cost_data.py")

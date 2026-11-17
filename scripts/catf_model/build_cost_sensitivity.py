@@ -22,7 +22,9 @@ in rules/catf_model/cost_sensitivity.smk).
 Absolute values in ``catf_model.cost_overwrites`` (e.g. the nuclear investment
 cost of an advanced-technology scenario) replace the values of a technology and
 parameter in the cost years of ``catf_model.cost_overwrite_years``, after all
-scaling. They are given in the units of the technology-data cost files.
+scaling. They are given in the units of the technology-data cost files. They
+apply to new build only: a second file without them is written for the
+planned power plants, which keep the default costs.
 
 Scaling is done on the cost table rather than via ``adjustments`` so that each
 asset vintage is scaled exactly once under myopic foresight. Fixed operation
@@ -192,15 +194,22 @@ if __name__ == "__main__":
     overwrite_years = {str(year) for year in snakemake.params.cost_overwrite_years}
 
     scaled = []
+    planned = []
     for fn, year in zip(snakemake.input.costs, cost_years):
         costs = apply_cost_factors(pd.read_csv(fn), base_factors, "investment")
         rows = scale_sensitivity_costs(costs, scaling, year)
+        planned.append(rows)
         if overwrites and year in overwrite_years:
             rows = overwrite_cost_rows(costs, rows, overwrites, year)
         scaled.append(rows)
 
     df = pd.concat([default, *scaled], ignore_index=True)[default.columns]
-    df.to_csv(snakemake.output[0], index=False)
+    df.to_csv(snakemake.output.costs, index=False)
+    # Planned power plants are not new build of the scenario and keep the costs
+    # without the overwrites (see add_planned_capacities)
+    pd.concat([default, *planned], ignore_index=True)[default.columns].to_csv(
+        snakemake.output.planned, index=False
+    )
     logger.info(
         f"Scaled {len(df) - len(default)} cost entries with factors {factors} for {cost_years}"
     )
