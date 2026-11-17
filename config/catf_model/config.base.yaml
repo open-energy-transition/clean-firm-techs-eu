@@ -197,6 +197,13 @@ catf_model:
       investment:
       - central solid biomass CHP
 
+data:
+  # technology-data v0.16.0 fixes the nuclear fuel price (PR #291: 2.80 instead
+  # of 7.45 EUR/MWh_th). Not yet in the data.pypsa.org archive, hence primary.
+  costs:
+    source: primary
+    version: v0.16.0
+
 costs:
   # Built per run by build_cost_sensitivity, so the baseline cost factors
   # (catf_model.cost_factors, e.g. solar +30%) always apply. {prefix} is filled
