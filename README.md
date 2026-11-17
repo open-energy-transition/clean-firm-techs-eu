@@ -43,7 +43,7 @@ Each scenario changes one assumption and keeps everything else at the baseline. 
 | `high-need-dsm` / `low-need-dsm` | EV demand response at 25% of BEVs / residential heat demand response on |
 | `high-demand` / `low-demand` | Household, services and rail electricity load +10% / -10% |
 | `transmission-optimal-expansion` | Cost-optimal transmission expansion (`transmission_limit: copt`) instead of today's grid volume (`v1.0`) |
-| `transmission-volume-1.25` | Transmission volume up to 25% above today's grid (`transmission_limit: v1.25`) |
+| `transmission-volume-1.25` | Transmission volume up to 25% above the previous planning horizon's grid (transmission_limit: v1.25), i.e. at most 1.25× / 1.56× / 1.95× today's grid in 2030 / 2040 / 2050 |
 
 The sensitivity set also plots the transmission expansion of these two runs compared to `baseline`, as bars and as maps (`transmission_expansion.png`, `transmission_expansion_map.png` in the comparison plots folder). The compared runs are set in `catf_model.post_processing.transmission` (`config.catf.default.yaml`).
 

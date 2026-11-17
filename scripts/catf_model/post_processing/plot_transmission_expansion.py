@@ -11,7 +11,7 @@ line and DC link, in TWkm. The figure has two panels sharing the x-axis, with
 one bar per planning horizon grouped by run, stacked by AC and DC:
 
 - Transmission volume of each run. The dashed line is today's grid (the
-  existing capacity of the reference run in the first planning horizon).
+  nominal capacity of the reference run in the first planning horizon).
 - Change of the volume compared to the reference run in the same horizon.
 
 The volumes are also written to a CSV.
@@ -39,9 +39,9 @@ GROUP_GAP = 0.8
 
 
 def read_volumes(path: str) -> pd.Series:
-    """Returns the existing and optimal transmission volume per carrier in TWkm."""
+    """Returns the nominal and optimal transmission volume per carrier in TWkm."""
     df = pd.read_csv(path)
-    volume = df[["existing", "optimal"]].mul(df.length, axis=0) / 1e6
+    volume = df[["nominal", "optimal"]].mul(df.length, axis=0) / 1e6
     return volume.groupby(df.carrier).sum().stack()
 
 
@@ -118,7 +118,7 @@ def plot_transmission(
         optimal.index, level="planning_horizon"
     )
     first_horizon = volumes.index.get_level_values("planning_horizon").min()
-    today = volumes.xs("existing", level="value", axis=1).loc[
+    today = volumes.xs("nominal", level="value", axis=1).loc[
         (reference, first_horizon)
     ]
 
