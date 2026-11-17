@@ -39,9 +39,8 @@ def set_nuclear_availability(
     country = n.links.loc[links, "bus1"].map(n.buses.country)
     p_max_pu = country.map(eaf).fillna(eaf.mean())
 
-    is_new = n.links.loc[links, "p_nom_extendable"] | (
-        n.links.loc[links, "build_year"] > last
-    )
+    # Built after the availability years: planned, extendable and earlier-horizon builds
+    is_new = n.links.loc[links, "build_year"] > last
     p_max_pu[is_new] = new_build_p_max_pu
 
     n.links.loc[links, "p_max_pu"] = p_max_pu
