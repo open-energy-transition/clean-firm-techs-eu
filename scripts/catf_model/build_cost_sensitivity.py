@@ -23,6 +23,9 @@ Absolute values in ``catf_model.cost_overwrites`` (e.g. the nuclear investment
 cost of an advanced-technology scenario) replace the values of a technology and
 parameter in the cost years of ``catf_model.cost_overwrite_years``, after all
 scaling. They are given in the units of the technology-data cost files.
+Corrections of the technology-data values in ``catf_model.cost_corrections``
+(e.g. the nuclear fuel price) are applied the same way in all cost years and
+runs, before the scenario's overwrites.
 
 Scaling is done on the cost table rather than via ``adjustments`` so that each
 asset vintage is scaled exactly once under myopic foresight. Fixed operation
@@ -130,10 +133,11 @@ def overwrite_cost_rows(
     rows: pd.DataFrame,
     overwrites: dict[str, dict[str, float]],
     cost_year: str,
+    source: str = "CATF advanced-technology cost assumptions",
 ) -> pd.DataFrame:
     """
     Return the custom cost rows of a cost year with the values of the overwrites,
-    replacing scaled rows of the same technology and parameter.
+    replacing earlier rows of the same technology and parameter.
     """
     new = []
     for tech, params in overwrites.items():
@@ -149,7 +153,7 @@ def overwrite_cost_rows(
             )
             row["value"] = float(value)
             row["planning_horizon"] = cost_year
-            row["source"] = "CATF advanced-technology cost assumptions"
+            row["source"] = source
             new.append(row)
 
     new = pd.concat(new)
@@ -188,6 +192,7 @@ if __name__ == "__main__":
         "marginal_cost",
     )
 
+    corrections = snakemake.params.cost_corrections or {}
     overwrites = snakemake.params.cost_overwrites or {}
     overwrite_years = {str(year) for year in snakemake.params.cost_overwrite_years}
 
@@ -195,6 +200,10 @@ if __name__ == "__main__":
     for fn, year in zip(snakemake.input.costs, cost_years):
         costs = apply_cost_factors(pd.read_csv(fn), base_factors, "investment")
         rows = scale_sensitivity_costs(costs, scaling, year)
+        if corrections:
+            rows = overwrite_cost_rows(
+                costs, rows, corrections, year, "CATF correction of technology-data"
+            )
         if overwrites and year in overwrite_years:
             rows = overwrite_cost_rows(costs, rows, overwrites, year)
         scaled.append(rows)

@@ -7,7 +7,7 @@
 <!-- Upcoming Release -->
 <!-- ================= -->
 
-* Add option `catf_model: cost_overwrites` to set absolute cost values per technology and parameter in 2040 and 2050, and the advanced-technology scenarios `high-nuclear` and `low-nuclear` with new-build nuclear from 2040 ([#63](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/63)).
+* Add option `catf_model: cost_overwrites` to set absolute cost values per technology and parameter in 2040 and 2050, and the advanced-technology scenarios `high-nuclear` and `low-nuclear` with new-build nuclear from 2040. Add option `catf_model: cost_corrections` to correct technology-data values in all runs, used for the nuclear fuel price (2.80 instead of 7.45 EUR/MWh_th, technology-data PR #291) ([#63](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/63)).
 
 * Add sensitivity for transmission expansion scenarios ([#64](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/64)).
 

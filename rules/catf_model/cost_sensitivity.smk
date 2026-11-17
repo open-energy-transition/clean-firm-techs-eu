@@ -41,6 +41,7 @@ rule build_cost_sensitivity:
         cost_factors=config_provider("catf_model", "cost_factors", default={}),
         groups=config_provider("catf_model", "cost_sensitivity_groups"),
         cost_sensitivity=config_provider("catf_model", "cost_sensitivity", default={}),
+        cost_corrections=config_provider("catf_model", "cost_corrections", default={}),
         cost_overwrites=config_provider("catf_model", "cost_overwrites", default={}),
         cost_overwrite_years=config_provider(
             "catf_model", "cost_overwrite_years", default=[]

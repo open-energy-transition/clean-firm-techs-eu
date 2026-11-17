@@ -202,6 +202,16 @@ catf_model:
   # technologies have the same costs in 2040 and 2050.
   cost_overwrite_years: [2040, 2050]
 
+  # Corrections of technology-data v0.15.0 values in all runs and cost years,
+  # in technology-data units. Remove once the cost data includes them.
+  cost_corrections:
+    # Nuclear fuel price, technology-data PR #291 (efficiency was applied
+    # twice); was 7.4536
+    uranium:
+      fuel: 2.7974   # EUR/MWh_th (2025 EUR)
+    nuclear:
+      fuel: 2.7974   # EUR/MWh_th (2025 EUR)
+
 costs:
   # Built per run by build_cost_sensitivity, so the baseline cost factors
   # (catf_model.cost_factors, e.g. solar +30%) always apply. {prefix} is filled
