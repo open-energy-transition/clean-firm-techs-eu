@@ -28,7 +28,7 @@ def get_compose_inputs(w):
         **input_profile_tech(w),
         **input_class_regions(w),
         **input_conventional(w),
-        tech_costs=resources(f"costs_{horizon}_processed.csv"),
+        tech_costs=resources("costs_{horizon}_processed.csv"),
         powerplants=(
             resources("powerplants.csv")
             if elec["conventional_carriers"]
@@ -193,10 +193,12 @@ def get_compose_inputs(w):
             # Myopic uses solved network from previous horizon
             inputs["network_previous"] = RESULTS + f"networks/solved_{prev_horizon}.nc"
         elif foresight == "perfect":
-            # Perfect foresight uses composed network from previous horizon
+            # Perfect foresight uses composed network from previous horizon.
+            # Format after resources() so the shared-resources policy sees the
+            # {horizon} wildcard and keeps the file run-specific.
             inputs["network_previous"] = resources(
-                f"networks/composed_{prev_horizon}.nc"
-            )
+                "networks/composed_{horizon}.nc"
+            ).replace("{horizon}", str(prev_horizon))
         else:
             raise ValueError(f"Invalid foresight type: {foresight}")
 
@@ -277,5 +279,9 @@ rule compose_network:
         # CATF: base cost factors combined with the run's cost sensitivity. Defined
         # in rules/catf_model/cost_sensitivity.smk, included later, hence the lambda
         cost_factors=lambda w: cost_factors_with_sensitivity(w),
+        catf_add_planned=config_provider(
+            "catf_model", "add_planned_capacities", default=False
+        ),
+        catf_nuclear=config_provider("catf_model", "nuclear", default={}),
     script:
         scripts("compose_network.py")

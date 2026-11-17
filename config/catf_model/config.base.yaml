@@ -100,7 +100,10 @@ industry:
   process_emissions_cc: false
 
 electricity:
-  powerplants_filter: "(DateOut > 2025 or DateOut != DateOut) and (DateIn < 2026 or DateIn != DateIn)"
+  powerplants_filter: "(DateOut >= 2024 or DateOut != DateOut) and (DateIn <= 2024 or DateIn != DateIn) and Fueltype not in ['Nuclear', 'Hard Coal', 'Lignite']"
+  # Includes planned plants (DateIn > 2024), which are added in the horizon they come online
+  custom_powerplants: "Country != 'TR' and DateOut >= 2024"
+  custom_powerplants_fn: data/catf_model/custom_powerplants.csv
   extendable_carriers:
     # Long-duration electricity storage (iron-air, vanadium, compressed air) excluded
     StorageUnit: []

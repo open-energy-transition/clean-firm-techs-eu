@@ -7,9 +7,17 @@
 <!-- Upcoming Release -->
 <!-- ================= -->
 
-* Add option `catf_model: cost_overwrites` to set absolute cost values per technology and parameter in 2040 and 2050, and the advanced-technology scenarios `high-nuclear` and `low-nuclear` with new-build nuclear from 2040. Existing nuclear is now modelled only as links from the uranium bus (with build years and lifetimes) instead of also as generators, and uranium is supplied at its fuel cost so that nuclear links can run ([#63](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/63)).
+* Add option `catf_model: cost_overwrites` to set absolute cost values per technology and parameter in 2040 and 2050, and the advanced-technology scenarios `high-nuclear` and `low-nuclear` with new-build nuclear from 2040 ([#63](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/63)).
+
+* Add sensitivity for transmission expansion scenarios ([#64](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/64)).
+
+* Replace existing nuclear, hard coal and lignite power plants from powerplantmatching by the custom plant list `data/catf_model/custom_powerplants.csv` (set with `electricity: custom_powerplants_fn`) with plant-specific decommissioning dates, add planned plants in the horizon they come online (`catf_model: add_planned_capacities`) and set nuclear availability by country (`catf_model: nuclear`). Existing nuclear is now modelled only as links from the uranium bus instead of also as generators, and uranium is supplied at its fuel cost. Data sources are listed in `doc/catf_model/data_sources.md` ([#49](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/49)).
+
+* Show biogenic fuels (e.g. biogas) as lower emissions of their consumers instead of negative emissions in the CO2 balance plot and in `csvs/co2_emissions/by_technology.csv` ([#53](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/53)).
 
 * Run all scenario sets under one prefix (`catf`) and one `scenarios.yaml`, so shared runs (e.g. `baseline`) are solved once; base cost factors and cost sensitivities are now applied as separate stages ([#56](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/56)).
+
+* Increase `build_biomass_potentials` memory in the slurm profile to avoid out-of-memory failures ([#58](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/58)).
 
 * Add slurm profiles for parallelising the scenario runs ([#52](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/52)).
 
