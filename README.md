@@ -59,7 +59,7 @@ Each scenario makes one advanced technology buildable from 2040 and sets its hig
 | `high-nuclear` | New-build nuclear: investment 8880 EUR/kW, financial lifetime 40 years |
 | `low-nuclear` | New-build nuclear: investment 6490 EUR/kW, financial lifetime 60 years |
 
-New-build nuclear is not available in the baseline; the PyPSA default cost is 10806 EUR/kW with a 40-year lifetime. In all runs, existing and new-build nuclear are links from the uranium bus, which is supplied at the uranium fuel cost. That fuel cost is corrected to 2.80 EUR/MWh_th in all runs (`catf_model.cost_corrections` in `config.base.yaml`), as technology-data v0.15.0 applies the efficiency twice (7.45 EUR/MWh_th; fixed in technology-data PR #291).
+New-build nuclear is not available in the baseline; the PyPSA default cost is 10806 EUR/kW with a 40-year lifetime. In all runs, existing and new-build nuclear are links from the uranium bus, which is supplied at the uranium fuel cost.
 
 
 ## Running with pixi tasks
