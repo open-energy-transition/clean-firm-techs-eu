@@ -7,6 +7,8 @@
 <!-- Upcoming Release -->
 <!-- ================= -->
 
+* Use technology-data v0.16.0 (`data: costs` in `config.base.yaml`), which corrects the nuclear fuel price to 2.80 instead of 7.45 EUR/MWh_th, as the efficiency was applied twice (technology-data PR #291) ([#66](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/66)).
+
 * Add sensitivity for transmission expansion scenarios ([#64](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/64)).
 
 * Replace existing nuclear, hard coal and lignite power plants from powerplantmatching by the custom plant list `data/catf_model/custom_powerplants.csv` (set with `electricity: custom_powerplants_fn`) with plant-specific decommissioning dates, add planned plants in the horizon they come online (`catf_model: add_planned_capacities`) and set nuclear availability by country (`catf_model: nuclear`). Existing nuclear is now modelled only as links from the uranium bus instead of also as generators, and uranium is supplied at its fuel cost. Data sources are listed in `doc/catf_model/data_sources.md` ([#49](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/49)).
