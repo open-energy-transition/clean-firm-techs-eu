@@ -296,5 +296,6 @@ rule compose_network:
             "catf_model", "add_planned_capacities", default=False
         ),
         catf_nuclear=config_provider("catf_model", "nuclear", default={}),
+        catf_nuclear_chp=config_provider("catf_model", "nuclear_chp", default={}),
     script:
         scripts("compose_network.py")
