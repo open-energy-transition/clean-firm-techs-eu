@@ -214,8 +214,10 @@ catf_model:
     enabled: false
     parameters:
       c_v: 0.167  # loss factor - fraction of power loss per additional unit of heat produced
-      n_m: 1 # nominal heat-to-power output capacity ratio
-      c_b: 0.75 # backpressure coefficient - minimum electricity-to-heat ratio
+      # maximum share of the reactor thermal output (steam used) that can go to heat;
+      # sets the backpressure coefficient c_b = eta_e / max_heat_share - c_v and the
+      # heat-to-power capacity ratio n_m = max_heat_share / eta_e
+      max_heat_share: 0.2
 
 data:
   # technology-data v0.16.0 fixes the nuclear fuel price (PR #291: 2.80 instead
