@@ -6158,7 +6158,7 @@ def add_nuclear_chp(n: pypsa.Network, parameters: dict, costs:pd.DataFrame) -> N
     
     """
 
-    n.add("Carrier", ["nuclear heat", "nuclear electricity", "nuclear steam"], colors=["#bf6d02","#f5ca95","#bf7821"])
+    n.add("Carrier", ["nuclear heat", "nuclear electricity", "nuclear steam"], color=["#bf6d02","#f5ca95","#bf7821"])
 
 
     # Filter buses that have district heating (urban central heat) to connect nuclear CHP
