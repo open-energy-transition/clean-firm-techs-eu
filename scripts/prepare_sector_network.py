@@ -6152,6 +6152,55 @@ def scale_electricity_demand(n: pypsa.Network, factors: dict[str, float]) -> Non
         n.loads_t.p_set[series] *= factor
         logger.info(f"Scaled the '{carrier}' load by {factor}.")
 
+def add_nuclear_chp(n: pypsa.Network, parameters: dict, costs:pd.DataFrame) -> None:
+    """
+    Add nuclear CHP to the network.
+    
+    """
+
+    n.add("Carrier", ["nuclear heat", "nuclear electricity", "nuclear steam"], colors=["#bf6d02","#f5ca95","#bf7821"])
+
+
+    # Filter buses that have district heating (urban central heat) to connect nuclear CHP
+    buses_dh = n.buses.query("carrier == 'urban central heat'").index
+    ac_buses = buses_dh.str.replace(" urban central heat", "")
+
+    n.add("Bus", 
+        ac_buses + " Steam bus", 
+        carrier="nuclear steam"
+    )
+
+    # Add a nuclear steam link for all buses with district heating
+    n.add("Link",
+        ac_buses + " nuclear steam link",
+        bus0=spatial.uranium.nodes,
+        bus1=ac_buses + " Steam bus",
+        carrier="nuclear steam",
+        p_nom_extendable=True,
+    )
+
+    # Add a nuclear electricity links
+    n.add(
+        "Link",
+        ac_buses + " steam electricity link",
+        bus0=ac_buses + " Steam bus",
+        bus1=ac_buses,
+        carrier="nuclear electricity",
+        efficiency=costs.at["nuclear", "efficiency"],
+        p_nom_extendable=True
+    )
+
+    # Add a nuclear heat link for district heating
+    n.add(
+        "Link",
+        ac_buses + " steam heat link",
+        bus0=ac_buses + " Steam bus",
+        bus1=buses_dh,
+        carrier="nuclear heat",
+        efficiency=costs.at["nuclear", "efficiency"] / parameters["c_v"],
+        p_nom_extendable=True
+    )
+
 
 def main(
     n: pypsa.Network,
@@ -6409,6 +6458,14 @@ def main(
     if options["electricity_distribution_grid"]:
         insert_electricity_distribution_grid(
             n, costs, options, pop_layout, inputs.solar_rooftop_potentials
+        )
+
+    if params.catf_nuclear_chp.get("enabled", False):
+        logger.info("Adding nuclear CHP.")
+        add_nuclear_chp(
+            n,
+            params.catf_nuclear_chp["parameters"],
+            costs
         )
 
     if options["enhanced_geothermal"].get("enable", False):
