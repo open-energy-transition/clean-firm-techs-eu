@@ -207,9 +207,9 @@ catf_model:
   # (advanced-technology scenarios, set in scenarios.yaml) apply: advanced
   # technologies have the same costs in 2040 and 2050.
   cost_overwrite_years: [2040, 2050]
-  
+
   nuclear_chp:
-    enabled: true
+    enabled: false
     parameters:
       c_v: 0.167  # loss factor - fraction of power loss per additional unit of heat produced
       n_m: 1 # nominal heat-to-power output capacity ratio
