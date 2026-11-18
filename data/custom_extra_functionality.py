@@ -17,8 +17,11 @@ def custom_extra_functionality(n, snapshots, snakemake):
     if not nuclear_chp.get("enabled", False):
         return
 
-    n_m = nuclear_chp["parameters"]["n_m"]
-    c_b = nuclear_chp["parameters"]["c_b"]
+    max_heat_share = nuclear_chp["parameters"]["max_heat_share"]
+    if not 0 < max_heat_share <= 1:
+        raise ValueError(
+            f"nuclear_chp max_heat_share must be in (0, 1], got {max_heat_share}."
+        )
 
     elec = n.links.query('carrier == "nuclear electricity"')
     if elec.empty:
@@ -28,13 +31,32 @@ def custom_extra_functionality(n, snapshots, snakemake):
         elec.index.str.replace("steam electricity link", "steam heat link")
     ]
 
+    # Turbine coefficients per link, derived from the link efficiencies so they
+    # stay consistent with the cost data: eta_h = eta_e / c_v
+    eta_e = elec.efficiency.values
+    c_v = eta_e / heat.efficiency.values
+    # Electricity + heat output may not exceed the steam used:
+    # eta_e * F + (1 - c_v) * Q <= F at Q = max_heat_share * F
+    share_limit = ((1 - eta_e) / (1 - c_v)).min()
+    if max_heat_share > share_limit:
+        raise ValueError(
+            f"nuclear_chp max_heat_share {max_heat_share} gives a total output above "
+            f"the reactor thermal output; it must be at most {share_limit:.3f}."
+        )
+    # At the backpressure point P = c_b * Q and P = eta_e * F - c_v * Q, so the
+    # heat output is Q = eta_e * F / (c_b + c_v). Setting Q = max_heat_share * F:
+    c_b = eta_e / max_heat_share - c_v
+    # Maximum heat / maximum electricity output (both at full steam F)
+    n_m = max_heat_share / eta_e
+
     p = n.model["Link-p"]
 
     # Backpressure: c_b * heat output <= electricity output
+    # i.e. heat output <= max_heat_share * steam used, in every hour
     # dispatch only, so it applies to extendable and fixed links
     n.model.add_constraints(
         c_b * heat.efficiency.values * p.loc[:, heat.index]
-        - elec.efficiency.values * p.loc[:, elec.index]
+        - eta_e * p.loc[:, elec.index]
         <= 0,
         name="nuclear_chp-backpressure",
     )
@@ -51,7 +73,7 @@ def custom_extra_functionality(n, snapshots, snakemake):
 
         # Heat output capacity = n_m * electricity output capacity
         n.model.add_constraints(
-            n_m * elec_ext.efficiency.values * pnom_elec
+            n_m[is_ext] * elec_ext.efficiency.values * pnom_elec
             - heat_ext.efficiency.values * pnom_heat
             == 0,
             name="nuclear_chp-p_nom_ratio",
