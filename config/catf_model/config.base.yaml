@@ -100,11 +100,25 @@ industry:
   process_emissions_cc: false
 
 electricity:
-  powerplants_filter: "(DateOut > 2025 or DateOut != DateOut) and (DateIn < 2026 or DateIn != DateIn)"
+  powerplants_filter: "(DateOut >= 2024 or DateOut != DateOut) and (DateIn <= 2024 or DateIn != DateIn) and Fueltype not in ['Nuclear', 'Hard Coal', 'Lignite']"
+  # Includes planned plants (DateIn > 2024), which are added in the horizon they come online
+  custom_powerplants: "Country != 'TR' and DateOut >= 2024"
+  custom_powerplants_fn: data/catf_model/custom_powerplants.csv
   extendable_carriers:
     # Long-duration electricity storage (iron-air, vanadium, compressed air) excluded
     StorageUnit: []
   transmission_limit: v1.0
+
+# Without nuclear: it is modelled as links in the sector model
+pypsa_eur:
+  Generator:
+  - onwind
+  - offwind-ac
+  - offwind-dc
+  - offwind-float
+  - solar-hsat
+  - solar
+  - ror
 
 co2_budget:
   2040: 0.1
@@ -182,6 +196,13 @@ catf_model:
     biomass-plants:
       investment:
       - central solid biomass CHP
+
+data:
+  # technology-data v0.16.0 fixes the nuclear fuel price (PR #291: 2.80 instead
+  # of 7.45 EUR/MWh_th). Not yet in the data.pypsa.org archive, hence primary.
+  costs:
+    source: primary
+    version: v0.16.0
 
 costs:
   # Built per run by build_cost_sensitivity, so the baseline cost factors

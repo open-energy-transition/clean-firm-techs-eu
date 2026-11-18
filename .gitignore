@@ -25,7 +25,6 @@ gurobi.log
 /logs
 /notebooks
 /data/*
-/cutouts
 /tmp
 doc/_build
 _build
@@ -100,3 +99,6 @@ doc/img/intro-workflow.svg
 # pixi environments
 .pixi/*
 !.pixi/config.toml
+
+# track catf_model data folder
+!/data/catf_model/

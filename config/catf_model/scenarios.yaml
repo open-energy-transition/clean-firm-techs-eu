@@ -131,3 +131,10 @@ low-demand:
       industry electricity: 1.0
       agriculture electricity: 1.0
       agriculture machinery electric: 1.0
+
+transmission-optimal-expansion:
+  electricity:
+    transmission_limit: copt
+transmission-volume-1.25: # transmission expansion limit of 1.25x / 1.56x / 1.95x the baseline transmission volume (for 2030 / 2040 / 2050)
+  electricity:
+    transmission_limit: v1.25
