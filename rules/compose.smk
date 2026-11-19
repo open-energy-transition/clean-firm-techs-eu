@@ -294,5 +294,9 @@ rule compose_network:
         ),
         catf_nuclear=config_provider("catf_model", "nuclear", default={}),
         catf_nuclear_chp=config_provider("catf_model", "nuclear_chp", default={}),
+        # nuclear CHP is added only in these years (advanced-technology costs)
+        catf_cost_overwrite_years=config_provider(
+            "catf_model", "cost_overwrite_years", default=[]
+        ),
     script:
         scripts("compose_network.py")
