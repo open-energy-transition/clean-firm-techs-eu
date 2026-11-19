@@ -94,6 +94,16 @@ catf_model:
           Advanced nuclear:   # new build, see advanced_carriers
             color: "#ffb870"
             carriers: [advanced nuclear]
+          # Nuclear CHP (catf_model.nuclear_chp): reactor, turbine power and district heat
+          Nuclear steam:
+            color: "#bf7821"
+            carriers: [nuclear steam]
+          Nuclear electricity:
+            color: "#f5ca95"
+            carriers: [nuclear electricity]
+          Nuclear heat:
+            color: "#bf6d02"
+            carriers: [nuclear heat]
           Wind:
             color: "#235ebc"
             carriers: [onwind, offwind-ac, offwind-dc, offwind-float]
@@ -254,6 +264,16 @@ catf_model:
         Advanced nuclear:   # new build, see advanced_carriers
           color: "#ffb870"
           carriers: [advanced nuclear]
+        # Nuclear CHP (catf_model.nuclear_chp): reactor, turbine power and district heat
+        Nuclear steam:
+          color: "#bf7821"
+          carriers: [nuclear steam]
+        Nuclear electricity:
+          color: "#f5ca95"
+          carriers: [nuclear electricity]
+        Nuclear heat:
+          color: "#bf6d02"
+          carriers: [nuclear heat]
         Onshore wind:
           color: "#235ebc"
           carriers: [onwind]
@@ -374,6 +394,9 @@ catf_model:
         Uranium supply:
           color: "#b35c00"
           groups: [Uranium supply]
+        Nuclear CHP:
+          color: "#f5ca95"
+          groups: [Nuclear steam, Nuclear electricity, Nuclear heat]
         Wind:
           color: "#235ebc"
           groups: [Onshore wind, Offshore wind]
