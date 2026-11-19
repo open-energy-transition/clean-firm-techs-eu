@@ -138,7 +138,7 @@ def complete_pairs(
     if not complete:
         raise ValueError(
             f"No sensitivity pair has both runs in run.name {runs}. Each pair in "
-            "catf_model.post_processing.sensitivity.pairs must refer to runs "
+            "catf_model.post_processing.sensitivity.pairs in `config/catf_model/config.sensitivity.yaml` must refer to runs "
             "listed in run.name of the scenario set overlay."
         )
     return complete
