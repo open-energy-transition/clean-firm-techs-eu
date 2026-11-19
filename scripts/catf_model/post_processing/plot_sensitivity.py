@@ -6,8 +6,12 @@ Plots the change of low and high runs against a reference run.
 
 Each entry of ``catf_model.post_processing.sensitivity.pairs`` is a pair of a
 low and a high run, compared with the reference run of the same scenario set
-(``catf_model.post_processing.sensitivity.reference_run``, the baseline). One
-figure is made per metric:
+(``catf_model.post_processing.sensitivity.reference_run``, the baseline). A pair
+is either a list ``[low run, high run]`` or, if both runs change the assumption
+in the same direction so that the reference is not between them (e.g. two
+levels of transmission expansion), a mapping ``{case name: run}`` with the low
+run first; the case names are then shown below the row label instead of
+relying on the "Low case" / "High case" legend. One figure is made per metric:
 
 - total system costs: Capex + Opex + CO2 cap penalty (the objective; without the
   penalty, a run that emits more above the cap can look cheaper);
@@ -84,6 +88,27 @@ def signed(value: float, digits: int = 0) -> str:
     return f"{value + 0:+,.{digits}f}" if value else "0"
 
 
+def parse_pairs(
+    pairs: dict[str, list[str] | dict[str, str]],
+) -> tuple[dict[str, list[str]], dict[str, list[str]]]:
+    """
+    Returns the [low run, high run] of each pair and the case names of the
+    pairs given as ``{case name: run}``.
+    """
+    runs, cases = {}, {}
+    for label, pair in pairs.items():
+        if isinstance(pair, dict):
+            cases[label] = list(pair)
+            pair = list(pair.values())
+        if len(pair) != 2:
+            raise ValueError(
+                f"Sensitivity pair '{label}' must have two runs (low, high), got "
+                f"{pair}. Check catf_model.post_processing.sensitivity.pairs."
+            )
+        runs[label] = list(pair)
+    return runs, cases
+
+
 def complete_pairs(
     pairs: dict[str, list[str]], runs: list[str], reference_run: str
 ) -> dict[str, list[str]]:
@@ -136,6 +161,7 @@ def sensitivity_changes(
                     {
                         "sensitivity": label,
                         "case": case,
+                        "run": run,
                         "planning_horizon": change.index,
                         "change": change.values,
                         "relative": (change / reference * 100).values,
@@ -159,8 +185,14 @@ def plot_changes(
     labels: list[str],
     name: str,
     unit: str,
+    cases: dict[str, list[str]],
 ) -> plt.Figure:
-    """Plots the low and high change per sensitivity, one panel per horizon."""
+    """
+    Plots the low and high change per sensitivity, one panel per horizon.
+
+    Sensitivities in ``cases`` get their case names (low, high) below the row
+    label, with the markers of the legend.
+    """
     horizons = sorted(df.planning_horizon.unique())
     y = np.arange(len(labels))[::-1]
 
@@ -243,6 +275,22 @@ def plot_changes(
         ax.spines["bottom"].set_color(BASELINE)
 
     axes[0].set_yticks(y, labels, fontsize=9, color=TEXT_PRIMARY)
+    # Case names of pairs whose runs are not low and high around the reference
+    for yi, label in zip(y, labels):
+        if label in cases:
+            low, high = cases[label]
+            axes[0].annotate(
+                f"○ {low}   ■ {high}",
+                (0, yi),
+                xycoords=("axes fraction", "data"),
+                xytext=(-8, -9),
+                textcoords="offset points",
+                ha="right",
+                va="top",
+                fontsize=7,
+                color=TEXT_SECONDARY,
+                annotation_clip=False,
+            )
     fig.supxlabel(
         f"Change in {name} from reference (%), annotated in {unit}",
         fontsize=9,
@@ -281,9 +329,8 @@ if __name__ == "__main__":
         snakemake.input.costs, snakemake.input.co2, snakemake.params.runs
     )
 
-    pairs = complete_pairs(
-        spec["pairs"], list(snakemake.params.runs), spec["reference_run"]
-    )
+    pairs, cases = parse_pairs(spec["pairs"])
+    pairs = complete_pairs(pairs, list(snakemake.params.runs), spec["reference_run"])
     changes = {
         metric: sensitivity_changes(values[metric], pairs, spec["reference_run"])
         for metric in METRICS
@@ -293,7 +340,7 @@ if __name__ == "__main__":
 
     for metric, (name, unit) in METRICS.items():
         reference = values[metric].xs(spec["reference_run"])
-        fig = plot_changes(changes[metric], reference, labels, name, unit)
+        fig = plot_changes(changes[metric], reference, labels, name, unit, cases)
         fig.savefig(snakemake.output[metric], dpi=200, bbox_inches="tight")
         plt.close(fig)
         logger.info(f"Plotted the sensitivity of {name} to {snakemake.output[metric]}.")
