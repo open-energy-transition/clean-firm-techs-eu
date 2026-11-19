@@ -39,3 +39,4 @@ catf_model:
         Biomass plant investment: [low-biomass, high-biomass]
         Electricity demand ±10%: [low-demand, high-demand]
         Demand flexibility: [low-need-dsm, high-need-dsm]
+        Transmission expansion: [transmission-optimal-expansion, transmission-volume-1.25]
