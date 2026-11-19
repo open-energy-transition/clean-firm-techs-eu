@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: MIT
 
+import xarray as xr
+
 from scripts._helpers import PYPSA_V1
 
 
@@ -26,6 +28,7 @@ def custom_extra_functionality(n, snapshots, snakemake):
     elec = n.links.query('carrier == "nuclear electricity"')
     if elec.empty:
         return
+
     # pair each electricity link with the heat link of the same node (and build year)
     heat = n.links.loc[
         elec.index.str.replace("steam electricity link", "steam heat link")
@@ -50,13 +53,20 @@ def custom_extra_functionality(n, snapshots, snakemake):
     n_m = max_heat_share / eta_e
 
     p = n.model["Link-p"]
+    # Link dimension of the dispatch variable ("Link", or "name" in PyPSA v1)
+    link_dim = next(d for d in p.dims if d != "snapshot")
+
+    def per_link(values, index):
+        # Per-link coefficients must carry the link dimension: a bare numpy
+        # array is broadcast against the first dimension (snapshot) instead
+        return xr.DataArray(values, coords={link_dim: index}, dims=link_dim)
 
     # Backpressure: c_b * heat output <= electricity output
     # i.e. heat output <= max_heat_share * steam used, in every hour
     # dispatch only, so it applies to extendable and fixed links
     n.model.add_constraints(
-        c_b * heat.efficiency.values * p.loc[:, heat.index]
-        - eta_e * p.loc[:, elec.index]
+        per_link(c_b * heat.efficiency.values, heat.index) * p.loc[:, heat.index]
+        - per_link(eta_e, elec.index) * p.loc[:, elec.index]
         <= 0,
         name="nuclear_chp-backpressure",
     )
@@ -96,6 +106,6 @@ def custom_extra_functionality(n, snapshots, snakemake):
     if not elec_fix.empty:
         n.model.add_constraints(
             p.loc[:, elec_fix.index] + p.loc[:, heat_fix.index]
-            <= elec_fix.p_nom.values,
+            <= per_link(elec_fix.p_nom.values, elec_fix.index),
             name="nuclear_chp-top_iso_fuel_line_fix",
         )
