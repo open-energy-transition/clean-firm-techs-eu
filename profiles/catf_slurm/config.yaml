@@ -24,6 +24,18 @@ set-resources:
   # rule default (2000 MB) is too low under SLURM's hard memory limit -> OOM kill
   build_biomass_potentials:
     mem_mb: 5000
+  build_transmission_projects:
+    mem_mb: 10000
+  add_transmission_projects_and_dlr:
+    mem_mb: 10000
+  build_renewable_profiles:
+    mem_mb: 10000
+  build_solar_thermal_profiles:
+    mem_mb: 15000
+  build_tranformation_output_coke:
+    mem_mb: 8000
+  cluster_electricity_demand:
+    mem_mb: 5000
 restart-times: 0
 max-jobs-per-timespan: "1/3s"
 max-status-checks-per-second: 1
