@@ -7,6 +7,8 @@
 <!-- Upcoming Release -->
 <!-- ================= -->
 
+* Add plots of the electricity dispatch per technology group in representative weeks ([#62](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/62)).
+
 * Use technology-data v0.16.0 (`data: costs` in `config.base.yaml`), which corrects the nuclear fuel price to 2.80 instead of 7.45 EUR/MWh_th, as the efficiency was applied twice (technology-data PR #291) ([#66](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/66)).
 
 * Add sensitivity for transmission expansion scenarios ([#64](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/64)).
