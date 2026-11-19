@@ -6480,7 +6480,11 @@ def main(
             n, costs, options, pop_layout, inputs.solar_rooftop_potentials
         )
 
-    if params.catf_nuclear_chp.get("enabled", False):
+    # Nuclear CHP is an advanced technology: built only in the years in which
+    # its advanced costs (catf_model.cost_overwrites) apply
+    if params.catf_nuclear_chp.get("enabled", False) and int(current_horizon) in {
+        int(year) for year in params.catf_cost_overwrite_years
+    }:
         logger.info("Adding nuclear CHP.")
         add_nuclear_chp(
             n,
