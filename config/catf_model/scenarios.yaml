@@ -179,3 +179,173 @@ low-nuclear:    # standardised European fleet with state financing
       nuclear:
         investment: 6490   # EUR/kW_e
         lifetime: 60       # financial lifetime, years
+
+# Advanced clean hydrogen: electrolysis and fuel cells (not in the baseline).
+# Costs and electrolysis efficiency of PyPSA 2040 in 2040 and 2050.
+high-hydrogen:   # PyPSA 2040: defaults seem realistic/conservative through 2050
+  sector:
+    electrolysis: true
+    hydrogen_fuel_cell: true
+  adjustments:
+    sector:
+      absolute:
+        Link:
+          H2 Electrolysis:
+            p_nom_max: {2030: 0, 2040: .inf, 2050: .inf}
+          H2 Fuel Cell:
+            p_nom_max: {2030: 0, 2040: .inf, 2050: .inf}
+  catf_model:
+    cost_overwrites:
+      electrolysis:
+        investment: 1508.8015   # EUR/kW_e, PyPSA 2040
+        efficiency: 0.6532      # PyPSA 2040 (2050: 0.6994)
+      fuel cell:
+        investment: 1269.013    # EUR/kW_e, PyPSA 2040
+low-hydrogen:    # PyPSA 2040 investment -40%, closer to Chinese costs
+  sector:
+    electrolysis: true
+    hydrogen_fuel_cell: true
+  adjustments:
+    sector:
+      absolute:
+        Link:
+          H2 Electrolysis:
+            p_nom_max: {2030: 0, 2040: .inf, 2050: .inf}
+          H2 Fuel Cell:
+            p_nom_max: {2030: 0, 2040: .inf, 2050: .inf}
+  catf_model:
+    cost_overwrites:
+      electrolysis:
+        investment: 905.2809    # EUR/kW_e, 0.6x PyPSA 2040 (1508.8015)
+        efficiency: 0.6532      # PyPSA 2040 (2050: 0.6994)
+      fuel cell:
+        investment: 761.4078    # EUR/kW_e, 0.6x PyPSA 2040 (1269.013)
+
+# Carbon capture: DAC and CCS in power (CHPs), hydrogen (SMR), biofuels and
+# industry (not in the baseline). Without the Allam cycle. The capture costs
+# are the technology-data rows used by PyPSA-Eur: biomass CHP capture (gas and
+# biomass CHP CC, biogas and BtL CC), cement capture (industry CC); SMR CC and
+# biogas CC are whole plants, as there is no separate capture cost.
+high-ccs:   # DAC: PyPSA 2025; other CCS: 1.25x PyPSA 2040
+  sector:
+    dac: true
+    SMR_cc: true
+    biogas_upgrading_cc: true
+    biomass_to_liquid_cc: true
+    chp:
+      fuel_cc: [solid biomass, gas]
+  industry:
+    solid_biomass_for_industry_cc: true
+    gas_for_industry_cc: true
+    process_emissions_cc: true
+  adjustments:
+    sector:
+      absolute:
+        Link:
+          DAC:
+            p_nom_max: {2030: 0, 2040: .inf, 2050: .inf}
+          SMR CC:
+            p_nom_max: {2030: 0, 2040: .inf, 2050: .inf}
+          biogas to gas CC:
+            p_nom_max: {2030: 0, 2040: .inf, 2050: .inf}
+          biomass to liquid CC:
+            p_nom_max: {2030: 0, 2040: .inf, 2050: .inf}
+          urban central gas CHP CC:
+            p_nom_max: {2030: 0, 2040: .inf, 2050: .inf}
+          urban central solid biomass CHP CC:
+            p_nom_max: {2030: 0, 2040: .inf, 2050: .inf}
+          solid biomass for industry CC:
+            p_nom_max: {2030: 0, 2040: .inf, 2050: .inf}
+          gas for industry CC:
+            p_nom_max: {2030: 0, 2040: .inf, 2050: .inf}
+          process emissions CC:
+            p_nom_max: {2030: 0, 2040: .inf, 2050: .inf}
+  catf_model:
+    cost_overwrites:
+      direct air capture:
+        investment: 8801342.208    # EUR/(tCO2/h), PyPSA 2025
+      biomass CHP capture:
+        investment: 3772003.8      # EUR/(tCO2/h), 1.25x PyPSA 2040 (3017603.0427)
+      cement capture:
+        investment: 3457670.2      # EUR/(tCO2/h), 1.25x PyPSA 2040 (2766136.1225)
+      SMR CC:
+        investment: 955809.98      # EUR/MW_CH4, 1.25x PyPSA 2040 (764647.9813)
+      biogas CC:
+        investment: 1605.0929      # EUR/kW, 1.25x PyPSA 2040 (1284.0743)
+low-ccs:    # DAC: PyPSA 2040; other CCS: 0.8x PyPSA 2040
+  sector:
+    dac: true
+    SMR_cc: true
+    biogas_upgrading_cc: true
+    biomass_to_liquid_cc: true
+    chp:
+      fuel_cc: [solid biomass, gas]
+  industry:
+    solid_biomass_for_industry_cc: true
+    gas_for_industry_cc: true
+    process_emissions_cc: true
+  adjustments:
+    sector:
+      absolute:
+        Link:
+          DAC:
+            p_nom_max: {2030: 0, 2040: .inf, 2050: .inf}
+          SMR CC:
+            p_nom_max: {2030: 0, 2040: .inf, 2050: .inf}
+          biogas to gas CC:
+            p_nom_max: {2030: 0, 2040: .inf, 2050: .inf}
+          biomass to liquid CC:
+            p_nom_max: {2030: 0, 2040: .inf, 2050: .inf}
+          urban central gas CHP CC:
+            p_nom_max: {2030: 0, 2040: .inf, 2050: .inf}
+          urban central solid biomass CHP CC:
+            p_nom_max: {2030: 0, 2040: .inf, 2050: .inf}
+          solid biomass for industry CC:
+            p_nom_max: {2030: 0, 2040: .inf, 2050: .inf}
+          gas for industry CC:
+            p_nom_max: {2030: 0, 2040: .inf, 2050: .inf}
+          process emissions CC:
+            p_nom_max: {2030: 0, 2040: .inf, 2050: .inf}
+  catf_model:
+    cost_overwrites:
+      direct air capture:
+        investment: 6286673.0057   # EUR/(tCO2/h), PyPSA 2040
+      biomass CHP capture:
+        investment: 2414082.4      # EUR/(tCO2/h), 0.8x PyPSA 2040 (3017603.0427)
+      cement capture:
+        investment: 2212908.9      # EUR/(tCO2/h), 0.8x PyPSA 2040 (2766136.1225)
+      SMR CC:
+        investment: 611718.39      # EUR/MW_CH4, 0.8x PyPSA 2040 (764647.9813)
+      biogas CC:
+        investment: 1027.2594      # EUR/kW, 0.8x PyPSA 2040 (1284.0743)
+
+# Long-duration storage: iron-air battery with 100 hours (not in the baseline).
+# Investment per kWh of dispatched energy, i.e. x100 per kW.
+high-iron-air:   # PyPSA 2025 (~3160 EUR/kW)
+  electricity:
+    extendable_carriers:
+      StorageUnit: [iron-air]
+  adjustments:
+    electricity:
+      absolute:
+        StorageUnit:
+          iron-air:
+            p_nom_max: {2030: 0, 2040: .inf, 2050: .inf}
+  catf_model:
+    cost_overwrites:
+      iron-air battery:
+        investment: 31.6021   # EUR/kWh, PyPSA 2025
+low-iron-air:    # PyPSA 2040 (~1400 EUR/kW)
+  electricity:
+    extendable_carriers:
+      StorageUnit: [iron-air]
+  adjustments:
+    electricity:
+      absolute:
+        StorageUnit:
+          iron-air:
+            p_nom_max: {2030: 0, 2040: .inf, 2050: .inf}
+  catf_model:
+    cost_overwrites:
+      iron-air battery:
+        investment: 14.0185   # EUR/kWh, PyPSA 2040

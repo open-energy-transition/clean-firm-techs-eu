@@ -58,8 +58,16 @@ Each scenario makes one advanced technology buildable from 2040 and sets its hig
 |---|---|
 | `high-nuclear` | New-build nuclear: investment 8880 EUR/kW, financial lifetime 40 years |
 | `low-nuclear` | New-build nuclear: investment 6490 EUR/kW, financial lifetime 60 years |
+| `high-hydrogen` | Electrolysis and fuel cells: PyPSA 2040 investment and electrolysis efficiency |
+| `low-hydrogen` | Electrolysis and fuel cells: PyPSA 2040 investment -40%, PyPSA 2040 electrolysis efficiency |
+| `high-ccs` | Carbon capture (DAC, SMR, gas and biomass CHPs, biogas, biomass-to-liquid, industry): DAC at PyPSA 2025 investment, other capture PyPSA 2040 investment +25% |
+| `low-ccs` | Carbon capture: DAC at PyPSA 2040 investment, other capture PyPSA 2040 investment -20% |
+| `high-iron-air` | Iron-air storage (100 hours): PyPSA 2025 investment (~3160 EUR/kW) |
+| `low-iron-air` | Iron-air storage (100 hours): PyPSA 2040 investment (~1400 EUR/kW) |
 
 New-build nuclear is not available in the baseline; the PyPSA default cost is 10806 EUR/kW with a 40-year lifetime. Planned plants (e.g. Hinkley Point C) are not new build: in all runs they are added as separate fixed links (`<bus> <carrier> planned-<horizon>`) with the default costs and their own decommissioning date. In all runs, existing and new-build nuclear are links from the uranium bus, which is supplied at the uranium fuel cost.
+
+Electrolysis, fuel cells, carbon capture (including DAC) and iron-air storage are not available in the baseline either; each pair of runs enables only its own technologies. The Allam cycle is not included. For SMR CC and biogas CC the whole plant is scaled, as technology-data has no separate capture cost for them; the other CCS routes scale the capture cost (`biomass CHP capture`, `cement capture`). Enhanced geothermal, the 80-year life extension of the existing nuclear fleet and nuclear CHP follow in separate changes.
 
 
 ## Running with pixi tasks
