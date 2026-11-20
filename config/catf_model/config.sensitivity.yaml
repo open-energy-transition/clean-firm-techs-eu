@@ -28,3 +28,20 @@ catf_model:
   post_processing:
     # Comparison plots in results/catf/comparison_plots/sensitivity/
     comparison: sensitivity
+    # Rows of the system cost sensitivity plot: label -> [low run, high run], or
+    # {case name: run} (low first) if both runs change the assumption in the
+    # same direction, so that the baseline is not between them
+    sensitivity:
+      pairs:
+        Solar investment: [low-solar, high-solar]
+        Wind investment: [low-wind, high-wind]
+        Battery investment: [low-battery, high-battery]
+        Gas plant investment: [low-gas, high-gas]
+        Gas fuel price: [low-gas-fuel, high-gas-fuel]
+        Biomass plant investment: [low-biomass, high-biomass]
+        Electricity demand ±10%: [low-demand, high-demand]
+        Demand flexibility: [low-need-dsm, high-need-dsm]
+        # Both expand the grid beyond the baseline (today's volume, v1.0)
+        Transmission expansion:
+          Volume +25% per horizon: transmission-volume-1.25
+          Cost-optimal: transmission-optimal-expansion

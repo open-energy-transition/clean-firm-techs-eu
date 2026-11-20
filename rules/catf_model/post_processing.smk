@@ -339,6 +339,56 @@ rule plot_energy_balances:
         scripts("catf_model/post_processing/plot_energy_balances.py")
 
 
+rule export_dispatch:
+    """Exports the electricity balance per carrier and snapshot."""
+    input:
+        network=RESULTS + "networks/solved_{horizon}.nc",
+    output:
+        dispatch=RESULTS + "csvs/dispatch/{horizon}.csv",
+    log:
+        RESULTS + "logs/export_dispatch_{horizon}.log",
+    benchmark:
+        (RESULTS + "benchmarks/export_dispatch_{horizon}")
+    threads: 1
+    resources:
+        mem_mb=4000,
+    script:
+        scripts("catf_model/post_processing/export_dispatch.py")
+
+
+rule plot_dispatch:
+    """Plots the electricity dispatch per technology group in representative weeks."""
+    input:
+        dispatch=RESULTS + "csvs/dispatch/{horizon}.csv",
+        snapshot_weightings=RESULTS + "csvs/snapshot_weightings/{horizon}.csv",
+    output:
+        RESULTS + "plots/dispatch/{horizon}.png",
+    log:
+        RESULTS + "logs/plot_dispatch_{horizon}.log",
+    benchmark:
+        (RESULTS + "benchmarks/plot_dispatch_{horizon}")
+    threads: 1
+    resources:
+        mem_mb=2000,
+    params:
+        dispatch=config_provider("catf_model", "post_processing", "dispatch"),
+        groups=config_provider(
+            "catf_model", "post_processing", "energy_balances", "report", "groups"
+        ),
+    script:
+        scripts("catf_model/post_processing/plot_dispatch.py")
+
+
+rule plot_all_dispatch:
+    """Collects the dispatch plots for all runs and planning horizons."""
+    input:
+        expand(
+            RESULTS + "plots/dispatch/{horizon}.png",
+            run=CATF_RUNS,
+            horizon=config["planning_horizons"],
+        ),
+
+
 rule export_transmission:
     """Exports the existing and optimal capacity of each AC line and DC link of a solved network."""
     input:
@@ -408,6 +458,30 @@ rule plot_transmission_expansion_map:
         scripts("catf_model/post_processing/plot_transmission_expansion_map.py")
 
 
+rule plot_sensitivity:
+    """Plots the change in system costs, Capex, Opex and CO2 emissions of the low and high runs against a reference run per planning horizon."""
+    input:
+        costs=rules.export_statistics_summary.output.system_costs,
+        # Ordered by run, as the script expects
+        co2=expand(RESULTS + "csvs/co2_emissions/summary.csv", run=CATF_RUNS),
+    output:
+        total_costs=CATF_COMPARISON + "plots/sensitivity_total_costs.png",
+        capex=CATF_COMPARISON + "plots/sensitivity_capex.png",
+        opex=CATF_COMPARISON + "plots/sensitivity_opex.png",
+        co2_emissions=CATF_COMPARISON + "plots/sensitivity_co2_emissions.png",
+        csv=CATF_COMPARISON + "sensitivity.csv",
+    log:
+        CATF_COMPARISON + "logs/plot_sensitivity.log",
+    threads: 1
+    resources:
+        mem_mb=2000,
+    params:
+        runs=CATF_RUNS,
+        sensitivity=config_provider("catf_model", "post_processing", "sensitivity"),
+    script:
+        scripts("catf_model/post_processing/plot_sensitivity.py")
+
+
 rule catf_post_processing:
     """Collects all CATF post-processing outputs."""
     input:
@@ -421,10 +495,17 @@ rule catf_post_processing:
             else []
         ),
         rules.plot_energy_balances.output,
+        # Only for scenario sets with low and high pairs
+        (
+            rules.plot_sensitivity.output
+            if config["catf_model"]["post_processing"]["sensitivity"]["pairs"]
+            else []
+        ),
         rules.export_all_marginal_prices.input,
         rules.export_all_co2_emissions.input,
         rules.export_all_energy_balances.input,
         rules.plot_all_energy_balances_developer.input,
+        rules.plot_all_dispatch.input,
         rules.plot_co2_emissions.output,
         rules.plot_statistics.output,
         rules.export_all_statistics.input,

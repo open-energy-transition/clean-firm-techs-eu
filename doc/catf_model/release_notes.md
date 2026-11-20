@@ -9,6 +9,10 @@
 
 * Increase resource allocation for rules `build_transmission_projects`, `add_transmission_projects_and_dlr`, `build_renewable_profiles`, `build_solar_thermal_profiles`, `build_tranformation_output_coke` and `cluster_electricity_demand` ([#68](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/68)).
 
+* Add plots comparing the system costs, Capex, Opex and CO2 emissions of the low and high runs of a scenario set with the baseline per planning horizon ([#61](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/61)).
+
+* Add plots of the electricity dispatch per technology group in representative weeks ([#62](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/62)).
+
 * Use technology-data v0.16.0 (`data: costs` in `config.base.yaml`), which corrects the nuclear fuel price to 2.80 instead of 7.45 EUR/MWh_th, as the efficiency was applied twice (technology-data PR #291) ([#66](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/66)).
 
 * Add sensitivity for transmission expansion scenarios ([#64](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/64)).
