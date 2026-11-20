@@ -35,6 +35,7 @@ rule solve_network:
             "sector", "co2_sequestration_potential"
         ),
         custom_extra_functionality=input_custom_extra_functionality,
+        catf_nuclear_chp=config_provider("catf_model", "nuclear_chp", default={}),
     script:
         scripts("solve_network.py")
 
@@ -66,5 +67,6 @@ rule solve_operations_network:
             "sector", "co2_sequestration_potential"
         ),
         custom_extra_functionality=input_custom_extra_functionality,
+        catf_nuclear_chp=config_provider("catf_model", "nuclear_chp", default={}),
     script:
         scripts("solve_operations_network.py")
