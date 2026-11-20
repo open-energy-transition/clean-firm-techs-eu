@@ -59,7 +59,7 @@ Each scenario makes one advanced technology buildable from 2040 and sets its hig
 | `high-nuclear` | New-build nuclear: investment 8880 EUR/kW, financial lifetime 40 years |
 | `low-nuclear` | New-build nuclear: investment 6490 EUR/kW, financial lifetime 60 years |
 
-New-build nuclear is not available in the baseline; the PyPSA default cost is 10806 EUR/kW with a 40-year lifetime. Planned plants (e.g. Hinkley Point C) are not new build: in all runs they are added as separate fixed links (`<bus> <carrier> planned-<horizon>`) with the default costs and their own decommissioning date. In all runs, existing and new-build nuclear are links from the uranium bus, which is supplied at the uranium fuel cost.
+New-build nuclear is not available in the baseline; the PyPSA default cost is 10806 EUR/kW with a 40-year lifetime. Planned plants (e.g. Hinkley Point C) are not new build: in all runs they are added as separate fixed links (`<bus> <carrier> planned-<horizon>`) with the default costs and their own decommissioning date. In all runs, existing and planned nuclear plants run for 80 years from commissioning (`catf_model: nuclear: lifetime_extension`), even where their decommissioning date is earlier; plants already closed before 2024 stay closed. In all runs, existing and new-build nuclear are links from the uranium bus, which is supplied at the uranium fuel cost.
 
 
 ## Running with pixi tasks
