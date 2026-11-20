@@ -16,6 +16,7 @@ The CATF model is built from stacked config files in `config/catf_model/`. Files
 | `scenarios.yaml` | All scenarios: the initial scenarios (`baseline`, `high-need`, `low-need`) and the individual sensitivities. |
 | `config.initial.yaml` | Initial scenario set: picks `baseline`, `high-need` and `low-need` with `run.name`. |
 | `config.sensitivity.yaml` | Sensitivity scenario set: picks `baseline` and the individual sensitivities with `run.name`. |
+| `config.advanced.yaml` | Advanced-technology scenario set: picks `baseline` and the advanced-technology scenarios with `run.name`. |
 | `config.test.yaml` | Optional overlay for quick tests: one week of snapshots, 28 time segments, `run.prefix: test`. |
 
 All scenario sets share one prefix (`catf`) and one scenario file. A run that is in several sets, such as `baseline`, is solved only once and reused. The set overlays only choose the runs (`run.name`) and the folder of the comparison plots (`catf_model.post_processing.comparison`). Settings that change a run belong in `scenarios.yaml`, not in an overlay; otherwise the run would be rebuilt.
@@ -48,6 +49,17 @@ Each scenario changes one assumption and keeps everything else at the baseline. 
 The sensitivity set also plots the transmission expansion of these two runs compared to `baseline`, as bars and as maps (`transmission_expansion.png`, `transmission_expansion_map.png` in the comparison plots folder). The compared runs are set in `catf_model.post_processing.transmission` (`config.catf.default.yaml`).
 
 The technologies in each cost group are listed under `catf_model.cost_sensitivity_groups` in `config.base.yaml`. Each scenario, including High Need and Low Need, sets its factors per group in `catf_model.cost_sensitivity`; groups not set keep factor 1.0. Rule `build_cost_sensitivity` (`rules/catf_model/cost_sensitivity.smk`) then builds a cost file for every run at `resources/catf/<scenario>/custom_costs.csv`, on top of the baseline cost factors (`catf_model.cost_factors`, e.g. solar +30%).
+
+### Advanced-technology scenarios
+
+Each scenario makes one advanced technology buildable from 2040 and sets its high or low cost case, following the stakeholder cost assumptions. The technology is enabled in the scenario (e.g. `sector: conventional_generation` for nuclear), and its potential is set to zero in 2030 with `adjustments` per planning horizon. Costs are given as absolute values per technology and parameter in `catf_model.cost_overwrites`, in the units of the technology-data cost files, and apply in the cost years of `catf_model.cost_overwrite_years` (2040 and 2050, with equal costs). How a value is derived (e.g. `1.25x PyPSA 2040`) is noted in a comment next to it.
+
+| Scenario | What changes (from 2040) |
+|---|---|
+| `high-nuclear` | New-build nuclear: investment 8880 EUR/kW, financial lifetime 40 years |
+| `low-nuclear` | New-build nuclear: investment 6490 EUR/kW, financial lifetime 60 years |
+
+New-build nuclear is not available in the baseline; the PyPSA default cost is 10806 EUR/kW with a 40-year lifetime. Planned plants (e.g. Hinkley Point C) are not new build: in all runs they are added as separate fixed links (`<bus> <carrier> planned-<horizon>`) with the default costs and their own decommissioning date. In all runs, existing and planned nuclear plants run for 80 years from commissioning (`catf_model: nuclear: lifetime_extension`), even where their decommissioning date is earlier; plants already closed before 2024 stay closed. In all runs, existing and new-build nuclear are links from the uranium bus, which is supplied at the uranium fuel cost.
 
 
 ## Running with pixi tasks

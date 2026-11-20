@@ -19,6 +19,8 @@ run:
     - costs_
     # Built per run from catf_model.cost_sensitivity
     - custom_costs
+    # Built per run from catf_model.nuclear.lifetime_extension
+    - powerplants_nuclear_lifetime
 
 planning_horizons: [2030, 2040, 2050]
 
@@ -120,6 +122,12 @@ pypsa_eur:
   - solar
   - ror
 
+# Last grouping year 2025 instead of 2030: plants commissioned after 2025 are
+# added by catf_model add_planned_capacities as separate fixed links, instead
+# of upstream setting p_nom_min of the extendable 2030 links
+existing_capacities:
+  grouping_years_power: [1900, 1950, 1955, 1960, 1965, 1970, 1975, 1980, 1985, 1990, 1995, 2000, 2005, 2010, 2015, 2020, 2025]
+
 co2_budget:
   2040: 0.1
   2050: 0.0
@@ -196,6 +204,11 @@ catf_model:
     biomass-plants:
       investment:
       - central solid biomass CHP
+
+  # Cost years in which the absolute values of catf_model.cost_overwrites
+  # (advanced-technology scenarios, set in scenarios.yaml) apply: advanced
+  # technologies have the same costs in 2040 and 2050.
+  cost_overwrite_years: [2040, 2050]
 
 data:
   # technology-data v0.16.0 fixes the nuclear fuel price (PR #291: 2.80 instead

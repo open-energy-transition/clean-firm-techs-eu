@@ -4,6 +4,10 @@ catf_model:
   nuclear:
     availability_years: [2015, 2024]   # mean of data/nuclear_p_max_pu.csv for existing plants
     new_build_p_max_pu: 0.9   # best fleets ~91% (IAEA PRIS), US fleet 91-93% (EIA Electric Power Monthly, table 6.07.B)
+    # Lifetime in years of existing and planned nuclear plants from DateIn in
+    # all runs (stakeholder assumption), extending (never shortening) their
+    # DateOut; null keeps DateOut (rule extend_nuclear_lifetime).
+    lifetime_extension: 80
   post_processing:
     # Subfolder of results/<prefix>/comparison_plots/ for the plots comparing
     # the runs in run.name, so that scenario sets sharing a prefix do not

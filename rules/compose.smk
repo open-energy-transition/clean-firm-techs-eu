@@ -202,6 +202,19 @@ def get_compose_inputs(w):
         else:
             raise ValueError(f"Invalid foresight type: {foresight}")
 
+    # CATF: planned power plants keep the costs without the cost overwrites of
+    # the scenario (rule process_cost_data_planned)
+    catf = cfg.get("catf_model") or {}
+    if catf.get("add_planned_capacities"):
+        inputs["catf_tech_costs_planned"] = (
+            resources("costs_{horizon}_processed_planned.csv")
+            if catf.get("cost_overwrites")
+            else inputs["tech_costs"]
+        )
+    # CATF: nuclear plants with extended lifetime (rule extend_nuclear_lifetime)
+    if (catf.get("nuclear") or {}).get("lifetime_extension") and inputs["powerplants"]:
+        inputs["powerplants"] = resources("powerplants_nuclear_lifetime.csv")
+
     # imported by compose_network.py; listed so code changes trigger reruns
     inputs["code_dependencies"] = [
         "scripts/add_electricity.py",

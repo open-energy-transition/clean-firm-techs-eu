@@ -15,4 +15,5 @@ for _overrides in [config, *scenarios.values()]:
 
 
 include: "cost_sensitivity.smk"
+include: "nuclear.smk"
 include: "post_processing.smk"
