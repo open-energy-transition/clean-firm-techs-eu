@@ -9,6 +9,8 @@
 
 * Add option `catf_model: cost_overwrites` to set absolute cost values per technology and parameter in 2040 and 2050, and the advanced-technology scenarios `high-nuclear` and `low-nuclear` with new-build nuclear from 2040. Planned power plants are added as separate fixed links (`<bus> <carrier> planned-<horizon>`) with the costs without overwrites, instead of setting the minimum capacity of the extendable links; the last power grouping year is 2025, so that this applies to all plants commissioned after 2025 ([#63](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/63)).
 
+* Increase resource allocation for rules `build_transmission_projects`, `add_transmission_projects_and_dlr`, `build_renewable_profiles`, `build_solar_thermal_profiles`, `build_tranformation_output_coke` and `cluster_electricity_demand` ([#68](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/68)).
+
 * Add plots comparing the system costs, Capex, Opex and CO2 emissions of the low and high runs of a scenario set with the baseline per planning horizon ([#61](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/61)).
 
 * Add plots of the electricity dispatch per technology group in representative weeks ([#62](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/62)).
