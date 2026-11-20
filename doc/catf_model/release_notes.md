@@ -7,6 +7,8 @@
 <!-- Upcoming Release -->
 <!-- ================= -->
 
+* Increase resource allocation for rules `build_transmission_projects`, `add_transmission_projects_and_dlr`, `build_renewable_profiles`, `build_solar_thermal_profiles`, `build_tranformation_output_coke` and `cluster_electricity_demand` ([#68](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/68)).
+
 * Add plots comparing the system costs, Capex, Opex and CO2 emissions of the low and high runs of a scenario set with the baseline per planning horizon ([#61](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/61)).
 
 * Add plots of the electricity dispatch per technology group in representative weeks ([#62](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/62)).
