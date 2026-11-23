@@ -211,6 +211,9 @@ def get_compose_inputs(w):
             if catf.get("cost_overwrites")
             else inputs["tech_costs"]
         )
+    # CATF: nuclear plants with extended lifetime (rule extend_nuclear_lifetime)
+    if (catf.get("nuclear") or {}).get("lifetime_extension") and inputs["powerplants"]:
+        inputs["powerplants"] = resources("powerplants_nuclear_lifetime.csv")
 
     # imported by compose_network.py; listed so code changes trigger reruns
     inputs["code_dependencies"] = [
