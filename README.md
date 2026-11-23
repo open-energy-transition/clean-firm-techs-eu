@@ -67,7 +67,7 @@ Each scenario makes one advanced technology buildable from 2040 and sets its hig
 
 New-build nuclear is not available in the baseline; the PyPSA default cost is 10806 EUR/kW with a 40-year lifetime. Planned plants (e.g. Hinkley Point C) are not new build: in all runs they are added as separate fixed links (`<bus> <carrier> planned-<horizon>`) with the default costs and their own decommissioning date. In all runs, existing and planned nuclear plants run for 80 years from commissioning (`catf_model: nuclear: lifetime_extension`), even where their decommissioning date is earlier; plants already closed before 2024 stay closed. In all runs, existing and new-build nuclear are links from the uranium bus, which is supplied at the uranium fuel cost.
 
-Electrolysis, fuel cells, carbon capture (including DAC) and iron-air storage are not available in the baseline either; each pair of runs enables only its own technologies. The Allam cycle is not included. For SMR CC and biogas CC the whole plant is scaled, as technology-data has no separate capture cost for them; the other CCS routes scale the capture cost (`biomass CHP capture`, `cement capture`). Enhanced geothermal, the 80-year life extension of the existing nuclear fleet and nuclear CHP follow in separate changes.
+Electrolysis, fuel cells, carbon capture (including DAC) and iron-air storage are not available in the baseline either; each pair of runs enables only its own technologies. The Allam cycle is not included. For SMR CC and biogas CC the whole plant is scaled, as technology-data has no separate capture cost for them; the other CCS routes scale the capture cost (`biomass CHP capture`, `cement capture`). Enhanced geothermal and nuclear CHP follow in separate changes.
 
 
 ## Running with pixi tasks
