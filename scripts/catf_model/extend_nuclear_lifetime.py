@@ -28,12 +28,13 @@ logger = logging.getLogger(__name__)
 def extend_nuclear_lifetime(ppl: pd.DataFrame, lifetime: int) -> pd.DataFrame:
     """Returns the power plants with DateOut of nuclear plants at least DateIn + lifetime - 1."""
     ppl = ppl.copy()
-    nuclear = ppl.Fueltype == "Nuclear"
-    if ppl.loc[nuclear, "DateIn"].isna().any():
-        raise ValueError(
-            "Nuclear plants without DateIn cannot get a lifetime extension: "
-            f"{ppl.loc[nuclear & ppl.DateIn.isna(), 'Name'].tolist()}"
+    no_date_in = (ppl.Fueltype == "Nuclear") & ppl.DateIn.isna()
+    if no_date_in.any():
+        logger.warning(
+            f"{no_date_in.sum()} nuclear plants without DateIn keep their DateOut "
+            f"(no lifetime extension): {ppl.loc[no_date_in, 'Name'].tolist()}"
         )
+    nuclear = (ppl.Fueltype == "Nuclear") & ~no_date_in
     date_out = ppl.loc[nuclear, "DateIn"] + lifetime - 1
     before = ppl.loc[nuclear, "DateOut"]
     ppl.loc[nuclear, "DateOut"] = before.clip(lower=date_out).fillna(date_out)

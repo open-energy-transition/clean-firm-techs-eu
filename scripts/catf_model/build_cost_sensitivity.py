@@ -142,9 +142,11 @@ def overwrite_cost_rows(
         for param, value in params.items():
             match = costs.query("technology == @tech and parameter == @param")
             if match.empty:
-                raise ValueError(
-                    f"No cost entry for {param} of {tech} in {cost_year} to overwrite."
+                logger.warning(
+                    f"No cost entry for {param} of {tech} in {cost_year} to "
+                    "overwrite, skipped."
                 )
+                continue
             row = match.iloc[[0]].copy()
             row["further description"] = (
                 f"Original value {row['value'].iat[0]:.4f} overwritten"
@@ -154,6 +156,8 @@ def overwrite_cost_rows(
             row["source"] = "CATF advanced-technology cost assumptions"
             new.append(row)
 
+    if not new:
+        return rows
     new = pd.concat(new)
     replaced = set(zip(new.technology, new.parameter))
     keep = [key not in replaced for key in zip(rows.technology, rows.parameter)]
