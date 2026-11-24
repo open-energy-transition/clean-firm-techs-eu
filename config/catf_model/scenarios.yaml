@@ -191,7 +191,7 @@ high-geothermal:
       supply_curve: &egs_supply_curve
         # --- data
         # Site-level costs in the EU_EGS_SupplyCurves_GEOELEC.csv format
-        cost_data: data/egs/EU_EGS_SupplyCurves_GEOELEC.csv
+        cost_data: data/catf_model/EU_EGS_SupplyCurves_GEOELEC.csv
         # Optional per-year files in the same format; a horizon uses the latest
         # entry at or before it. Membership and potentials always come from cost_data.
         cost_data_by_year: {}
