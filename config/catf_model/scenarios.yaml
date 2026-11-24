@@ -179,3 +179,87 @@ low-nuclear:    # standardised European fleet with state financing
       nuclear:
         investment: 6490   # EUR/kW_e
         lifetime: 60       # financial lifetime, years
+
+# Enhanced geothermal (EGS) from site-level GEOELEC supply curves
+# (scripts/build_egs_supply_curves.py), instead of the default Aghahosseini &
+# Breyer data. Costs come from the supply curve, not from technology-data, so
+# catf_model.cost_overwrites do not apply.
+high-geothermal:
+  sector:
+    enhanced_geothermal:
+      enable: true
+      supply_curve: &egs_supply_curve
+        # --- data
+        # Site-level costs in the EU_EGS_SupplyCurves_GEOELEC.csv format
+        cost_data: data/egs/EU_EGS_SupplyCurves_GEOELEC.csv
+        # Optional per-year files in the same format; a horizon uses the latest
+        # entry at or before it. Membership and potentials always come from cost_data.
+        cost_data_by_year: {}
+        # Data are 2025 EUR, the same as technology-data
+        currency_factor: 1.0
+        # Per-year factors on subsurface (wells) and surface (ORC) costs,
+        # linear in between, flat outside
+        cost_multipliers:
+          subsurface: {}
+          surface: {}
+
+        # --- resource selection
+        cost_metric: TotAnn   # ranking and clustering metric: TotAnn or CAPEX
+        min_resource_mw: 0    # drop (cell, depth) resources below this size
+        # Country caps (GW), allocated cheapest-first after every region gets
+        # its cheapest min_potential_per_region_gw
+        max_potential_gw:
+          default: 25
+          IT: 400
+          HU: 400
+          DE: 400
+          ES: 175
+          FR: 175
+          PL: 125
+          BG: 125
+          GB: 125
+          DK: 125
+        min_potential_per_region_gw: 20
+        # Supply-curve steps per region (Ward clustering, all depths pooled)
+        n_clusters:
+          default: 4
+          IT: 8
+          HU: 8
+          DE: 8
+          ES: 6
+          FR: 6
+          PL: 6
+          BG: 6
+          GB: 6
+          DK: 6
+
+        # --- surface (ORC) price: one per bus, the capacity-weighted quantile
+        # over the cheapest surface_cost_reference_gw of the bus's supply curve
+        surface_cost_reference_gw: 20
+        surface_cost_quantile: 0.5
+        well_cost_basis: subsurface   # or total_minus_surface
+
+        # --- performance
+        capacity_factor_scale: 0.9357   # availability derate (1.0: PyPSA-Eur default)
+        snap_distance_km: 10            # snap coastal cells to a region within this distance
+  adjustments:
+    sector:
+      factor:   # factor, not absolute, to keep the supply-curve potential per step
+        Link:
+          geothermal heat:   # EGS wells: new build from 2040
+            p_nom_max: {2030: 0, 2040: 1, 2050: 1}
+low-geothermal:
+  sector:
+    enhanced_geothermal:
+      enable: true
+      supply_curve:
+        <<: *egs_supply_curve
+        cost_multipliers:   # on the supply-curve costs, in all horizons
+          subsurface: {2040: 0.5, 2050: 0.5}    # wells -50%
+          surface: {2040: 0.85, 2050: 0.85}     # ORC -15%
+  adjustments:
+    sector:
+      factor:
+        Link:
+          geothermal heat:
+            p_nom_max: {2030: 0, 2040: 1, 2050: 1}

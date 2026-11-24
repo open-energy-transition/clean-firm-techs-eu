@@ -7,6 +7,8 @@ run:
   - baseline
   - high-nuclear
   - low-nuclear
+  - high-geothermal
+  - low-geothermal
 
 catf_model:
   post_processing:
