@@ -353,7 +353,7 @@ class _EnhancedGeothermalConfig(BaseModel):
     )
     supply_curve: dict[str, Any] | None = Field(
         None,
-        description="Site-level EGS supply curves with separate subsurface and surface (ORC) costs, replacing the default cost data (see `build_egs_supply_curves.py`). Unset keeps the default data.",
+        description="Site-level EGS supply curves with separate subsurface and surface (ORC) costs, replacing the default cost data (see `scripts/catf_model/build_egs_supply_curves.py`). Unset keeps the default data.",
     )
 
 
