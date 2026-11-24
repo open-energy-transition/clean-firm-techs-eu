@@ -5782,6 +5782,7 @@ def add_enhanced_geothermal(
     egs_config,
     spatial,
     egs_capacity_factors=None,
+    investment_year=None,
 ):
     """
     Add Enhanced Geothermal System (EGS) potential to the network model.
@@ -5818,6 +5819,9 @@ def add_enhanced_geothermal(
     egs_capacity_factors : str, optional
         Path to CSV file with time-varying capacity factors.
         Required if egs_config['var_cf'] is True.
+    investment_year : int, optional
+        Planning horizon; selects the rows of ``egs_potentials`` if that file
+        has a ``planning_horizon`` column.
 
     Returns
     -------
@@ -5855,33 +5859,51 @@ def add_enhanced_geothermal(
     overlap.columns = overlap.columns.astype(int)
     egs_potentials = pd.read_csv(egs_potentials, index_col=0)
 
+    if "planning_horizon" in egs_potentials.columns:
+        horizons = egs_potentials["planning_horizon"].unique()
+        if investment_year not in horizons:
+            raise ValueError(
+                f"egs_potentials has no rows for planning horizon {investment_year} "
+                f"(available: {sorted(int(h) for h in horizons)})."
+            )
+        egs_potentials = egs_potentials.query(
+            "planning_horizon == @investment_year"
+        ).copy()
+
     Nyears = n.snapshot_weightings.generators.sum() / 8760
     dr = costs_config["fill_values"]["discount rate"]
     lt = costs.at["geothermal", "lifetime"]
     FOM = costs.at["geothermal", "FOM"] / 100
+    egs_annuity = calculate_annuity(costs.at["geothermal", "lifetime"], dr)
+    orc_annuity = calculate_annuity(costs.at["organic rankine cycle", "lifetime"], dr)
 
-    egs_annuity = calculate_annuity(lt, dr)
-
-    # under egs optimism, the expected cost reductions also cover costs for ORC
-    # hence, the ORC costs are no longer taken from technology-data
-    orc_capex = costs.at["organic rankine cycle", "investment"]
-
-    # cost for ORC is subtracted, as it is already included in the geothermal cost.
-    # The orc cost are attributed to a separate link representing the ORC.
-    # also capital_cost conversion Euro/kW -> Euro/MW
-
-    egs_potentials["capital_cost"] = (
-        (egs_annuity + FOM / (1.0 + FOM))
-        * (egs_potentials["CAPEX"] * 1e3 - orc_capex)
-        * Nyears
-    )
+    # FOM is in %/year in the processed cost data
+    if "CAPEX_well" in egs_potentials.columns:
+        # site-level supply curves: well and surface (ORC) costs are given
+        # separately, in EUR/kW, with one surface cost per bus
+        fom_well = egs_potentials.get("FOM_well", costs.at["geothermal", "FOM"]) / 100.0
+        fom_orc = (
+            egs_potentials.get("FOM_surface", costs.at["organic rankine cycle", "FOM"])
+            / 100.0
+        )
+        egs_potentials["capital_cost"] = (
+            (egs_annuity + fom_well) * egs_potentials["CAPEX_well"] * 1e3 * Nyears
+        )
+        egs_potentials["orc_capital_cost"] = (
+            (orc_annuity + fom_orc) * egs_potentials["CAPEX_surface"] * 1e3 * Nyears
+        )
+    else:
+        # Aghahosseini & Breyer (2020): CAPEX (EUR/kW) covers wells and ORC, so
+        # the technology-data ORC cost is subtracted and put on a separate link
+        orc_capex = costs.at["organic rankine cycle", "investment"]
+        egs_potentials["capital_cost"] = (
+            (egs_annuity + FOM) * (egs_potentials["CAPEX"] * 1e3 - orc_capex) * Nyears
+        )
+        egs_potentials["orc_capital_cost"] = (orc_annuity + FOM) * orc_capex * Nyears
 
     assert (egs_potentials["capital_cost"] > 0).all(), (
         "Error in EGS cost, negative values found."
     )
-
-    orc_annuity = calculate_annuity(costs.at["organic rankine cycle", "lifetime"], dr)
-    orc_capital_cost = (orc_annuity + FOM / (1 + FOM)) * orc_capex * Nyears
 
     efficiency_orc = costs.at["organic rankine cycle", "efficiency"]
     efficiency_dh = costs.at["geothermal", "district heat-input"]
@@ -5959,6 +5981,9 @@ def add_enhanced_geothermal(
 
         p_nom_max = bus_egs["p_nom_max"]
         capital_cost = bus_egs["capital_cost"]
+        orc_capital_cost = (
+            bus_egs["orc_capital_cost"] * p_nom_max
+        ).sum() / p_nom_max.sum()
         bus1 = pd.Series(f"{bus} geothermal heat surface", well_name)
 
         # adding geothermal wells as multiple generators to represent supply curve
@@ -6422,6 +6447,7 @@ def main(
             egs_config=options["enhanced_geothermal"],
             spatial=spatial,
             egs_capacity_factors=inputs.egs_capacity_factors,
+            investment_year=current_horizon,
         )
 
     if options["imports"]["enable"]:

@@ -24,6 +24,7 @@ References
 
 import json
 import logging
+import sys
 
 import geopandas as gpd
 import numpy as np
@@ -211,6 +212,13 @@ if __name__ == "__main__":
 
     egs_config = snakemake.params["sector"]["enhanced_geothermal"]
     costs_config = snakemake.params["costs"]
+
+    if egs_config.get("supply_curve"):
+        # site-level EGS supply curves replace the Aghahosseini & Breyer data
+        from scripts.build_egs_supply_curves import main_snakemake
+
+        main_snakemake(snakemake, configure=False)
+        sys.exit(0)
 
     egs_data = prepare_egs_data(snakemake.input.egs_cost)
     egs_data = prepare_capex(egs_data)
