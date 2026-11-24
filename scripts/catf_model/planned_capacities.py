@@ -12,6 +12,15 @@ add_brownfield until ``DateOut``.
 
 Renewables are not added, as add_existing_baseyear takes them from IRENA
 statistics instead of the power plant data.
+
+The planned plants are separate fixed links named ``<bus> <carrier>
+planned-<horizon>``. Upstream would otherwise only set ``p_nom_min`` of the
+extendable link of the same name (e.g. new-build nuclear in the
+advanced-technology scenarios), so that the planned plants would get the costs
+and lifetime of new build and conflict with its potential (e.g. ``p_nom_max``
+0 in 2030). Their costs are taken from the cost file without the scenario's
+``catf_model.cost_overwrites``, which apply to new build only; their lifetime
+follows from ``DateOut``.
 """
 
 import io
@@ -24,6 +33,18 @@ from scripts.add_existing_baseyear import add_power_capacities_installed_before_
 from scripts.prepare_sector_network import define_spatial
 
 logger = logging.getLogger(__name__)
+
+
+def rename_links(n: pypsa.Network, names: dict[str, str]) -> None:
+    """
+    Rename links in the static and time-varying data. Unlike
+    n.rename_component_names, no cross references are updated, as no component
+    refers to links (it fails in PyPSA 1.2 on components without such a column).
+    """
+    c = n.components.links
+    c.static = c.static.rename(index=names)
+    for attr, df in c.dynamic.items():
+        c.dynamic[attr] = df.rename(columns=names)
 
 
 def add_planned_capacities(
@@ -50,6 +71,16 @@ def add_planned_capacities(
         f"Adding planned power plants commissioned in {start_year + 1}-{current_horizon}:\n"
         f"{planned.groupby('Fueltype').Capacity.sum().div(1e3).round(2)}"
     )
+    # Rename the extendable links of this horizon temporarily, so that upstream
+    # adds the planned plants as new links instead of setting p_nom_min of them
+    suffix = f"-{current_horizon}"
+    extendable = n.links.index[
+        n.links.p_nom_extendable & n.links.index.str.endswith(suffix)
+    ]
+    hidden = {name: f"{name} hidden" for name in extendable}
+    rename_links(n, hidden)
+    before = n.links.index
+
     add_power_capacities_installed_before_baseyear(
         n=n,
         costs=costs,
@@ -63,3 +94,9 @@ def add_planned_capacities(
         spatial=define_spatial(n.buses[n.buses.carrier == "AC"].index, params.sector),
         solar_rooftop_ratio=params.existing_capacities["solar_rooftop_ratio"],
     )
+
+    added = n.links.index.difference(before)
+    rename_links(
+        n, {name: name.removesuffix(suffix) + f" planned{suffix}" for name in added}
+    )
+    rename_links(n, {v: k for k, v in hidden.items()})

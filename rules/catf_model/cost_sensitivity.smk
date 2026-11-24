@@ -21,7 +21,7 @@ def cost_factors_with_sensitivity(w):
 
 
 rule build_cost_sensitivity:
-    """Builds the CATF custom cost file of a run: baseline cost factors (e.g. solar +30%) followed by the per-group factors in catf_model.cost_sensitivity."""
+    """Builds the CATF custom cost file of a run: baseline cost factors (e.g. solar +30%) followed by the per-group factors in catf_model.cost_sensitivity and the absolute values in catf_model.cost_overwrites."""
     input:
         costs=lambda w: [
             rules.retrieve_cost_data.output["costs"].format(horizon=year)
@@ -29,7 +29,9 @@ rule build_cost_sensitivity:
         ],
         default="data/custom_costs.csv",
     output:
-        resources("custom_costs.csv"),
+        costs=resources("custom_costs.csv"),
+        # Without cost_overwrites, for the planned power plants
+        planned=resources("custom_costs_planned.csv"),
     log:
         # Named like the output, so that it is also excluded from shared resources
         logs("custom_costs.log"),
@@ -41,5 +43,32 @@ rule build_cost_sensitivity:
         cost_factors=config_provider("catf_model", "cost_factors", default={}),
         groups=config_provider("catf_model", "cost_sensitivity_groups"),
         cost_sensitivity=config_provider("catf_model", "cost_sensitivity", default={}),
+        cost_overwrites=config_provider("catf_model", "cost_overwrites", default={}),
+        cost_overwrite_years=config_provider(
+            "catf_model", "cost_overwrite_years", default=[]
+        ),
     script:
         scripts("catf_model/build_cost_sensitivity.py")
+
+
+rule process_cost_data_planned:
+    """Processes the costs of planned power plants like process_cost_data, but from the custom cost file without catf_model.cost_overwrites, so that they keep the default costs. Only used by runs with cost overwrites."""
+    input:
+        network=resources("networks/simplified.nc"),
+        costs=lambda w: rules.retrieve_cost_data.output["costs"].format(
+            horizon=cost_year(w)
+        ),
+        custom_costs=[resources("custom_costs_planned.csv")],
+    output:
+        resources("costs_{horizon}_processed_planned.csv"),
+    log:
+        logs("build_cost_data_{horizon}_planned.log"),
+    threads: 1
+    resources:
+        mem_mb=4000,
+    params:
+        costs=config_provider("costs"),
+        max_hours=config_provider("electricity", "max_hours"),
+        cost_year=cost_year,
+    script:
+        scripts("process_cost_data.py")
