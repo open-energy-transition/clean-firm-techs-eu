@@ -182,8 +182,8 @@ low-nuclear:    # standardised European fleet with state financing
 
 # Enhanced geothermal (EGS) from site-level GEOELEC supply curves
 # (scripts/build_egs_supply_curves.py), instead of the default Aghahosseini &
-# Breyer data. Costs come from the supply curve, not from technology-data, so
-# catf_model.cost_overwrites do not apply.
+# Breyer data. Investment and FOM costs come from the supply curve; the
+# lifetimes still come from technology-data and are overwritten below.
 high-geothermal:
   sector:
     enhanced_geothermal:
@@ -248,6 +248,12 @@ high-geothermal:
         Link:
           geothermal heat:   # EGS wells: new build from 2040
             p_nom_max: {2030: 0, 2040: 1, 2050: 1}
+  catf_model:
+    cost_overwrites: &egs_cost_overwrites
+      geothermal:              # EGS wells
+        lifetime: 30           # financial lifetime, years
+      organic rankine cycle:   # EGS surface plant
+        lifetime: 30
 low-geothermal:
   sector:
     enhanced_geothermal:
@@ -263,3 +269,5 @@ low-geothermal:
         Link:
           geothermal heat:
             p_nom_max: {2030: 0, 2040: 1, 2050: 1}
+  catf_model:
+    cost_overwrites: *egs_cost_overwrites
