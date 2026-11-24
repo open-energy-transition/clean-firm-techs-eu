@@ -181,7 +181,7 @@ low-nuclear:    # standardised European fleet with state financing
         lifetime: 60       # financial lifetime, years
 
 # Enhanced geothermal (EGS) from site-level GEOELEC supply curves
-# (scripts/build_egs_supply_curves.py), instead of the default Aghahosseini &
+# (scripts/catf_model/build_egs_supply_curves.py), instead of the default Aghahosseini &
 # Breyer data. Investment and FOM costs come from the supply curve; the
 # lifetimes still come from technology-data and are overwritten below.
 high-geothermal:
