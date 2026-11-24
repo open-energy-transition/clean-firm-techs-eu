@@ -87,6 +87,10 @@ catf_model:
           Nuclear:
             color: "#ff8c00"
             carriers: [nuclear]
+          # EGS (sector.enhanced_geothermal): ORC power and district heat
+          Enhanced geothermal:
+            color: "#ba91b1"
+            carriers: [geothermal organic rankine cycle, geothermal district heat]
           Wind:
             color: "#235ebc"
             carriers: [onwind, offwind-ac, offwind-dc, offwind-float]
@@ -187,6 +191,7 @@ catf_model:
       # not listed follow in the order of the groups.
       order:
       - Nuclear
+      - Enhanced geothermal
       - Coal & lignite
       - Biomass CHP
       - Gas CHP
@@ -243,6 +248,11 @@ catf_model:
         Nuclear:   # incl. the uranium supply (fuel cost)
           color: "#ff8c00"
           carriers: [nuclear, uranium]
+        # EGS (sector.enhanced_geothermal): wells (geothermal heat links, incl.
+        # the reservoir if flexible), ORC and district heat connection
+        Enhanced geothermal:
+          color: "#ba91b1"
+          carriers: [geothermal heat, geothermal organic rankine cycle, geothermal district heat]
         Onshore wind:
           color: "#235ebc"
           carriers: [onwind]
@@ -354,6 +364,9 @@ catf_model:
         Nuclear:
           color: "#ff8c00"
           groups: [Nuclear]
+        Enhanced geothermal:
+          color: "#ba91b1"
+          groups: [Enhanced geothermal]
         Wind:
           color: "#235ebc"
           groups: [Onshore wind, Offshore wind]
