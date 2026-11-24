@@ -7,6 +7,8 @@
 <!-- Upcoming Release -->
 <!-- ================= -->
 
+* Show new-build nuclear ("Advanced nuclear") apart from existing and planned nuclear in the capacity, generation, cost, energy balance and dispatch plots. New-build generators and links of the carriers in `catf_model: post_processing: advanced_carriers` are exported as `advanced <carrier>`, with their share of the fuel costs ([#73](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/73)).
+
 * Add option `catf_model: cost_overwrites` to set absolute cost values per technology and parameter in 2040 and 2050, and the advanced-technology scenarios `high-nuclear` and `low-nuclear` with new-build nuclear from 2040. Existing and planned nuclear plants run for 80 years from commissioning in all runs (`catf_model: nuclear: lifetime_extension`). Planned power plants are added as separate fixed links (`<bus> <carrier> planned-<horizon>`) with the costs without overwrites, instead of setting the minimum capacity of the extendable links; the last power grouping year is 2025, so that this applies to all plants commissioned after 2025 ([#63](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/63)).
 
 * Increase resource allocation for rules `build_transmission_projects`, `add_transmission_projects_and_dlr`, `build_renewable_profiles`, `build_solar_thermal_profiles`, `build_tranformation_output_coke` and `cluster_electricity_demand` ([#68](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/68)).
