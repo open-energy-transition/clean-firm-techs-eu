@@ -1077,6 +1077,7 @@ sector:
     max_boost: 0.25
     var_cf: true
     sustainability_factor: 0.0025
+    supply_curve:
   solid_biomass_import:
     enable: false
     price: 54
