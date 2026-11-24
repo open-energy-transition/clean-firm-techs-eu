@@ -132,3 +132,7 @@ availability:
   Power Monthly, [Table 6.07.B](https://www.eia.gov/electricity/monthly/epm_table_grapher.php?t=epmt_6_07_b);
 - best European fleets 2015-2024 (Slovenia 91.3%, Romania 91.3%, Finland
   90.8%): IAEA PRIS, link above.
+
+**Minimum output** (`p_min_pu: 0.4`) of all nuclear links is an assumption:
+below the ~50% minimum load of a single reactor, as each link is a fleet with
+some reactors offline for refuelling.

@@ -131,6 +131,7 @@ if __name__ == "__main__":
                 inputs.conventional_nuclear_p_max_pu,
                 params.catf_nuclear["availability_years"],
                 params.catf_nuclear["new_build_p_max_pu"],
+                params.catf_nuclear.get("p_min_pu", 0.0),
             )
 
     if foresight == "perfect":

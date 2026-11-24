@@ -8,6 +8,9 @@ The availability (``p_max_pu``) of nuclear links is set to the mean energy
 availability factor per country over the configured years for plants built up
 to the last of these years, and to a technology-specific value for plants
 built afterwards, including planned and extendable ones.
+
+The minimum output (``p_min_pu``) of all nuclear links is set to a fixed value,
+capped at ``p_max_pu``.
 """
 
 import logging
@@ -23,9 +26,11 @@ def set_nuclear_availability(
     availability_fn: str,
     availability_years: list[int],
     new_build_p_max_pu: float,
+    p_min_pu: float = 0.0,
 ) -> None:
     """
-    Set p_max_pu of nuclear links from historical availability or for new builds.
+    Set p_max_pu of nuclear links from historical availability or for new builds,
+    and their minimum output p_min_pu.
     """
     links = n.links.index[n.links.carrier == "nuclear"]
     if links.empty:
@@ -44,6 +49,7 @@ def set_nuclear_availability(
     p_max_pu[is_new] = new_build_p_max_pu
 
     n.links.loc[links, "p_max_pu"] = p_max_pu
+    n.links.loc[links, "p_min_pu"] = p_max_pu.clip(upper=p_min_pu)
     logger.info(
         f"Set nuclear availability to {first}-{last} mean for {(~is_new).sum()} "
         f"existing links and {new_build_p_max_pu} for {is_new.sum()} new links"
