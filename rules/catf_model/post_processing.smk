@@ -403,6 +403,66 @@ rule plot_all_dispatch:
         ),
 
 
+def _nuclear_chp_enabled(overrides):
+    return overrides.get("catf_model", {}).get("nuclear_chp", {}).get("enabled")
+
+
+# Runs with nuclear CHP (catf_model.nuclear_chp.enabled in the config or scenario)
+CATF_NUCLEAR_CHP_RUNS = [
+    r
+    for r in CATF_RUNS
+    if _nuclear_chp_enabled(scenarios.get(r, {})) or (
+        _nuclear_chp_enabled(scenarios.get(r, {})) is None
+        and _nuclear_chp_enabled(config)
+    )
+]
+
+
+rule export_nuclear_chp:
+    """Exports the nuclear CHP steam, electricity and heat output and capacities per node."""
+    input:
+        network=RESULTS + "networks/solved_{horizon}.nc",
+    output:
+        RESULTS + "csvs/nuclear_chp/{horizon}.csv",
+    log:
+        RESULTS + "logs/export_nuclear_chp_{horizon}.log",
+    benchmark:
+        (RESULTS + "benchmarks/export_nuclear_chp_{horizon}")
+    threads: 1
+    resources:
+        mem_mb=4000,
+    script:
+        scripts("catf_model/post_processing/export_nuclear_chp.py")
+
+
+rule plot_nuclear_chp:
+    """Plots the nuclear CHP electricity and heat output per node of one run, one panel per planning horizon."""
+    input:
+        # Ordered by horizon, as the script expects
+        expand(
+            RESULTS + "csvs/nuclear_chp/{horizon}.csv",
+            horizon=config["planning_horizons"],
+            allow_missing=True,
+        ),
+    output:
+        RESULTS + "plots/nuclear_chp_per_node.png",
+    log:
+        RESULTS + "logs/plot_nuclear_chp.log",
+    threads: 1
+    resources:
+        mem_mb=2000,
+    params:
+        planning_horizons=config["planning_horizons"],
+    script:
+        scripts("catf_model/post_processing/plot_nuclear_chp.py")
+
+
+rule plot_all_nuclear_chp:
+    """Collects the nuclear CHP plots of all runs with nuclear CHP."""
+    input:
+        expand(RESULTS + "plots/nuclear_chp_per_node.png", run=CATF_NUCLEAR_CHP_RUNS),
+
+
 rule export_transmission:
     """Exports the existing and optimal capacity of each AC line and DC link of a solved network."""
     input:
@@ -520,6 +580,7 @@ rule catf_post_processing:
         rules.export_all_energy_balances.input,
         rules.plot_all_energy_balances_developer.input,
         rules.plot_all_dispatch.input,
+        rules.plot_all_nuclear_chp.input,
         rules.plot_co2_emissions.output,
         rules.plot_statistics.output,
         rules.export_all_statistics.input,
