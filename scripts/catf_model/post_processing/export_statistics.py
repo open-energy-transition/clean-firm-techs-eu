@@ -24,7 +24,7 @@ Costs are per component and carrier. The CO2 load sink (Generator ``load``) is a
 slack with a penalty per tonne, not a technology; its cost is logged.
 
 Advanced (new-build) capacity of ``advanced_carriers`` (e.g. nuclear) is exported
-as ``advanced <carrier>``, with its share of the fuel costs (see advanced_carriers.py).
+as ``advanced <carrier>`` (see advanced_carriers.py).
 
 Demand is the annual consumption of loads per carrier, without loads at CO2 buses.
 
@@ -37,11 +37,7 @@ import pandas as pd
 import pypsa
 
 from scripts._helpers import configure_logging, set_scenario_config
-from scripts.catf_model.post_processing.advanced_carriers import (
-    fuel_shares,
-    split_advanced,
-    split_fuel_costs,
-)
+from scripts.catf_model.post_processing.advanced_carriers import split_advanced
 
 logger = logging.getLogger(__name__)
 
@@ -103,7 +99,7 @@ def to_long(values: dict[str, pd.Series], unit: str) -> pd.DataFrame:
     return data
 
 
-def extract_costs(n: pypsa.Network, path: str, advanced_carriers: list[str]) -> None:
+def extract_costs(n: pypsa.Network, path: str) -> None:
     """Exports the opex, capex and system costs per component and carrier in EUR/a."""
     costs = pd.concat(
         {
@@ -113,7 +109,6 @@ def extract_costs(n: pypsa.Network, path: str, advanced_carriers: list[str]) -> 
         },
         axis=1,
     ).fillna(0)
-    costs = split_fuel_costs(costs, fuel_shares(n, advanced_carriers))
 
     slack = costs.loc[costs.index.isin([("Generator", "load")]), "system cost"].sum()
     if slack > 0:
@@ -185,7 +180,7 @@ if __name__ == "__main__":
     n = pypsa.Network(snakemake.input.network)
     split_advanced(n, snakemake.params.advanced_carriers, snakemake.params.horizons[0])
 
-    extract_costs(n, snakemake.output.costs, snakemake.params.advanced_carriers)
+    extract_costs(n, snakemake.output.costs)
     extract_capacities_and_generation(
         n,
         snakemake.params.statistics,
