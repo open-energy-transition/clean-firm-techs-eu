@@ -56,10 +56,34 @@ Each scenario makes one advanced technology buildable from 2040 and sets its hig
 
 | Scenario | What changes (from 2040) |
 |---|---|
-| `high-nuclear` | New-build nuclear: investment 8880 EUR/kW, financial lifetime 40 years |
-| `low-nuclear` | New-build nuclear: investment 6490 EUR/kW, financial lifetime 60 years |
+| `high-nuclear` | New-build nuclear and nuclear CHP: investment 8880 EUR/kW, financial lifetime 40 years |
+| `low-nuclear` | New-build nuclear and nuclear CHP: investment 6490 EUR/kW, financial lifetime 60 years |
 
 New-build nuclear is not available in the baseline; the PyPSA default cost is 10806 EUR/kW with a 40-year lifetime. Planned plants (e.g. Hinkley Point C) are not new build: in all runs they are added as separate fixed links (`<bus> <carrier> planned-<horizon>`) with the default costs and their own decommissioning date. In all runs, existing and planned nuclear plants run for 80 years from commissioning (`catf_model: nuclear: lifetime_extension`), even where their decommissioning date is earlier; plants already closed before 2024 stay closed. In all runs, existing and new-build nuclear are links from the uranium bus, which is supplied at the uranium fuel cost.
+
+#### Nuclear CHP
+
+In the nuclear scenarios (`catf_model: nuclear_chp: enabled: true`), new-build nuclear can also be built as a combined heat and power plant that supplies district heating. It is added in the cost years (`catf_model.cost_overwrite_years`, 2040 and 2050) at every node with district heating (`urban central heat`), besides the electricity-only new-build nuclear. It is modelled as an extraction-condensing turbine behind a reactor, with three links at a steam bus per node:
+
+| Link (carrier) | From → to | Costs |
+|---|---|---|
+| Reactor (`nuclear steam`) | uranium → steam | Nuclear investment, FOM, VOM and lifetime, including the scenario's `cost_overwrites`, converted from per MW_e to per MW_th with the nuclear efficiency |
+| Turbine power (`nuclear electricity`) | steam → electricity | None (included in the reactor), efficiency η_e of nuclear |
+| Heat extraction (`nuclear heat`) | steam → district heat | `heat_link_capital_cost` (750 EUR/kW_th of heat output), annualised with the nuclear lifetime and discount rate, no FOM |
+
+Two assumptions set the trade-off between electricity and heat (`catf_model: nuclear_chp: parameters` in `config.base.yaml`):
+
+* **Power loss per unit of heat** (`c_v: 0.167`): every 6 MW_th of heat costs 1 MW_e of electricity, so P = η_e · F − Q / 6 for a thermal output F and heat output Q. This sets the heat link efficiency to η_e / c_v.
+* **Maximum heat share** (`max_heat_share: 0.2`): at most 20% of the reactor thermal output can go to heat in every hour, Q ≤ 0.2 · F.
+
+The constraints are added in `data/custom_extra_functionality.py`:
+
+* *Backpressure* (every hour, all plants): heat output ≤ `max_heat_share` · steam used. The steam used is limited by the reactor capacity, as the steam bus has no storage.
+* *Electricity capacity = reactor capacity* (new plants): the turbine power link has no costs of its own, so its capacity is tied to the reactor.
+
+Heat extraction is optional: the model sizes the heat link only as large as the heat is worth, and pays its investment only for that capacity. At the 20% cap, heat is about 41% of the plant output (0.2 F of heat against 0.29 F of electricity), and electricity output is about 10% below an electricity-only plant.
+
+All three links have the nuclear lifetime and retire together. In later horizons, a heat link is kept or removed together with its turbine power link (`add_brownfield.py`), so that the constraints always find the pair. The plots show the three carriers as one group, "Nuclear CHP". Per run, `plots/nuclear_chp_per_node.png` shows the electricity and heat output of nuclear CHP per node and planning horizon, with the heat share of the output (data in `csvs/nuclear_chp/<horizon>.csv`, rule `plot_all_nuclear_chp`).
 
 
 ## Running with pixi tasks
