@@ -64,7 +64,6 @@ sector:
   # Firm technologies excluded from baseline
   # Hydrogen to power
   hydrogen_fuel_cell: false
-  hydrogen_underground_storage: false
   electrolysis: false
 
   # Advanced geothermal

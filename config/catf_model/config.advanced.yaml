@@ -7,8 +7,21 @@ run:
   - baseline
   - high-nuclear
   - low-nuclear
+  - high-hydrogen
+  - low-hydrogen
+  - high-ccs
+  - low-ccs
+  - high-iron-air
+  - low-iron-air
 
 catf_model:
   post_processing:
     # Comparison plots in results/catf/comparison_plots/advanced/
     comparison: advanced
+    # Rows of the system cost sensitivity plot: label -> [low run, high run]
+    sensitivity:
+      pairs:
+        New-build nuclear costs: [low-nuclear, high-nuclear]
+        Hydrogen (electrolysis, fuel cells) costs: [low-hydrogen, high-hydrogen]
+        Carbon capture (CCS, DAC) costs: [low-ccs, high-ccs]
+        Iron-air storage costs: [low-iron-air, high-iron-air]
