@@ -227,8 +227,7 @@ def _write_defaults_yaml(path: str, config: ConfigSchema, defaults: dict) -> Non
         data.yaml_set_comment_before_after_key(key, before=f"\ndocs in {docs_url}")
 
     # Write to file
-    # UTF-8 explicitly: the Windows default (cp1252) breaks e.g. "€" in plotting.default.yaml
-    with open(path, "w", encoding="utf-8") as f:
+    with open(path, "w") as f:
         yaml_writer.dump(data, f)
 
 
