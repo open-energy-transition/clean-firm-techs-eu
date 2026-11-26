@@ -1150,16 +1150,20 @@ def add_flexible_egs_constraint(n):
     Upper bounds the charging capacity of the geothermal reservoir according to
     the well capacity.
     """
-    well_index = n.links.loc[n.links.carrier == "geothermal heat"].index
-    storage_index = n.storage_units.loc[
-        n.storage_units.carrier == "geothermal heat"
-    ].index
+    wells = n.links.query("carrier == 'geothermal heat'")
+    wells_ext = wells.query("p_nom_extendable")
+    wells_fix = wells.query("~p_nom_extendable")
 
-    p_nom_rhs = n.model["Link-p_nom"].loc[well_index]
-    p_nom_lhs = n.model["StorageUnit-p_nom"].loc[storage_index]
+    storages = n.storage_units.query("carrier == 'geothermal heat' and p_nom_extendable")
+
+    p_nom_wells = n.model["Link-p_nom"].loc[wells_ext.index].groupby(wells_ext.bus1.rename("bus").to_xarray()).sum()
+    p_nom_storages = n.model["StorageUnit-p_nom"].loc[storages.index].groupby(storages.bus.to_xarray()).sum()
+
+    storage_buses = storages.bus.unique()
+    existing = wells_fix.groupby("bus1").p_nom.sum().reindex(storage_buses, fill_value=0).rename_axis("bus")
 
     n.model.add_constraints(
-        p_nom_lhs <= p_nom_rhs,
+        p_nom_storages - p_nom_wells <= existing,
         name="upper_bound_charging_capacity_of_geothermal_reservoir",
     )
 
