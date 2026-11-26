@@ -9,8 +9,8 @@ All nuclear links have the carrier ``nuclear``, whether they are existing plants
 (``<bus> nuclear planned-<horizon>``) or new build with the advanced-technology
 costs (extendable from a planning horizon on in the advanced-technology
 scenarios, and kept fixed in later horizons). For the carriers in
-``catf_model.post_processing.advanced_carriers``, the generators and links built
-in a planning horizon that are not planned plants get the carrier
+``catf_model.post_processing.advanced_carriers``, the links built in a
+planning horizon that are not planned plants get the carrier
 ``advanced <carrier>`` in the solved network before it is exported, so that the
 plots can show them as their own technology group.
 """
@@ -25,18 +25,17 @@ PREFIX = "advanced "
 
 
 def split_advanced(n: pypsa.Network, carriers: list[str], first_horizon: int) -> None:
-    """Gives new-build generators and links of the carriers the carrier ``advanced <carrier>``."""
+    """Gives new-build links of the carriers the carrier ``advanced <carrier>``."""
+    links = n.links
     for carrier in carriers:
-        for c in ("Generator", "Link"):
-            static = n.static(c)
-            new = (
-                (static.carrier == carrier)
-                & (static.build_year >= first_horizon)
-                & ~static.index.str.contains(" planned-")
-            )
-            if not new.any():
-                continue
-            static.loc[new, "carrier"] = PREFIX + carrier
-            if PREFIX + carrier not in n.carriers.index:
-                n.carriers.loc[PREFIX + carrier] = n.carriers.loc[carrier]
-            logger.info(f"{c}: {new.sum()} {carrier} assets are advanced (new build)")
+        new = (
+            (links.carrier == carrier)
+            & (links.build_year >= first_horizon)
+            & ~links.index.str.contains(" planned-")
+        )
+        if not new.any():
+            continue
+        links.loc[new, "carrier"] = PREFIX + carrier
+        if PREFIX + carrier not in n.carriers.index:
+            n.carriers.loc[PREFIX + carrier] = n.carriers.loc[carrier]
+        logger.info(f"{new.sum()} {carrier} links are advanced (new build)")
