@@ -1156,8 +1156,11 @@ def add_flexible_egs_constraint(n):
 
     storages = n.storage_units.query("carrier == 'geothermal heat' and p_nom_extendable")
 
-    p_nom_wells = n.model["Link-p_nom"].loc[wells_ext.index].groupby(wells_ext.bus1.rename("bus").to_xarray()).sum()
-    p_nom_storages = n.model["StorageUnit-p_nom"].loc[storages.index].groupby(storages.bus.to_xarray()).sum()
+    link_dim = "name" if PYPSA_V1 else "Link-ext"
+    storage_dim = "name" if PYPSA_V1 else "StorageUnit-ext"
+
+    p_nom_wells = n.model["Link-p_nom"].loc[wells_ext.index].groupby(wells_ext.bus1.rename_axis(link_dim).rename("bus").to_xarray()).sum()
+    p_nom_storages = n.model["StorageUnit-p_nom"].loc[storages.index].groupby(storages.bus.rename_axis(storage_dim).to_xarray()).sum()
 
     storage_buses = storages.bus.unique()
     existing = wells_fix.groupby("bus1").p_nom.sum().reindex(storage_buses, fill_value=0).rename_axis("bus")
