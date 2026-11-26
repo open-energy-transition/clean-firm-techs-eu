@@ -21,8 +21,9 @@ run:
     - custom_costs
     # Built per run from catf_model.nuclear.lifetime_extension
     - powerplants_nuclear_lifetime
-    # Built for each EGS scenario (high/low)
+    # Built for each EGS scenario (high/low), with its log and benchmark
     - egs_
+    - build_egs_potentials
 
 planning_horizons: [2030, 2040, 2050]
 
