@@ -157,11 +157,15 @@ high-nuclear:   # committed series
         Link:
           nuclear:   # new build from 2040; existing plants are not extendable
             p_nom_max: {2030: 0, 2040: .inf, 2050: .inf}
+          nuclear steam:   # nuclear CHP reactor, same build limit as nuclear
+            p_nom_max: {2030: 0, 2040: .inf, 2050: .inf}
   catf_model:
-    cost_overwrites:
+    cost_overwrites:   # also apply to the nuclear CHP reactor (nuclear steam link)
       nuclear:
         investment: 8880   # EUR/kW_e
         lifetime: 40       # financial lifetime, years
+    nuclear_chp:
+      enabled: true
 low-nuclear:    # standardised European fleet with state financing
   sector:
     conventional_generation:
@@ -174,8 +178,12 @@ low-nuclear:    # standardised European fleet with state financing
         Link:
           nuclear:
             p_nom_max: {2030: 0, 2040: .inf, 2050: .inf}
+          nuclear steam:   # nuclear CHP reactor, same build limit as nuclear
+            p_nom_max: {2030: 0, 2040: .inf, 2050: .inf}
   catf_model:
-    cost_overwrites:
+    cost_overwrites:   # also apply to the nuclear CHP reactor (nuclear steam link)
       nuclear:
         investment: 6490   # EUR/kW_e
         lifetime: 60       # financial lifetime, years
+    nuclear_chp:
+      enabled: true

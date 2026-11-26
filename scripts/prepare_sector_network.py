@@ -6152,6 +6152,90 @@ def scale_electricity_demand(n: pypsa.Network, factors: dict[str, float]) -> Non
         n.loads_t.p_set[series] *= factor
         logger.info(f"Scaled the '{carrier}' load by {factor}.")
 
+def add_nuclear_chp(n: pypsa.Network, parameters: dict, costs:pd.DataFrame) -> None:
+    """
+    Add nuclear CHP to the network.
+    
+    """
+
+    n.add("Carrier", ["nuclear heat", "nuclear electricity", "nuclear steam"], color=["#bf6d02","#f5ca95","#bf7821"])
+
+
+    # Filter buses that have district heating (urban central heat) to connect nuclear CHP
+    buses_dh = n.buses.query("carrier == 'urban central heat'").index
+    ac_buses = buses_dh.str.replace(" urban central heat", "")
+
+    # The uranium bus is only added when nuclear is in sector.conventional_generation
+    if not set(spatial.uranium.nodes).issubset(n.buses.index):
+        raise ValueError(
+            "Nuclear CHP needs the uranium bus: add 'nuclear: uranium' to "
+            "sector.conventional_generation."
+        )
+
+    n.add("Bus",
+        ac_buses + " Steam bus",
+        location=ac_buses,
+        carrier="nuclear steam",
+        unit="MWh_th",
+    )
+
+    # Reactor: uranium to steam, p_nom in MW_th
+    # Carries the nuclear plant costs, so the cost overwrites of the advanced
+    # nuclear scenarios (catf_model.cost_overwrites) apply to nuclear CHP as well.
+    # Costs are per MW_el in technology-data, hence converted to MW_th with the efficiency.
+    eta_nuclear = costs.at["nuclear", "efficiency"]
+    n.add("Link",
+        ac_buses + " nuclear steam link",
+        bus0=spatial.uranium.nodes,
+        bus1=ac_buses + " Steam bus",
+        carrier="nuclear steam",
+        p_nom_extendable=True,
+        capital_cost=costs.at["nuclear", "capital_cost"] * eta_nuclear,
+        marginal_cost=costs.at["nuclear", "VOM"] * eta_nuclear,  # NB: VOM is per MWel
+        lifetime=costs.at["nuclear", "lifetime"],
+    )
+
+    # Turbine links: the electricity link has no costs of its own (included in
+    # the reactor), the heat link carries the heat extraction investment; same
+    # lifetime as the reactor so that they retire together
+    # Add a nuclear electricity links
+    n.add(
+        "Link",
+        ac_buses + " steam electricity link",
+        bus0=ac_buses + " Steam bus",
+        bus1=ac_buses,
+        carrier="nuclear electricity",
+        efficiency=eta_nuclear,
+        p_nom_extendable=True,
+        lifetime=costs.at["nuclear", "lifetime"],
+    )
+
+    # Add a nuclear heat link for district heating; its capacity is optimised
+    # freely (optional heat extraction), its use is capped by the backpressure
+    # constraint in custom_extra_functionality.
+    # Heat extraction investment is given in EUR/kW_th of heat output; the link
+    # p_nom is at bus0 (steam input), hence converted with the heat efficiency
+    # and annualised with the reactor lifetime and discount rate.
+    nyears = n.snapshot_weightings.generators.sum() / 8760
+    eta_heat = eta_nuclear / parameters["c_v"]
+    annuity = calculate_annuity(
+        costs.at["nuclear", "lifetime"], costs.at["nuclear", "discount rate"]
+    )
+    heat_capital_cost = (
+        annuity * parameters["heat_link_capital_cost"] * 1e3 * eta_heat * nyears
+    )
+    n.add(
+        "Link",
+        ac_buses + " steam heat link",
+        bus0=ac_buses + " Steam bus",
+        bus1=buses_dh,
+        carrier="nuclear heat",
+        efficiency=eta_heat,
+        p_nom_extendable=True,
+        lifetime=costs.at["nuclear", "lifetime"],
+        capital_cost=heat_capital_cost,
+    )
+
 
 def main(
     n: pypsa.Network,
@@ -6409,6 +6493,18 @@ def main(
     if options["electricity_distribution_grid"]:
         insert_electricity_distribution_grid(
             n, costs, options, pop_layout, inputs.solar_rooftop_potentials
+        )
+
+    # Nuclear CHP is an advanced technology: built only in the years in which
+    # its advanced costs (catf_model.cost_overwrites) apply
+    if params.catf_nuclear_chp.get("enabled", False) and int(current_horizon) in {
+        int(year) for year in params.catf_cost_overwrite_years
+    }:
+        logger.info("Adding nuclear CHP.")
+        add_nuclear_chp(
+            n,
+            params.catf_nuclear_chp["parameters"],
+            costs
         )
 
     if options["enhanced_geothermal"].get("enable", False):

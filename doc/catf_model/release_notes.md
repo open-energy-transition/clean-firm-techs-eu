@@ -7,6 +7,8 @@
 <!-- Upcoming Release -->
 <!-- ================= -->
 
+* Add nuclear CHP for district heating to the `high-nuclear` and `low-nuclear` scenarios from 2040 (`catf_model: nuclear_chp`). Every 6 MW_th of heat costs 1 MW_e, and heat is capped at 20% of the reactor thermal output by a backpressure constraint in `data/custom_extra_functionality.py`; heat extraction is optional ([#76](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/76)).
+
 * Show new-build nuclear ("Advanced nuclear") apart from existing and planned nuclear in the capacity, generation, cost, energy balance and dispatch plots. New-build links of the carriers in `catf_model: post_processing: advanced_carriers` are exported as `advanced <carrier>`; the uranium supply is shown as its own group ([#73](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/73)).
 
 * Add option `catf_model: cost_overwrites` to set absolute cost values per technology and parameter in 2040 and 2050, and the advanced-technology scenarios `high-nuclear` and `low-nuclear` with new-build nuclear from 2040. Existing and planned nuclear plants run for 80 years from commissioning in all runs (`catf_model: nuclear: lifetime_extension`). Planned power plants are added as separate fixed links (`<bus> <carrier> planned-<horizon>`) with the costs without overwrites, instead of setting the minimum capacity of the extendable links; the last power grouping year is 2025, so that this applies to all plants commissioned after 2025 ([#63](https://github.com/open-energy-transition/clean-firm-techs-eu/pull/63)).

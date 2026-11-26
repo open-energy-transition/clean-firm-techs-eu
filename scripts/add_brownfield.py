@@ -115,13 +115,35 @@ def add_brownfield(
                 ],
             )
 
+        # CATF nuclear CHP: the heat link is much smaller than its electricity
+        # link (about max_heat_share / efficiency), so it is not removed by the
+        # threshold on its own but together with its electricity link below.
+        # Otherwise the constraints in custom_extra_functionality miss the pair.
+        nuclear_chp_heat = c.static.index[
+            c.static[f"{attr}_nom_extendable"]
+            & c.static.index.str.contains("steam heat link")
+        ]
+
         n_p.remove(
             c.name,
             c.static.index[
-                (c.static[f"{attr}_nom_extendable"] & ~c.static.index.isin(chp_heat))
+                (
+                    c.static[f"{attr}_nom_extendable"]
+                    & ~c.static.index.isin(chp_heat)
+                    & ~c.static.index.isin(nuclear_chp_heat)
+                )
                 & (c.static[f"{attr}_nom_opt"] < capacity_threshold)
             ],
         )
+
+        if not nuclear_chp_heat.empty:
+            nuclear_chp_elec = nuclear_chp_heat.str.replace(
+                "steam heat link", "steam electricity link"
+            )
+            n_p.remove(
+                c.name,
+                nuclear_chp_heat[~nuclear_chp_elec.isin(c.static.index)],
+            )
 
         # copy over assets but fix their capacity
         c.static[f"{attr}_nom"] = c.static[f"{attr}_nom_opt"]
