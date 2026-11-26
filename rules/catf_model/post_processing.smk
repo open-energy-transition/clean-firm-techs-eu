@@ -148,6 +148,10 @@ rule export_statistics:
         mem_mb=4000,
     params:
         statistics=config_provider("catf_model", "post_processing", "statistics"),
+        advanced_carriers=config_provider(
+            "catf_model", "post_processing", "advanced_carriers", default=[]
+        ),
+        horizons=config_provider("planning_horizons"),
     script:
         scripts("catf_model/post_processing/export_statistics.py")
 
@@ -242,6 +246,11 @@ rule export_energy_balances:
     threads: 1
     resources:
         mem_mb=4000,
+    params:
+        advanced_carriers=config_provider(
+            "catf_model", "post_processing", "advanced_carriers", default=[]
+        ),
+        horizons=config_provider("planning_horizons"),
     script:
         scripts("catf_model/post_processing/export_energy_balances.py")
 
@@ -352,6 +361,11 @@ rule export_dispatch:
     threads: 1
     resources:
         mem_mb=4000,
+    params:
+        advanced_carriers=config_provider(
+            "catf_model", "post_processing", "advanced_carriers", default=[]
+        ),
+        horizons=config_provider("planning_horizons"),
     script:
         scripts("catf_model/post_processing/export_dispatch.py")
 
