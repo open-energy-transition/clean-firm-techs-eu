@@ -214,12 +214,12 @@ catf_model:
     enabled: false
     parameters:
       c_v: 0.167  # loss factor - fraction of power loss per additional unit of heat produced
-      # maximum share of the reactor thermal output (steam used) that can go to heat;
-      # sets the backpressure coefficient c_b = eta_e / max_heat_share - c_v and the
-      # heat-to-power capacity ratio n_m = max_heat_share / eta_e
+      # maximum heat output as a share of the reactor thermal output (steam used),
+      # in every hour; sets the backpressure coefficient c_b = eta_e / max_heat_share - c_v
       max_heat_share: 0.2
       # overnight investment of the heat extraction in EUR/kW_th of heat output,
-      # annualised with the nuclear lifetime and discount rate (no FOM)
+      # annualised with the nuclear lifetime and discount rate (no FOM); paid only
+      # on the heat extraction capacity the model builds (optional per reactor)
       heat_link_capital_cost: 750
 
 data:

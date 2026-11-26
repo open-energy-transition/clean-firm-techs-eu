@@ -6210,7 +6210,9 @@ def add_nuclear_chp(n: pypsa.Network, parameters: dict, costs:pd.DataFrame) -> N
         lifetime=costs.at["nuclear", "lifetime"],
     )
 
-    # Add a nuclear heat link for district heating
+    # Add a nuclear heat link for district heating; its capacity is optimised
+    # freely (optional heat extraction), its use is capped by the backpressure
+    # constraint in custom_extra_functionality.
     # Heat extraction investment is given in EUR/kW_th of heat output; the link
     # p_nom is at bus0 (steam input), hence converted with the heat efficiency
     # and annualised with the reactor lifetime and discount rate.

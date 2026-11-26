@@ -4,15 +4,19 @@
 
 import xarray as xr
 
-from scripts._helpers import PYPSA_V1
-
 
 def custom_extra_functionality(n, snapshots, snakemake):
     """
     Add custom extra functionality constraints.
 
     Nuclear CHP: ties the "nuclear electricity" and "nuclear heat" links at each
-    steam bus together as one extraction-condensing turbine.
+    steam bus together as one extraction-condensing turbine:
+
+    - backpressure (every hour): heat output <= max_heat_share * steam used,
+      with the power loss per unit of heat (c_v) set by the link efficiencies;
+    - electricity link capacity = reactor capacity (extendable links).
+
+    The heat link capacity is optimised freely, so heat extraction is optional.
     """
 
     nuclear_chp = snakemake.params.catf_nuclear_chp
@@ -49,8 +53,6 @@ def custom_extra_functionality(n, snapshots, snakemake):
     # At the backpressure point P = c_b * Q and P = eta_e * F - c_v * Q, so the
     # heat output is Q = eta_e * F / (c_b + c_v). Setting Q = max_heat_share * F:
     c_b = eta_e / max_heat_share - c_v
-    # Maximum heat / maximum electricity output (both at full steam F)
-    n_m = max_heat_share / eta_e
 
     p = n.model["Link-p"]
     # Link dimension of the dispatch variable ("Link", or "name" in PyPSA v1)
@@ -71,41 +73,29 @@ def custom_extra_functionality(n, snapshots, snakemake):
         name="nuclear_chp-backpressure",
     )
 
-    # Extendable links: capacities are variables
-    is_ext = elec.p_nom_extendable.values
-    elec_ext = elec[is_ext]
-    heat_ext = heat[is_ext]
+    # No limit on total steam through the turbine links is needed: the steam bus
+    # has no store, so their steam use equals the reactor output, which is limited
+    # by the reactor capacity. The heat link capacity is left to the optimiser
+    # (heat extraction is optional); the backpressure caps its use at
+    # max_heat_share of the steam used.
 
+    # Extendable links: the electricity link has no costs of its own, so its
+    # capacity is set equal to the reactor capacity (both in MW steam at bus0) to
+    # keep it well defined for the statistics and the brownfield. Fixed links
+    # (earlier horizons, operations runs) already have equal capacities.
+    elec_ext = elec[elec.p_nom_extendable]
     if not elec_ext.empty:
+        reactor_ext = elec_ext.index.str.replace(
+            "steam electricity link", "nuclear steam link"
+        )
+        missing = reactor_ext.difference(n.links.index[n.links.p_nom_extendable])
+        if not missing.empty:
+            raise ValueError(
+                f"nuclear_chp: no extendable reactor link for {list(missing)}."
+            )
+
         p_nom = n.model["Link-p_nom"]
-        pnom_elec = p_nom.loc[elec_ext.index]
-        pnom_heat = p_nom.loc[heat_ext.index]
-
-        # Heat output capacity = n_m * electricity output capacity
         n.model.add_constraints(
-            n_m[is_ext] * elec_ext.efficiency.values * pnom_elec
-            - heat_ext.efficiency.values * pnom_heat
-            == 0,
-            name="nuclear_chp-p_nom_ratio",
-        )
-
-        # Top iso-fuel line: steam through both links <= turbine capacity
-        rename = {} if PYPSA_V1 else {"Link-ext": "Link"}
-        n.model.add_constraints(
-            p.loc[:, elec_ext.index]
-            + p.loc[:, heat_ext.index]
-            - p_nom.rename(rename).loc[elec_ext.index]
-            <= 0,
-            name="nuclear_chp-top_iso_fuel_line_ext",
-        )
-
-    # Fixed links (earlier myopic horizons, operations runs): capacity is a number
-    elec_fix = elec[~is_ext]
-    heat_fix = heat[~is_ext]
-
-    if not elec_fix.empty:
-        n.model.add_constraints(
-            p.loc[:, elec_fix.index] + p.loc[:, heat_fix.index]
-            <= per_link(elec_fix.p_nom.values, elec_fix.index),
-            name="nuclear_chp-top_iso_fuel_line_fix",
+            p_nom.loc[elec_ext.index] - p_nom.loc[reactor_ext] == 0,
+            name="nuclear_chp-elec_reactor_p_nom",
         )
