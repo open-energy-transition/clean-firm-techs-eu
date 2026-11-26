@@ -218,6 +218,9 @@ catf_model:
       # sets the backpressure coefficient c_b = eta_e / max_heat_share - c_v and the
       # heat-to-power capacity ratio n_m = max_heat_share / eta_e
       max_heat_share: 0.2
+      # overnight investment of the heat extraction in EUR/kW_th of heat output,
+      # annualised with the nuclear lifetime and discount rate (no FOM)
+      heat_link_capital_cost: 750
 
 data:
   # technology-data v0.16.0 fixes the nuclear fuel price (PR #291: 2.80 instead

@@ -6195,7 +6195,8 @@ def add_nuclear_chp(n: pypsa.Network, parameters: dict, costs:pd.DataFrame) -> N
         lifetime=costs.at["nuclear", "lifetime"],
     )
 
-    # Turbine links: no costs of their own (included in the reactor), same
+    # Turbine links: the electricity link has no costs of its own (included in
+    # the reactor), the heat link carries the heat extraction investment; same
     # lifetime as the reactor so that they retire together
     # Add a nuclear electricity links
     n.add(
@@ -6210,15 +6211,27 @@ def add_nuclear_chp(n: pypsa.Network, parameters: dict, costs:pd.DataFrame) -> N
     )
 
     # Add a nuclear heat link for district heating
+    # Heat extraction investment is given in EUR/kW_th of heat output; the link
+    # p_nom is at bus0 (steam input), hence converted with the heat efficiency
+    # and annualised with the reactor lifetime and discount rate.
+    nyears = n.snapshot_weightings.generators.sum() / 8760
+    eta_heat = eta_nuclear / parameters["c_v"]
+    annuity = calculate_annuity(
+        costs.at["nuclear", "lifetime"], costs.at["nuclear", "discount rate"]
+    )
+    heat_capital_cost = (
+        annuity * parameters["heat_link_capital_cost"] * 1e3 * eta_heat * nyears
+    )
     n.add(
         "Link",
         ac_buses + " steam heat link",
         bus0=ac_buses + " Steam bus",
         bus1=buses_dh,
         carrier="nuclear heat",
-        efficiency=eta_nuclear / parameters["c_v"],
+        efficiency=eta_heat,
         p_nom_extendable=True,
         lifetime=costs.at["nuclear", "lifetime"],
+        capital_cost=heat_capital_cost,
     )
 
 
