@@ -32,6 +32,7 @@ import xarray as xr
 from shapely.geometry import Polygon
 
 from scripts._helpers import configure_logging, get_snapshots, set_scenario_config
+from scripts.catf_model.build_egs_supply_curves import build_egs_supply_curves
 
 logger = logging.getLogger(__name__)
 
@@ -211,48 +212,70 @@ if __name__ == "__main__":
 
     egs_config = snakemake.params["sector"]["enhanced_geothermal"]
     costs_config = snakemake.params["costs"]
-
-    egs_data = prepare_egs_data(snakemake.input.egs_cost)
-    egs_data = prepare_capex(egs_data)
-
-    egs_regions = egs_data.geometry
-
-    network_regions = (
-        gpd.read_file(snakemake.input.regions)
-        .set_index("name", drop=True)
-        .set_crs(epsg=4326)
-    )
-
-    overlap_matrix = pd.DataFrame(
-        index=network_regions.index,
-        columns=egs_data.index,
-    )
-
-    for name, polygon in network_regions.geometry.items():
-        overlap_matrix.loc[name] = (
-            egs_regions.intersection(polygon).area
-        ) / egs_regions.area
-
-    overlap_matrix.to_csv(snakemake.output["egs_overlap"])
-
-    # the share of heat that is replenished from the earth's core.
-    # we are not constraining ourselves to the sustainable share, but
-    # inversely apply it to our underlying data, which refers to the
-    # sustainable heat. Source: Relative magnitude of sustainable heat vs
-    # nonsustainable heat in the paper "From hot rock to useful energy..."
-    sustainability_factor = egs_config["sustainability_factor"]
-    egs_data["p_nom_max"] = egs_data["PowerSust"] / sustainability_factor
-
-    egs_data[["p_nom_max", "CAPEX"]].to_csv(snakemake.output["egs_potentials"])
-
     snapshots = get_snapshots(
         snakemake.params.snapshots, snakemake.params.drop_leap_day
     )
 
-    capacity_factors = get_capacity_factors(
-        snakemake.input["regions"],
-        snakemake.input["air_temperature"],
-        snapshots,
-    )
+    supply_curve = egs_config.get("supply_curve")
+    if supply_curve:
+        # CATF: site-level EGS supply curves replace the Aghahosseini & Breyer data
+        potentials, overlap = build_egs_supply_curves(
+            supply_curve,
+            snakemake.input.regions,
+            np.atleast_1d(snakemake.params.planning_horizons).tolist(),
+        )
+        potentials.to_csv(snakemake.output["egs_potentials"])
+        overlap.to_csv(snakemake.output["egs_overlap"])
 
-    capacity_factors.to_csv(snakemake.output["egs_capacity_factors"])
+        if egs_config["var_cf"]:
+            capacity_factors = get_capacity_factors(
+                snakemake.input["regions"],
+                snakemake.input["air_temperature"],
+                snapshots,
+            )
+        else:
+            capacity_factors = pd.DataFrame(1.0, index=snapshots, columns=overlap.index)
+        scale = supply_curve.get("capacity_factor_scale", 1.0)
+        (capacity_factors * scale).to_csv(snakemake.output["egs_capacity_factors"])
+
+    else:
+        egs_data = prepare_egs_data(snakemake.input.egs_cost)
+        egs_data = prepare_capex(egs_data)
+
+        egs_regions = egs_data.geometry
+
+        network_regions = (
+            gpd.read_file(snakemake.input.regions)
+            .set_index("name", drop=True)
+            .set_crs(epsg=4326)
+        )
+
+        overlap_matrix = pd.DataFrame(
+            index=network_regions.index,
+            columns=egs_data.index,
+        )
+
+        for name, polygon in network_regions.geometry.items():
+            overlap_matrix.loc[name] = (
+                egs_regions.intersection(polygon).area
+            ) / egs_regions.area
+
+        overlap_matrix.to_csv(snakemake.output["egs_overlap"])
+
+        # the share of heat that is replenished from the earth's core.
+        # we are not constraining ourselves to the sustainable share, but
+        # inversely apply it to our underlying data, which refers to the
+        # sustainable heat. Source: Relative magnitude of sustainable heat vs
+        # nonsustainable heat in the paper "From hot rock to useful energy..."
+        sustainability_factor = egs_config["sustainability_factor"]
+        egs_data["p_nom_max"] = egs_data["PowerSust"] / sustainability_factor
+
+        egs_data[["p_nom_max", "CAPEX"]].to_csv(snakemake.output["egs_potentials"])
+
+        capacity_factors = get_capacity_factors(
+            snakemake.input["regions"],
+            snakemake.input["air_temperature"],
+            snapshots,
+        )
+
+        capacity_factors.to_csv(snakemake.output["egs_capacity_factors"])

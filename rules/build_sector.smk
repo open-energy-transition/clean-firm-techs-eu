@@ -1446,10 +1446,18 @@ def input_profile_offwind(w):
     }
 
 
+def input_egs_cost(w):
+    supply_curve = config_provider("sector", "enhanced_geothermal", "supply_curve")(w)
+    if not supply_curve:
+        return "data/egs_costs.json"
+    by_year = supply_curve.get("cost_data_by_year") or {}
+    return [supply_curve["cost_data"], *by_year.values()]
+
+
 rule build_egs_potentials:
     """Builds enhanced geothermal capacity potentials and costs per region from gridded data."""
     input:
-        egs_cost="data/egs_costs.json",
+        egs_cost=input_egs_cost,
         regions=resources("onshore_regions.geojson"),
         air_temperature=(
             resources("temp_air_total.nc")
@@ -1472,6 +1480,9 @@ rule build_egs_potentials:
         drop_leap_day=config_provider("enable", "drop_leap_day"),
         sector=config_provider("sector"),
         costs=config_provider("costs"),
+        planning_horizons=config_provider("planning_horizons"),
+    message:
+        "Building enhanced geothermal system (EGS) potential estimates"
     script:
         scripts("build_egs_potentials.py")
 

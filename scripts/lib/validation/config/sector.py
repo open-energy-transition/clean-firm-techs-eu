@@ -351,6 +351,10 @@ class _EnhancedGeothermalConfig(BaseModel):
         0.0025,
         description="Share of sourced heat that is replenished by the earth's core (see details in `build_egs_potentials.py <https://github.com/PyPSA/pypsa-eur/blob/master/scripts/build_egs_potentials.py>`_).",
     )
+    supply_curve: dict[str, Any] | None = Field(
+        None,
+        description="Site-level EGS supply curves with separate subsurface and surface (ORC) costs, replacing the default cost data (see `scripts/catf_model/build_egs_supply_curves.py`). Unset keeps the default data.",
+    )
 
 
 class _SolidBiomassImportConfig(BaseModel):
