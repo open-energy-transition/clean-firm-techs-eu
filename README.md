@@ -58,8 +58,12 @@ Each scenario makes one advanced technology buildable from 2040 and sets its hig
 |---|---|
 | `high-nuclear` | New-build nuclear: investment 8880 EUR/kW, financial lifetime 40 years |
 | `low-nuclear` | New-build nuclear: investment 6490 EUR/kW, financial lifetime 60 years |
+| `high-geothermal` | Enhanced geothermal (EGS): GEOELEC supply-curve costs, financial lifetime 30 years |
+| `low-geothermal` | Enhanced geothermal (EGS): as `high-geothermal`, with wells at -50% and surface plant (ORC) at -15% of high-geothermal scenario costs|
 
 New-build nuclear is not available in the baseline; the PyPSA default cost is 10806 EUR/kW with a 40-year lifetime. Planned plants (e.g. Hinkley Point C) are not new build: in all runs they are added as separate fixed links (`<bus> <carrier> planned-<horizon>`) with the default costs and their own decommissioning date. In all runs, existing and planned nuclear plants run for 80 years from commissioning (`catf_model: nuclear: lifetime_extension`), even where their decommissioning date is earlier; plants already closed before 2024 stay closed. In all runs, existing and new-build nuclear are links from the uranium bus, which is supplied at the uranium fuel cost.
+
+EGS is not available in the baseline. In the geothermal scenarios, its potentials and costs come from the site-level GEOELEC supply curves (`data/catf_model/EU_EGS_SupplyCurves_GEOELEC.csv`, `sector: enhanced_geothermal: supply_curve`) instead of the PyPSA-Eur default data, with separate costs for the wells and the ORC surface plant. `scripts/catf_model/build_egs_supply_curves.py` caps the potential per country (`max_potential_gw`), clusters each region's sites into supply-curve steps (`n_clusters`) and sets one ORC cost per region. Capacity factors are derated by `capacity_factor_scale` for availability. EGS potentials are built per scenario, not shared.
 
 
 ## Running with pixi tasks
