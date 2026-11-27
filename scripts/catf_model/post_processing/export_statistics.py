@@ -23,6 +23,9 @@ The Storage panel holds the energy capacity of the built storage listed in
 Costs are per component and carrier. The CO2 load sink (Generator ``load``) is a
 slack with a penalty per tonne, not a technology; its cost is logged.
 
+Advanced (new-build) capacity of ``advanced_carriers`` (e.g. nuclear) is exported
+as ``advanced <carrier>`` (see advanced_carriers.py).
+
 Demand is the annual consumption of loads per carrier, without loads at CO2 buses.
 
 All CSVs are in MW, MWh and EUR/a.
@@ -34,6 +37,7 @@ import pandas as pd
 import pypsa
 
 from scripts._helpers import configure_logging, set_scenario_config
+from scripts.catf_model.post_processing.advanced_carriers import split_advanced
 
 logger = logging.getLogger(__name__)
 
@@ -174,6 +178,7 @@ if __name__ == "__main__":
     set_scenario_config(snakemake)
 
     n = pypsa.Network(snakemake.input.network)
+    split_advanced(n, snakemake.params.advanced_carriers, snakemake.params.horizons[0])
 
     extract_costs(n, snakemake.output.costs)
     extract_capacities_and_generation(

@@ -18,6 +18,7 @@ import pandas as pd
 import pypsa
 
 from scripts._helpers import configure_logging, set_scenario_config
+from scripts.catf_model.post_processing.advanced_carriers import split_advanced
 
 logger = logging.getLogger(__name__)
 
@@ -47,5 +48,6 @@ if __name__ == "__main__":
     set_scenario_config(snakemake)
 
     n = pypsa.Network(snakemake.input.network)
+    split_advanced(n, snakemake.params.advanced_carriers, snakemake.params.horizons[0])
     dispatch(n).to_csv(snakemake.output.dispatch)
     logger.info(f"Exported the electricity dispatch to {snakemake.output.dispatch}.")

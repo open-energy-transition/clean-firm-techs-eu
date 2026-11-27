@@ -9,6 +9,10 @@ catf_model:
     # DateOut; null keeps DateOut (rule extend_nuclear_lifetime).
     lifetime_extension: 80
   post_processing:
+    # Carriers whose new build (built in a planning horizon at the costs of the
+    # advanced-technology scenarios) is exported as "advanced <carrier>", apart
+    # from existing and planned plants
+    advanced_carriers: [nuclear]
     # Subfolder of results/<prefix>/comparison_plots/ for the plots comparing
     # the runs in run.name, so that scenario sets sharing a prefix do not
     # overwrite each other's comparison plots
@@ -84,9 +88,12 @@ catf_model:
         # rows always go to "Storage & grid losses"; technologies not listed
         # go to "Other" with a warning.
         groups:
-          Nuclear:
+          Existing & planned nuclear:
             color: "#ff8c00"
             carriers: [nuclear]
+          Advanced nuclear:   # new build, see advanced_carriers
+            color: "#ffb870"
+            carriers: [advanced nuclear]
           # EGS (sector.enhanced_geothermal): ORC power and district heat
           Enhanced geothermal:
             color: "#ba91b1"
@@ -190,8 +197,9 @@ catf_model:
       # bands first, then variable ones and backup, storage outermost. Groups
       # not listed follow in the order of the groups.
       order:
-      - Nuclear
+      - Existing & planned nuclear
       - Enhanced geothermal
+      - Advanced nuclear
       - Coal & lignite
       - Biomass CHP
       - Gas CHP
@@ -245,9 +253,12 @@ catf_model:
       # this order. Groups with "panels" only apply in these panels. Technologies
       # not listed are plotted as "Other" and logged.
       groups:
-        Nuclear:   # incl. the uranium supply (fuel cost)
+        Existing & planned nuclear:
           color: "#ff8c00"
           carriers: [nuclear, uranium]
+        Advanced nuclear:   # new build, see advanced_carriers
+          color: "#ffb870"
+          carriers: [advanced nuclear]
         # EGS (sector.enhanced_geothermal): wells (geothermal heat links, incl.
         # the reservoir if flexible), ORC and district heat connection
         Enhanced geothermal:
@@ -339,6 +350,9 @@ catf_model:
         Natural gas supply:   # incl. the gas storage (Store gas), which has the same carrier
           color: "#5b7c99"
           carriers: [gas]
+        Uranium supply:   # fuel of existing and advanced nuclear
+          color: "#b35c00"
+          carriers: [uranium]
         Oil supply:
           color: "#5e4b3c"
           carriers: [oil primary]
@@ -361,9 +375,15 @@ catf_model:
       # of technology groups. Fuel families (Gas, Oil, Coal & lignite, Bioenergy)
       # hold their plants and all their fuel purchases, whichever sector uses them
       cost_categories:
-        Nuclear:
+        Existing & planned nuclear:
           color: "#ff8c00"
-          groups: [Nuclear]
+          groups: [Existing & planned nuclear]
+        Advanced nuclear:
+          color: "#ffb870"
+          groups: [Advanced nuclear]
+        Uranium supply:
+          color: "#b35c00"
+          groups: [Uranium supply]
         Enhanced geothermal:
           color: "#ba91b1"
           groups: [Enhanced geothermal]
